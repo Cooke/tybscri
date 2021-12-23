@@ -7,5 +7,9 @@
       "path": "js-lang"
     }
   ],
-  "settings": {}
+  "settings": {
+    "cSpell.words": [
+      "Tybscri"
+    ]
+  }
 }

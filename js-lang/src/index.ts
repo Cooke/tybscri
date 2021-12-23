@@ -1,37 +1,14 @@
-export type SyntaxNode = ExpressionSyntax;
-
-export type ExpressionSyntax =
-  | InvalidExpressionSyntax
-  | ConstantExpressionSyntax;
-
-export interface InvalidExpressionSyntax {
-  type: "invalid";
-}
-
-export interface ConstantExpressionSyntax {
-  type: "constant";
-}
+import { ExpressionNode } from "./nodes/expression";
+import { Parser } from "./Parser";
 
 export interface ExpressionParseResult {
-  syntaxTree: ExpressionSyntax;
+  tree: ExpressionNode;
 }
 
 export function parseExpression(expression: string): ExpressionParseResult {
-  if (expression != '"123"') {
-    return {
-      syntaxTree: {
-        type: "invalid",
-      },
-    };
-  }
-
-  return { syntaxTree: { type: "constant" } };
-}
-
-export interface ExpressionAnalysis {}
-
-export function analyzeExpression(
-  expression: ExpressionSyntax
-): ExpressionAnalysis {
-  return {};
+  var parser = new Parser(expression);
+  const exp = parser.primaryExpression();
+  return {
+    tree: exp,
+  };
 }
