@@ -1,5 +1,13 @@
-import { SourceSpan } from "../types";
+import { SourceSpan } from "../common";
 import { Type } from "../types/common";
+
+export class TypeNotFound {
+  constructor(public name: string) {}
+}
+
+export class UnknownType {}
+
+export type NodeValueType = Type | TypeNotFound | UnknownType | null;
 
 export abstract class Node {
   // public abstract visit<TReturn = undefined, TContext = undefined>(
@@ -9,7 +17,7 @@ export abstract class Node {
 
   public abstract getChildren(): ReadonlyArray<Node>;
 
-  public abstract get type(): Type | null | undefined;
+  public abstract get type(): NodeValueType;
 
   public get span(): SourceSpan {
     const children = this.getChildren();

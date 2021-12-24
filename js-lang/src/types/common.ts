@@ -1,35 +1,19 @@
-export type Type =
-  | UnionType
-  | LiteralType
-  | FuncType
-  | RegularType
-  | GenericType;
-
-export type InlineType = Exclude<Type, RegularType>;
-
-export type TypeRefOrInlineType = TypeRef | InlineType;
-
-export type TypeRef = string;
+export type Type = UnionType | LiteralType | FuncType | RegularType;
 
 export interface UnionType {
   readonly kind: "Union";
-  readonly types: TypeRefOrInlineType[];
-}
-
-export interface GenericType {
-  readonly kind: "Generic";
-  readonly typeArguments: TypeRefOrInlineType[];
+  readonly types: Type[];
 }
 
 export interface LiteralType {
   readonly kind: "Literal";
   readonly value: any;
-  readonly valueType: TypeRefOrInlineType;
+  readonly valueType: Type;
 }
 
 export interface RegularType {
   readonly kind: "Regular";
-  readonly base: TypeRef | GenericType | null;
+  readonly base: RegularType | null;
   readonly members: Array<MemberDef>;
   readonly name: string;
 }
@@ -47,41 +31,26 @@ export interface MemberDef {
 export interface FuncType {
   readonly kind: "Func";
   readonly parameters: Array<ParameterDef>;
-  readonly returnType: TypeRefOrInlineType;
+  readonly returnType: Type;
 }
 
 export interface ParameterDef {
   readonly name: string;
-  readonly type: TypeRefOrInlineType;
+  readonly type: Type;
 }
 
 export interface TypeTable {
   [name: string]: Type;
 }
 
-export function isTypeRef(t: any): t is TypeRef {
-  return typeof t === "string";
-}
-
-export function getTypeDisplayName(
-  typeOrRef: Type | TypeRef,
-  typeTable: TypeTable
-): string {
-  if (isTypeRef(typeOrRef)) {
-    const resolvedType = resolveType(typeOrRef, typeTable);
-    return resolvedType
-      ? getTypeDisplayName(resolvedType, typeTable)
-      : "unknown";
-  }
-
-  const type = typeOrRef;
-
+export function getTypeDisplayName(type: Type, typeTable: TypeTable): string {
   switch (type.kind) {
     case "Regular":
       return type.name;
 
     case "Literal":
-      return type.valueType === "number"
+      return type.valueType.kind === "Regular" &&
+        type.valueType.name === "number"
         ? type.value.toString()
         : '"' + type.value.toString() + '"';
 
@@ -95,44 +64,14 @@ export function getTypeDisplayName(
   }
 }
 
-export function resolveType(
-  typeOrRef: Type | TypeRef,
-  typeTable: TypeTable
-): Type | null {
-  if (isTypeRef(typeOrRef)) {
-    return typeTable[typeOrRef] ?? null;
-  }
-
-  return typeOrRef;
-}
-
-export function resolveTypeOrThrow(
-  typeOrRef: Type | TypeRef,
-  typeTable: TypeTable
-): Type {
-  const resolvedType = resolveType(typeOrRef, typeTable);
-  if (!resolvedType) {
-    throw new Error(`Failed to resolve type '${typeOrRef}'`);
-  }
-
-  return resolvedType;
-}
-
 export function getAllTypeMembers(
-  typeOrRef: Type | TypeRef,
+  type: Type,
   typeTable: TypeTable
 ): MemberDef[] {
-  const type = resolveTypeOrThrow(typeOrRef, typeTable);
-
   switch (type.kind) {
     case "Regular":
       return type.members.concat(
-        type.base
-          ? getAllTypeMembers(
-              resolveTypeOrThrow(type.base, typeTable),
-              typeTable
-            )
-          : []
+        type.base ? getAllTypeMembers(type.base, typeTable) : []
       );
 
     case "Union":
@@ -168,13 +107,10 @@ export function getAllTypeMembers(
 }
 
 export function isTypeAssignableToType(
-  fromTypeOrRef: Type | TypeRef,
-  toTypeOrRef: Type | TypeRef,
+  from: Type,
+  to: Type,
   typeTable: TypeTable
 ): boolean {
-  const to = resolveTypeOrThrow(toTypeOrRef, typeTable);
-  const from = resolveTypeOrThrow(fromTypeOrRef, typeTable);
-
   switch (to.kind) {
     case "Regular":
       switch (from.kind) {
@@ -184,19 +120,7 @@ export function isTypeAssignableToType(
             if (testType.name === to.name) {
               return true;
             }
-
-            if (testType.base) {
-              const resolvedBase = resolveTypeOrThrow(testType.base, typeTable);
-              if (resolvedBase.kind !== "Regular") {
-                throw new Error(
-                  `Unsupported base type kind '${resolvedBase.kind}'`
-                );
-              }
-
-              testType = resolvedBase;
-            } else {
-              testType = null;
-            }
+            testType = testType.base;
           }
 
           return false;
@@ -211,14 +135,7 @@ export function isTypeAssignableToType(
           return false;
 
         case "Literal":
-          return isTypeAssignableToType(
-            resolveTypeOrThrow(from.valueType, typeTable),
-            to,
-            typeTable
-          );
-
-        case "Generic":
-          throw new Error("To be implemented");
+          return isTypeAssignableToType(from.valueType, to, typeTable);
       }
 
     case "Func": {
@@ -239,8 +156,5 @@ export function isTypeAssignableToType(
     case "Literal": {
       return from.kind === "Literal" && from.value === to.value;
     }
-
-    case "Generic":
-      throw new Error("To be implemented");
   }
 }

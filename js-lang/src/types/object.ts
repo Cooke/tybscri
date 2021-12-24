@@ -1,4 +1,5 @@
 import { RegularType } from "./common";
+import { stringType } from "./string";
 
 export const objectType: RegularType = {
   kind: "Regular",
@@ -11,8 +12,10 @@ export const objectType: RegularType = {
       type: {
         kind: "Func",
         parameters: [],
-        returnType: "string",
+        returnType: stringType,
       },
     },
   ],
 };
+
+(stringType as any).base = objectType;

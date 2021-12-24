@@ -1,4 +1,4 @@
-import { Lexer, SourceSpan } from "../types";
+import { Lexer, SourceSpan } from "../common";
 import { Node } from "./base";
 
 // TODO: should the tokens be nodes in the tree? Or could they be trivia in the nodes?

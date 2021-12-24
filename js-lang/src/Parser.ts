@@ -3,21 +3,24 @@ import { TybscriLexer } from "./generated/TybscriLexer";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
 import { LiteralNode } from "./nodes/literal";
 import { ActualTokenNode, MissingTokenNode, TokenNode } from "./nodes/token";
-import { SourceSpan } from "./types";
+import { SourceSpan, SymbolContext } from "./common";
 import { LiteralType } from "./types/common";
 import { numberType } from "./types/number";
-
-const emptyArray: any[] = [];
+import { stringType } from "./types/string";
+import { IdentifierNode } from "./nodes/identifier";
+import { timeStamp } from "console";
 
 const L = TybscriLexer;
 
 export class Parser {
   private tokenStream: CommonTokenStream;
+  private symbolContext: SymbolContext;
 
-  public constructor(source: string) {
+  public constructor(source: string, symbols?: SymbolContext) {
     this.tokenStream = new CommonTokenStream(
       new TybscriLexer(CharStreams.fromString(source))
     );
+    this.symbolContext = symbols ?? { resolve: () => null };
   }
 
   public primaryExpression(): ExpressionNode {
@@ -28,29 +31,41 @@ export class Parser {
         const literalType: LiteralType = {
           kind: "Literal",
           value,
-          valueType: numberType.name,
+          valueType: numberType,
         };
         return new LiteralNode([syntaxToken], value, literalType);
+      }
+
+      case L.Identifier:
+        return this.identifier();
+
+      case L.QUOTE_OPEN: {
+        return this.parseStringLiteral();
       }
     }
 
     return new MissingExpressionNode(this.createActualToken(this.peekToken()));
   }
 
-  //   private parseStringLiteral() {
-  //     return this.parseLineStringLiteral();
-  //   }
+  private parseStringLiteral() {
+    return this.parseLineStringLiteral();
+  }
 
-  //   private parseLineStringLiteral() {
-  //     const openQuote = this.parseSyntaxToken(L.QUOTE_OPEN);
-  //     const textToken = this.parseSyntaxToken(L.LineStrText);
-  //     const closeQuote = this.parseSyntaxToken(L.QUOTE_CLOSE);
-  //     return new LiteralSyntax(
-  //       [openQuote, textToken, closeQuote],
-  //       textToken.toString,
-  //       "string"
-  //     );
-  //   }
+  private parseLineStringLiteral() {
+    const openQuote = this.parseExpectedToken(L.QUOTE_OPEN);
+    const textToken = this.parseExpectedToken(L.LineStrText);
+    const closeQuote = this.parseExpectedToken(L.QUOTE_CLOSE);
+    const literalType: LiteralType = {
+      kind: "Literal",
+      value: textToken.text,
+      valueType: stringType,
+    };
+    return new LiteralNode(
+      [openQuote, textToken, closeQuote],
+      textToken.text,
+      literalType
+    );
+  }
 
   //   private parseIfExpression() {
   //     const ifkeyword = this.parseSyntaxToken(L.IF);
@@ -139,9 +154,10 @@ export class Parser {
   //     }
   //   }
 
-  //   private parseIdentifier() {
-  //     return this.parseSyntaxToken(L.Identifier);
-  //   }
+  private identifier() {
+    const token = this.parseExpectedToken(L.Identifier);
+    return new IdentifierNode(token, this.symbolContext.resolve(token.text));
+  }
 
   //   private parseSemi(): TokenSyntax {
   //     switch (this.peek()) {

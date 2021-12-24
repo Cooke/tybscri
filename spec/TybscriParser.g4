@@ -138,9 +138,7 @@ literalConstant: INT | FLOAT | TRUE | FALSE;
 stringLiteral: lineStringLiteral;
 
 lineStringLiteral:
-	QUOTE_OPEN (lineStringContent)* (QUOTE_CLOSE | EOF);
-
-lineStringContent: LineStrText;
+	QUOTE_OPEN (LineStrText)* (QUOTE_CLOSE | EOF);
 
 lambdaLiteral:
 	LCURL NL* statements NL* RCURL
