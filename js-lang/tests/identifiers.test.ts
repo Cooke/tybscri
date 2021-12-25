@@ -6,7 +6,6 @@ import { assertType, assertUnknownType } from "./utils";
 describe("Identifiers", function () {
   it("undetermined identifier type", function () {
     const parseResult = parseExpression("data");
-    // console.log(parseResult.tree.type);
     assertUnknownType(parseResult.tree.type);
   });
 
@@ -14,7 +13,7 @@ describe("Identifiers", function () {
     const scope = new Scope({
       data: { valueType: stringType },
     });
-    const parseResult = parseExpression("data", scope);
+    const parseResult = parseExpression("data", { symbols: scope });
     assertType(parseResult.tree.type, stringType);
   });
 });

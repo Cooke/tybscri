@@ -1,0 +1,12 @@
+.App {
+  text-align: center;
+  display: "absolute";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.Editor {
+  border: 1px solid gray;
+}

@@ -1,29 +1,40 @@
 import { CharStreams, CommonTokenStream, Token } from "antlr4ts";
+import {
+  DiagnosticMessage,
+  DiagnosticSeverity,
+  SourceSpan,
+  SymbolContext,
+} from "./common";
 import { TybscriLexer } from "./generated/TybscriLexer";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
+import { IdentifierNode } from "./nodes/identifier";
 import { LiteralNode } from "./nodes/literal";
 import { ActualTokenNode, MissingTokenNode, TokenNode } from "./nodes/token";
-import { SourceSpan, SymbolContext } from "./common";
 import { LiteralType } from "./types/common";
 import { numberType } from "./types/number";
 import { stringType } from "./types/string";
-import { IdentifierNode } from "./nodes/identifier";
-import { timeStamp } from "console";
 
 const L = TybscriLexer;
+
+export interface ParseContext {
+  symbols?: SymbolContext;
+  onDiagnostic?: (event: DiagnosticMessage) => void;
+}
 
 export class Parser {
   private tokenStream: CommonTokenStream;
   private symbolContext: SymbolContext;
+  private onDiagnosticMessage: ((event: DiagnosticMessage) => void) | undefined;
 
-  public constructor(source: string, symbols?: SymbolContext) {
+  public constructor(source: string, context: ParseContext) {
     this.tokenStream = new CommonTokenStream(
       new TybscriLexer(CharStreams.fromString(source))
     );
-    this.symbolContext = symbols ?? { resolve: () => null };
+    this.symbolContext = context.symbols ?? { resolve: () => null };
+    this.onDiagnosticMessage = context.onDiagnostic;
   }
 
-  public primaryExpression(): ExpressionNode {
+  public parsePrimaryExpression(): ExpressionNode {
     switch (this.peek()) {
       case L.INT: {
         const syntaxToken = this.parseKnownToken();
@@ -37,7 +48,7 @@ export class Parser {
       }
 
       case L.Identifier:
-        return this.identifier();
+        return this.parseIdentifier();
 
       case L.QUOTE_OPEN: {
         return this.parseStringLiteral();
@@ -55,6 +66,16 @@ export class Parser {
     const openQuote = this.parseExpectedToken(L.QUOTE_OPEN);
     const textToken = this.parseExpectedToken(L.LineStrText);
     const closeQuote = this.parseExpectedToken(L.QUOTE_CLOSE);
+
+    if (closeQuote instanceof MissingTokenNode) {
+      this.reportDiagnostic({
+        message:
+          "Unterminated string. Add a citation character '\"' to terminate the string literal.",
+        span: closeQuote.span,
+        severity: DiagnosticSeverity.Error,
+      });
+    }
+
     const literalType: LiteralType = {
       kind: "Literal",
       value: textToken.text,
@@ -154,9 +175,18 @@ export class Parser {
   //     }
   //   }
 
-  private identifier() {
+  private parseIdentifier() {
     const token = this.parseExpectedToken(L.Identifier);
-    return new IdentifierNode(token, this.symbolContext.resolve(token.text));
+    const symbol = this.symbolContext.resolve(token.text);
+    if (!symbol) {
+      this.reportDiagnostic({
+        message: `Cannot find name '${token.text}'`,
+        severity: DiagnosticSeverity.Error,
+        span: token.span,
+      });
+    }
+
+    return new IdentifierNode(token, symbol);
   }
 
   //   private parseSemi(): TokenSyntax {
@@ -193,7 +223,7 @@ export class Parser {
 
   private createMissingToken(actualToken: Token, missingTokenType: number) {
     const actualTokenSyntax = this.createActualToken(actualToken);
-    return new MissingTokenNode(
+    const missingToken = new MissingTokenNode(
       missingTokenType,
       {
         start: actualTokenSyntax.span.start,
@@ -201,6 +231,12 @@ export class Parser {
       },
       actualTokenSyntax
     );
+
+    return missingToken;
+  }
+
+  private reportDiagnostic(msg: DiagnosticMessage) {
+    this.onDiagnosticMessage?.(msg);
   }
 
   private createActualToken(token: Token) {
@@ -214,8 +250,16 @@ export class Parser {
   private createSpan(token: Token): SourceSpan {
     token.startIndex;
     return {
-      start: token.startIndex,
-      stop: token.stopIndex,
+      start: {
+        index: token.startIndex,
+        column: token.charPositionInLine,
+        line: token.line,
+      },
+      stop: {
+        index: token.stopIndex,
+        column: token.charPositionInLine,
+        line: token.line,
+      },
     };
   }
 

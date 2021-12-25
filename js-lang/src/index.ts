@@ -1,17 +1,25 @@
-import { SymbolContext } from "./common";
+import { CharStreams } from "antlr4ts";
+import { Lexer } from "./common";
 import { ExpressionNode } from "./nodes/expression";
-import { Parser } from "./Parser";
+import { ParseContext, Parser } from "./Parser";
+export { DiagnosticMessage } from "./common";
+
+export { Parser, Lexer };
 
 export interface ExpressionParseResult {
   tree: ExpressionNode;
 }
 
+export function createLexer(source: string) {
+  return new Lexer(CharStreams.fromString(source));
+}
+
 export function parseExpression(
   expression: string,
-  symbols?: SymbolContext
+  context?: ParseContext
 ): ExpressionParseResult {
-  var parser = new Parser(expression, symbols);
-  const exp = parser.primaryExpression();
+  var parser = new Parser(expression, context ?? {});
+  const exp = parser.parsePrimaryExpression();
   return {
     tree: exp,
   };

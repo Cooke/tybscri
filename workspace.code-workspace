@@ -5,11 +5,15 @@
     },
     {
       "path": "js-lang"
+    },
+    {
+      "path": "monaco-integration"
+    },
+    {
+      "path": "js-demo"
     }
   ],
   "settings": {
-    "cSpell.words": [
-      "Tybscri"
-    ]
+    "cSpell.words": ["Tybscri"]
   }
 }

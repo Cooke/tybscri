@@ -1,0 +1,11 @@
+{
+  "name": "tybscri-monaco-integration",
+  "version": "0.1.0",
+  "repository": "https://github.com/Cooke/tybscri",
+  "main": "./lib/index.js",
+  "author": "Henrik Cooke",
+  "devDependencies": {
+    "monaco-editor": "^0.31.1",
+    "typescript": "^4.5.4"
+  }
+}

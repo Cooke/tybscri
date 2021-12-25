@@ -3,9 +3,15 @@ import { Type } from "./types/common";
 
 export { TybscriLexer as Lexer };
 
+export interface SourceLocation {
+  index: number;
+  line: number;
+  column: number;
+}
+
 export interface SourceSpan {
-  readonly start: number;
-  readonly stop: number;
+  readonly start: SourceLocation;
+  readonly stop: SourceLocation;
 }
 
 export interface Symbol {
@@ -14,6 +20,16 @@ export interface Symbol {
 
 export interface SymbolContext {
   resolve(name: string): Symbol | null;
+}
+
+export enum DiagnosticSeverity {
+  Error = "error",
+}
+
+export interface DiagnosticMessage {
+  message: string;
+  severity: DiagnosticSeverity;
+  span: SourceSpan;
 }
 
 export class Scope implements SymbolContext {
