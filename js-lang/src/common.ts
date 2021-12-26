@@ -67,7 +67,7 @@ export class Scope {
     this.hoistedSymbols.push(symbol);
   }
 
-  withSymbol(symbol: Symbol): Scope {
+  addSymbol(symbol: Symbol): Scope {
     return new Scope(
       this.parent,
       this.hoistedSymbols,

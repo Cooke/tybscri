@@ -1,8 +1,8 @@
-import { RegularType } from "./common";
+import { ObjectType } from "./common";
 import { stringType } from "./string";
 
-export const objectType: RegularType = {
-  kind: "Regular",
+export const objectType: ObjectType = {
+  kind: "Object",
   name: "object",
   base: null,
   members: [

@@ -29,17 +29,26 @@ export abstract class Node {
     }
 
     if (this._analyzeState === "analyzing") {
-      context.onDiagnosticMessage?.({
-        message: "Circular reference detected",
-        severity: DiagnosticSeverity.Error,
-        span: this.span,
-      });
+      this._valueType = this.handleCircularReference?.(context) ?? null;
+      this._analyzeState = "analyzed";
       return;
     }
 
     this._analyzeState = "analyzing";
-    this._valueType = this.analyzeInternal(context);
+    const analyzeResult = this.analyzeInternal(context);
+    if (this._analyzeState !== "analyzing") {
+      // Analyzed already done in a circular analyze
+      return;
+    }
+
+    this._valueType = analyzeResult;
     this._analyzeState = "analyzed";
+  }
+
+  protected handleCircularReference?(
+    context: AnalyzeContext
+  ): Type | undefined {
+    return undefined;
   }
 
   protected abstract analyzeInternal(context: AnalyzeContext): Type | null;
@@ -80,6 +89,9 @@ export abstract class Node {
   }
 
   public toString(): string {
-    return this.constructor.name + `[${this.span.start}..${this.span.stop}]`;
+    return (
+      this.constructor.name +
+      `[${this.span.start.index}..${this.span.stop.index}]`
+    );
   }
 }

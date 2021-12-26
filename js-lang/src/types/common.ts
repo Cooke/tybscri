@@ -1,4 +1,13 @@
-export type Type = UnionType | LiteralType | FuncType | RegularType;
+export type Type =
+  | UnionType
+  | LiteralType
+  | FuncType
+  | ObjectType
+  | UnknownType;
+
+export interface UnknownType {
+  readonly kind: "Unknown";
+}
 
 export interface UnionType {
   readonly kind: "Union";
@@ -11,9 +20,9 @@ export interface LiteralType {
   readonly valueType: Type;
 }
 
-export interface RegularType {
-  readonly kind: "Regular";
-  readonly base: RegularType | null;
+export interface ObjectType {
+  readonly kind: "Object";
+  readonly base: ObjectType | null;
   readonly members: Array<MemberDef>;
   readonly name: string;
 }
@@ -45,19 +54,22 @@ export interface TypeTable {
 
 export function getTypeDisplayName(type: Type): string {
   switch (type.kind) {
-    case "Regular":
+    case "Object":
       return type.name;
 
     case "Literal":
-      return type.valueType.kind === "Regular" &&
-        type.valueType.name === "number"
-        ? type.value.toString()
-        : '"' + type.value.toString() + '"';
+      return type.valueType.kind === "Object" &&
+        type.valueType.name === "string"
+        ? '"' + type.value.toString() + '"'
+        : type.value.toString();
 
     case "Func":
       return `(${type.parameters.map((p) =>
         getTypeDisplayName(p.type)
       )}) => ${getTypeDisplayName(type.returnType)}`;
+
+    case "Union":
+      return type.types.map(getTypeDisplayName).join(" | ");
 
     default:
       return type.kind;
@@ -66,7 +78,7 @@ export function getTypeDisplayName(type: Type): string {
 
 export function getAllTypeMembers(type: Type): MemberDef[] {
   switch (type.kind) {
-    case "Regular":
+    case "Object":
       return type.members.concat(type.base ? getAllTypeMembers(type.base) : []);
 
     case "Union":
@@ -99,10 +111,10 @@ export function getAllTypeMembers(type: Type): MemberDef[] {
 
 export function isTypeAssignableToType(from: Type, to: Type): boolean {
   switch (to.kind) {
-    case "Regular":
+    case "Object":
       switch (from.kind) {
-        case "Regular": {
-          let testType: RegularType | null | undefined = from;
+        case "Object": {
+          let testType: ObjectType | null | undefined = from;
           while (testType != null) {
             if (testType.name === to.name) {
               return true;
@@ -121,6 +133,9 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
 
         case "Literal":
           return isTypeAssignableToType(from.valueType, to);
+
+        case "Unknown":
+          return false;
       }
 
     case "Func": {
@@ -135,11 +150,29 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
     }
 
     case "Union": {
-      return to.types.some((t) => isTypeAssignableToType(from, t));
+      return from.kind === "Union"
+        ? from.types.every((ft) =>
+            to.types.some((t) => isTypeAssignableToType(ft, t))
+          )
+        : to.types.some((t) => isTypeAssignableToType(from, t));
     }
 
     case "Literal": {
       return from.kind === "Literal" && from.value === to.value;
     }
+
+    case "Unknown": {
+      return false;
+    }
+  }
+}
+
+export function widenType(type: Type) {
+  switch (type.kind) {
+    case "Literal":
+      return type.valueType;
+
+    default:
+      return type;
   }
 }

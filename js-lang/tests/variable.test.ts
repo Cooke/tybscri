@@ -4,7 +4,7 @@ import { stringType } from "../src/types/string";
 import { assertTybscriType } from "./utils";
 
 describe("Variables", function () {
-  it("inferred type", function () {
+  it("inferred val type", function () {
     const parseResult = parseScript(`
       val foo = "bar";
     `);
@@ -14,6 +14,14 @@ describe("Variables", function () {
       value: "bar",
       valueType: stringType,
     });
+  });
+
+  it("inferred var type", function () {
+    const parseResult = parseScript(`
+      var foo = "bar";
+    `);
+    const valNode = parseResult.tree.statements[0];
+    assertTybscriType(valNode.valueType, stringType);
   });
 
   it("inferred type from not yet defined function", function () {

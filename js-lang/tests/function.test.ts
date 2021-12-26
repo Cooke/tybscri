@@ -1,4 +1,5 @@
-import { parseScript } from "../src";
+import assert from "assert";
+import { DiagnosticMessage, parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
 import { InvocationNode } from "../src/nodes/invocation";
 import { stringType } from "../src/types/string";
@@ -49,5 +50,18 @@ describe("Functions", function () {
       value: "bar",
       valueType: stringType,
     });
+  });
+
+  it("circular reference error", function () {
+    const msgs: DiagnosticMessage[] = [];
+    parseScript(
+      `
+    fun foo() {
+        foo()
+    }
+    `,
+      { onDiagnosticMessage: (msg) => msgs.push(msg) }
+    );
+    assert.equal(msgs.length, 1);
   });
 });

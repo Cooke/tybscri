@@ -1,4 +1,6 @@
+import { DiagnosticSeverity } from "../common";
 import { FuncType, Type } from "../types/common";
+import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
 import { BlockNode } from "./block";
 import { StatementNode } from "./statements";
@@ -11,6 +13,20 @@ export class FunctionNode extends StatementNode {
     return {
       kind: "Func",
       returnType: this.body.valueType,
+      parameters: [],
+    } as FuncType;
+  }
+
+  protected handleCircularReference(context: AnalyzeContext) {
+    context.onDiagnosticMessage?.({
+      message: "Circular reference in function is currently not allowed",
+      severity: DiagnosticSeverity.Error,
+      span: this.span,
+    });
+
+    return {
+      kind: "Func",
+      returnType: unknownType,
       parameters: [],
     } as FuncType;
   }

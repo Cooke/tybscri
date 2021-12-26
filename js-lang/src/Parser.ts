@@ -24,6 +24,8 @@ import {
   VariableKind,
 } from "./nodes/variableDeclaration";
 import { InvocationNode } from "./nodes/invocation";
+import { IfNode } from "./nodes/if";
+import { booleanType } from "./types/boolean";
 
 const L = TybscriLexer;
 
@@ -92,6 +94,7 @@ export class Parser {
       case L.FUN:
         return this.parseFunctionDeclaration();
 
+      case L.VAR:
       case L.VAL:
         return this.parseVariableDeclaration();
     }
@@ -112,7 +115,7 @@ export class Parser {
     const kind =
       varOrVal.text === "var" ? VariableKind.Variable : VariableKind.Const;
     const varDec = new VariableDeclarationNode(kind, def.name, def.value);
-    this.scope = this.scope.withSymbol(new SourceSymbol(def.name.text, varDec));
+    this.scope = this.scope.addSymbol(new SourceSymbol(def.name.text, varDec));
     return varDec;
   }
 
@@ -197,8 +200,15 @@ export class Parser {
         return new LiteralNode([syntaxToken], value, literalType);
       }
 
+      case L.IF:
+        return this.parseIfExpression();
+
       case L.Identifier:
         return this.parseScopeIdentifier();
+
+      case L.FALSE:
+      case L.TRUE:
+        return this.parseBooleanLiteral();
 
       case L.QUOTE_OPEN: {
         return this.parseStringLiteral();
@@ -206,6 +216,62 @@ export class Parser {
     }
 
     return new MissingExpressionNode(this.createActualToken(this.peekToken()));
+  }
+
+  private parseIfExpression() {
+    const ifkeyword = this.parseExpectedToken(L.IF);
+    this.advanceWhileNL();
+    const lparen = this.parseExpectedToken(L.LPAREN);
+    this.advanceWhileNL();
+    const expression = this.parseExpression();
+    this.advanceWhileNL();
+    const rparen = this.parseExpectedToken(L.RPAREN);
+    this.advanceWhileNL();
+    const thenStatement = this.parseBody();
+
+    // Search for else
+    let i = 1;
+    while (this.peek(i) === L.NL) {
+      i++;
+    }
+
+    let elseStatement: ExpressionNode | null = null;
+    if (this.peek(i) === L.ELSE) {
+      this.advanceWhileNL();
+      this.advance();
+      this.advanceWhileNL();
+      elseStatement = this.parseBody();
+    }
+
+    return new IfNode(
+      ifkeyword,
+      lparen,
+      expression,
+      rparen,
+      thenStatement,
+      elseStatement
+    );
+  }
+
+  private parseBody() {
+    if (this.peek() === L.LCURL) {
+      return this.parseBlock();
+    }
+
+    return this.parseExpression();
+  }
+
+  private parseBooleanLiteral() {
+    if (this.peek() !== L.TRUE && this.peek() !== L.FALSE) {
+      throw new Error("Only parse boolean literals after look-ahead");
+    }
+
+    const value = this.peek() === L.TRUE;
+    return new LiteralNode([this.parseKnownToken()], value, {
+      kind: "Literal",
+      value,
+      valueType: booleanType,
+    });
   }
 
   private parseStringLiteral() {
