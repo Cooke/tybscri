@@ -1,5 +1,5 @@
 import { TybscriLexer } from "./generated/TybscriLexer";
-import { AnalyzeContext } from "./nodes/base";
+import { AnalyzeContext, Node } from "./nodes/base";
 import { ExpressionNode } from "./nodes/expression";
 import { Type } from "./types/common";
 
@@ -24,8 +24,21 @@ export abstract class Symbol {
   public abstract analyze(context: AnalyzeContext): void;
 }
 
+export class NarrowedSymbol extends Symbol {
+  constructor(
+    public readonly outerSymbol: Symbol,
+    public readonly valueType: Type
+  ) {
+    super(outerSymbol.name);
+  }
+
+  public analyze(context: AnalyzeContext): void {
+    this.outerSymbol.analyze(context);
+  }
+}
+
 export class SourceSymbol extends Symbol {
-  constructor(name: string, public readonly node: ExpressionNode) {
+  constructor(name: string, public readonly node: Node) {
     super(name);
   }
 
@@ -59,28 +72,18 @@ export interface DiagnosticMessage {
 export class Scope {
   constructor(
     public readonly parent: Scope | null = null,
-    private hoistedSymbols: Symbol[] = [],
-    private readonly symbols: Symbol[] = []
+    public readonly symbols: Symbol[] = []
   ) {}
 
-  addHoistedSymbol(symbol: Symbol) {
-    this.hoistedSymbols.push(symbol);
+  get all(): Symbol[] {
+    return [...this.symbols, ...(this.parent?.all ?? [])];
   }
 
-  addSymbol(symbol: Symbol): Scope {
-    return new Scope(
-      this.parent,
-      this.hoistedSymbols,
-      this.symbols.concat([symbol])
+  resolve(name: string): Symbol | null {
+    return (
+      this.symbols.find((x) => x.name === name) ??
+      this.parent?.resolve(name) ??
+      null
     );
-  }
-
-  resolve(name: string): Symbol[] {
-    return [
-      ...this.symbols
-        .concat(this.hoistedSymbols)
-        .filter((x) => x.name === name),
-      ...(this.parent?.resolve(name) ?? []),
-    ];
   }
 }

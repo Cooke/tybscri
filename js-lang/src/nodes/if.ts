@@ -1,3 +1,4 @@
+import { Scope } from "../common";
 import { Type, UnionType } from "../types/common";
 import { nullType } from "../types/null";
 import { unknownType } from "../types/unknown";
@@ -5,10 +6,15 @@ import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
-export class IfNode extends Node {
+export class IfNode extends ExpressionNode {
   protected analyzeInternal(context: AnalyzeContext): Type | null {
     this.condition.analyze(context);
-    this.thenBlock.analyze(context);
+    const thenContext: AnalyzeContext = {
+      ...context,
+      scope: new Scope(context.scope, this.condition.truthSymbols),
+    };
+
+    this.thenBlock.analyze(thenContext);
     this.elseBlock?.analyze(context);
     const unionType: UnionType = {
       kind: "Union",

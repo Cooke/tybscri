@@ -44,7 +44,6 @@ describe("Functions", function () {
     `);
     const resultNode =
       parseResult.tree.statements[parseResult.tree.statements.length - 1];
-    assertType(resultNode, InvocationNode);
     assertTybscriType(resultNode.valueType, {
       kind: "Literal",
       value: "bar",

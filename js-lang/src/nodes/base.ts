@@ -1,9 +1,10 @@
 import { DiagnosticMessage } from "..";
-import { DiagnosticSeverity, SourceSpan } from "../common";
-import { Type } from "../types/common";
+import { DiagnosticSeverity, Scope, SourceSpan } from "../common";
+import { getTypeDisplayName, Type } from "../types/common";
 
 export interface AnalyzeContext {
   onDiagnosticMessage?: (msg: DiagnosticMessage) => void;
+  scope: Scope;
 }
 
 export abstract class Node {
@@ -91,7 +92,9 @@ export abstract class Node {
   public toString(): string {
     return (
       this.constructor.name +
-      `[${this.span.start.index}..${this.span.stop.index}]`
+      `[${this.span.start.index}..${this.span.stop.index}] ${
+        this._valueType ? `(type: ${getTypeDisplayName(this._valueType)})` : ""
+      }`
     );
   }
 }

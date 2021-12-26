@@ -33,13 +33,20 @@ describe("If", function () {
   });
 
   it("narrow type in branch", function () {
-    const parseResult = parseScript(`
+    const msgs: any[] = [];
+    const parseResult = parseScript(
+      `
       var bar = true
       val foo = bar
       if (foo) {
         foo
       }
-    `);
+    `,
+      {
+        onDiagnosticMessage: (x) => msgs.push(x),
+      }
+    );
+    console.log(parseResult.tree.toFullString());
     const valNode = parseResult.tree.statements[2];
     assertTybscriType(valNode.valueType, {
       kind: "Union",

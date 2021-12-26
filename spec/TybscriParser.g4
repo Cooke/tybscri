@@ -114,11 +114,14 @@ primaryExpression:
 	parenExpression
 	| ifExpression
 	| jumpExpression
+	| scopeIdentifierInvocation
 	| scopeIdentifier
 	| literalConstant
 	| stringLiteral
 	| lambdaLiteral
 	| collectionLiteral;
+
+scopeIdentifierInvocation: scopeIdentifier callSuffix;
 
 parenExpression: LPAREN NL* expression NL* RPAREN;
 

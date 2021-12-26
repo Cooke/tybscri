@@ -1,8 +1,29 @@
+import { Symbol } from "../common";
 import { Type } from "../types/common";
 import { AnalyzeContext, Node } from "./base";
+import { ExpressionNode } from "./expression";
 import { ActualTokenNode } from "./token";
 
-export abstract class StatementNode extends Node {}
+export abstract class StatementNode extends Node {
+  public collectSymbols(): Symbol[] {
+    return [];
+  }
+}
+
+export class ExpressionStatementNode extends StatementNode {
+  public getChildren(): readonly Node[] {
+    return [this.expression];
+  }
+
+  protected analyzeInternal(context: AnalyzeContext): Type | null {
+    this.expression.analyze(context);
+    return this.expression.valueType;
+  }
+
+  constructor(public readonly expression: ExpressionNode) {
+    super();
+  }
+}
 
 export class MissingStatementNode extends StatementNode {
   protected analyzeInternal(context: AnalyzeContext): Type | null {

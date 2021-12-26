@@ -1,4 +1,4 @@
-import { DiagnosticSeverity } from "../common";
+import { DiagnosticSeverity, SourceSymbol, Symbol } from "../common";
 import { FuncType, Type } from "../types/common";
 import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
@@ -7,6 +7,12 @@ import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
 
 export class FunctionNode extends StatementNode {
+  symbol: SourceSymbol;
+
+  public collectSymbols(): Symbol[] {
+    return [this.symbol];
+  }
+
   protected analyzeInternal(context: AnalyzeContext): Type | null {
     this.body.analyze(context);
 
@@ -47,6 +53,7 @@ export class FunctionNode extends StatementNode {
     public readonly body: BlockNode
   ) {
     super();
+    this.symbol = new SourceSymbol(name.text, this);
   }
 }
 

@@ -1,3 +1,5 @@
+import { booleanType, trueType } from "./boolean";
+
 export type Type =
   | UnionType
   | LiteralType
@@ -175,4 +177,12 @@ export function widenType(type: Type) {
     default:
       return type;
   }
+}
+
+export function narrowTypeTruthy(type: Type) {
+  if (type === booleanType) {
+    return trueType;
+  }
+
+  return type;
 }

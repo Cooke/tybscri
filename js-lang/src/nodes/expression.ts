@@ -1,8 +1,13 @@
 import { Type } from "../types/common";
 import { AnalyzeContext, Node } from "./base";
 import { ActualTokenNode } from "./token";
+import { Symbol } from "../common";
 
-export abstract class ExpressionNode extends Node {}
+export abstract class ExpressionNode extends Node {
+  public get truthSymbols(): Symbol[] {
+    return [];
+  }
+}
 
 export class MissingExpressionNode extends ExpressionNode {
   protected analyzeInternal(context: AnalyzeContext): Type | null {

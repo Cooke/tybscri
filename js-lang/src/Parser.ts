@@ -17,7 +17,11 @@ import { numberType } from "./types/number";
 import { stringType } from "./types/string";
 import { FunctionNode } from "./nodes/function";
 import { BlockNode } from "./nodes/block";
-import { MissingStatementNode, StatementNode } from "./nodes/statements";
+import {
+  ExpressionStatementNode,
+  MissingStatementNode,
+  StatementNode,
+} from "./nodes/statements";
 import { ScriptNode } from "./nodes/script";
 import {
   VariableDeclarationNode,
@@ -26,6 +30,7 @@ import {
 import { InvocationNode } from "./nodes/invocation";
 import { IfNode } from "./nodes/if";
 import { booleanType } from "./types/boolean";
+import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
 
 const L = TybscriLexer;
 
@@ -36,19 +41,16 @@ export interface ParseContext {
 
 export class Parser {
   private tokenStream: CommonTokenStream;
-  private scope: Scope;
   private onDiagnosticMessage: ((event: DiagnosticMessage) => void) | undefined;
 
   public constructor(source: string, context: ParseContext) {
     this.tokenStream = new CommonTokenStream(
       new TybscriLexer(CharStreams.fromString(source))
     );
-    this.scope = context.scope ?? new Scope();
     this.onDiagnosticMessage = context.onDiagnosticMessage;
   }
 
   public parseScript() {
-    this.scope = new Scope();
     const children: StatementNode[] = [];
 
     this.advanceWhileNL();
@@ -57,7 +59,6 @@ export class Parser {
       const semiToken = this.parseStatementEnd();
       if (semiToken instanceof MissingTokenNode) {
         this.advance();
-        children.push(semiToken);
       }
     }
 
@@ -89,7 +90,7 @@ export class Parser {
     }
   }
 
-  private parseStatement() {
+  private parseStatement(): StatementNode {
     switch (this.peek()) {
       case L.FUN:
         return this.parseFunctionDeclaration();
@@ -100,12 +101,11 @@ export class Parser {
     }
 
     const expression = this.parseExpression();
-
     if (expression instanceof MissingExpressionNode) {
       return new MissingStatementNode(expression.actualToken);
     }
 
-    return expression;
+    return new ExpressionStatementNode(expression);
   }
 
   private parseVariableDeclaration() {
@@ -115,7 +115,6 @@ export class Parser {
     const kind =
       varOrVal.text === "var" ? VariableKind.Variable : VariableKind.Const;
     const varDec = new VariableDeclarationNode(kind, def.name, def.value);
-    this.scope = this.scope.addSymbol(new SourceSymbol(def.name.text, varDec));
     return varDec;
   }
 
@@ -129,14 +128,12 @@ export class Parser {
   }
 
   private parseBlock() {
-    this.scope = new Scope(this.scope);
     const lcurl = this.parseExpectedToken(L.LCURL);
     this.advanceWhileNL();
-    const statements = [this.parseExpression()];
+    const statements = [this.parseStatement()];
     this.advanceWhileNL();
     const rcurl = this.parseExpectedToken(L.RCURL);
 
-    this.scope = this.scope.parent!;
     return new BlockNode(statements);
   }
 
@@ -156,9 +153,6 @@ export class Parser {
     this.advanceWhileNL();
     const body = this.parseBlock();
     const functionNode = new FunctionNode(identifier, body);
-    this.scope.addHoistedSymbol(
-      new SourceSymbol(functionNode.name.text, functionNode)
-    );
     return functionNode;
   }
 
@@ -203,8 +197,15 @@ export class Parser {
       case L.IF:
         return this.parseIfExpression();
 
-      case L.Identifier:
-        return this.parseScopeIdentifier();
+      case L.Identifier: {
+        let peekIndex = 1;
+        while (this.peek(++peekIndex) === L.NL) {}
+        if (this.peek(peekIndex) === L.LPAREN) {
+          return this.parseScopeIdentifierInvocation();
+        } else {
+          return this.parseScopeIdentifier();
+        }
+      }
 
       case L.FALSE:
       case L.TRUE:
@@ -393,7 +394,13 @@ export class Parser {
 
   private parseScopeIdentifier() {
     const token = this.parseExpectedToken(L.Identifier);
-    return new IdentifierNode(token, this.scope);
+    return new IdentifierNode(token);
+  }
+
+  private parseScopeIdentifierInvocation() {
+    const token = this.parseExpectedToken(L.Identifier);
+    const callArgs = this.parseValueArguments();
+    return new IdentifierInvocationNode(token, callArgs);
   }
 
   private parsePostfixExpression(): ExpressionNode {

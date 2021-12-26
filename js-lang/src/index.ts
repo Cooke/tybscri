@@ -1,5 +1,5 @@
 import { CharStreams } from "antlr4ts";
-import { Lexer } from "./common";
+import { Lexer, Scope } from "./common";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { ParseContext, Parser } from "./Parser";
@@ -21,7 +21,10 @@ export function parseExpression(
 ): ExpressionParseResult {
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseExpression();
-  exp.analyze({ onDiagnosticMessage: context?.onDiagnosticMessage });
+  exp.analyze({
+    onDiagnosticMessage: context?.onDiagnosticMessage,
+    scope: context?.scope ?? new Scope(),
+  });
   return {
     tree: exp,
   };
@@ -37,7 +40,10 @@ export function parseScript(
 ): ScriptParseResult {
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseScript();
-  exp.analyze({ onDiagnosticMessage: context?.onDiagnosticMessage });
+  exp.analyze({
+    onDiagnosticMessage: context?.onDiagnosticMessage,
+    scope: context?.scope ?? new Scope(),
+  });
   return {
     tree: exp,
   };
