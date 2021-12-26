@@ -2,14 +2,14 @@ import { Type } from "../types/common";
 import { AnalyzeContext, Node } from "./base";
 import { ActualTokenNode } from "./token";
 
-export abstract class ExpressionNode extends Node {}
+export abstract class StatementNode extends Node {}
 
-export class MissingExpressionNode extends ExpressionNode {
+export class MissingStatementNode extends StatementNode {
   protected analyzeInternal(context: AnalyzeContext): Type | null {
     return null;
   }
 
-  public getChildren() {
+  public getChildren(): readonly Node[] {
     return [];
   }
 

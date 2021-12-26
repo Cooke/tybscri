@@ -1,8 +1,13 @@
 import { Lexer, SourceSpan } from "../common";
-import { Node } from "./base";
+import { Type } from "../types/common";
+import { AnalyzeContext, Node } from "./base";
 
 // TODO: should the tokens be nodes in the tree? Or could they be trivia in the nodes?
 export abstract class TokenNode extends Node {
+  protected analyzeInternal(context: AnalyzeContext): Type | null {
+    return null;
+  }
+
   private _span: SourceSpan;
 
   public getChildren(): readonly [] {
@@ -11,10 +16,6 @@ export abstract class TokenNode extends Node {
 
   public get span() {
     return this._span;
-  }
-
-  public get type() {
-    return null;
   }
 
   constructor(private readonly tokenType: number, span: SourceSpan) {
@@ -34,13 +35,6 @@ export abstract class TokenNode extends Node {
 }
 
 export class ActualTokenNode extends TokenNode {
-  // public visit<TReturn, TContext>(
-  //   visitor: Visitor<TReturn, TContext>,
-  //   context: TContext
-  // ): TReturn {
-  //   return visitor.visitActualToken(this, context);
-  // }
-
   constructor(
     tokenType: number,
     span: SourceSpan,
@@ -55,13 +49,6 @@ export class ActualTokenNode extends TokenNode {
 }
 
 export class MissingTokenNode extends TokenNode {
-  // public visit<TReturn, TContext>(
-  //   visitor: Visitor<TReturn, TContext>,
-  //   context: TContext
-  // ): TReturn {
-  //   return visitor.visitMissingToken(this, context);
-  // }
-
   constructor(
     tokenType: number,
     span: SourceSpan,

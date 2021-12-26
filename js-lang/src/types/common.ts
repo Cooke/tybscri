@@ -30,7 +30,7 @@ export interface MemberDef {
 
 export interface FuncType {
   readonly kind: "Func";
-  readonly parameters: Array<ParameterDef>;
+  readonly parameters: readonly ParameterDef[];
   readonly returnType: Type;
 }
 
@@ -43,7 +43,7 @@ export interface TypeTable {
   [name: string]: Type;
 }
 
-export function getTypeDisplayName(type: Type, typeTable: TypeTable): string {
+export function getTypeDisplayName(type: Type): string {
   switch (type.kind) {
     case "Regular":
       return type.name;
@@ -56,30 +56,25 @@ export function getTypeDisplayName(type: Type, typeTable: TypeTable): string {
 
     case "Func":
       return `(${type.parameters.map((p) =>
-        getTypeDisplayName(p.type, typeTable)
-      )}) => ${getTypeDisplayName(type.returnType, typeTable)}`;
+        getTypeDisplayName(p.type)
+      )}) => ${getTypeDisplayName(type.returnType)}`;
 
     default:
       return type.kind;
   }
 }
 
-export function getAllTypeMembers(
-  type: Type,
-  typeTable: TypeTable
-): MemberDef[] {
+export function getAllTypeMembers(type: Type): MemberDef[] {
   switch (type.kind) {
     case "Regular":
-      return type.members.concat(
-        type.base ? getAllTypeMembers(type.base, typeTable) : []
-      );
+      return type.members.concat(type.base ? getAllTypeMembers(type.base) : []);
 
     case "Union":
       if (type.types.length === 0) {
         return [];
       }
 
-      const members = getAllTypeMembers(type.types[0], typeTable).reduce<{
+      const members = getAllTypeMembers(type.types[0]).reduce<{
         [key: string]: MemberDef;
       }>((o, member) => {
         o[member.name] = member;
@@ -87,14 +82,10 @@ export function getAllTypeMembers(
       }, {});
 
       for (let i = 1; i < type.types.length; i++) {
-        for (const member of getAllTypeMembers(type.types[i], typeTable)) {
+        for (const member of getAllTypeMembers(type.types[i])) {
           if (
             members[member.name] &&
-            (!isTypeAssignableToType(
-              member.type,
-              members[member.name].type,
-              typeTable
-            ) ||
+            (!isTypeAssignableToType(member.type, members[member.name].type) ||
               members[member.name].isConst !== member.isConst)
           ) {
             delete members[member.name];
@@ -106,11 +97,7 @@ export function getAllTypeMembers(
   return [];
 }
 
-export function isTypeAssignableToType(
-  from: Type,
-  to: Type,
-  typeTable: TypeTable
-): boolean {
+export function isTypeAssignableToType(from: Type, to: Type): boolean {
   switch (to.kind) {
     case "Regular":
       switch (from.kind) {
@@ -127,30 +114,28 @@ export function isTypeAssignableToType(
         }
 
         case "Union":
-          return from.types.every((t) =>
-            isTypeAssignableToType(t, to, typeTable)
-          );
+          return from.types.every((t) => isTypeAssignableToType(t, to));
 
         case "Func":
           return false;
 
         case "Literal":
-          return isTypeAssignableToType(from.valueType, to, typeTable);
+          return isTypeAssignableToType(from.valueType, to);
       }
 
     case "Func": {
       return (
         from.kind === "Func" &&
-        isTypeAssignableToType(from.returnType, to.returnType, typeTable) &&
+        isTypeAssignableToType(from.returnType, to.returnType) &&
         to.parameters.length >= from.parameters.length &&
         from.parameters.every((fp, i) =>
-          isTypeAssignableToType(to.parameters[i].type, fp.type, typeTable)
+          isTypeAssignableToType(to.parameters[i].type, fp.type)
         )
       );
     }
 
     case "Union": {
-      return to.types.some((t) => isTypeAssignableToType(from, t, typeTable));
+      return to.types.some((t) => isTypeAssignableToType(from, t));
     }
 
     case "Literal": {

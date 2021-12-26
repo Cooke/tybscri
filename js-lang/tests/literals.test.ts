@@ -1,25 +1,26 @@
 import assert from "assert";
 import { parseExpression } from "../src";
-import { TypeNotFound } from "../src/nodes/base";
-import { LiteralType, Type } from "../src/types/common";
+import { LiteralType } from "../src/types/common";
 import { numberType } from "../src/types/number";
 import { stringType } from "../src/types/string";
-import { assertHasType } from "./utils";
+import { assertTybscriType } from "./utils";
 
-describe("Parse literals", function () {
+describe("Literals", function () {
   it("integer literal", function () {
     const parseResult = parseExpression("123");
-    assertHasType(parseResult.tree.type);
-    assert.equal(parseResult.tree.type.kind, "Literal");
-    const literalType = parseResult.tree.type as LiteralType;
-    assert.equal(literalType.valueType, numberType);
+    assertTybscriType(parseResult.tree.valueType, {
+      kind: "Literal",
+      value: 123,
+      valueType: numberType,
+    });
   });
 
   it("string literal", function () {
     const parseResult = parseExpression('"123"');
-    assertHasType(parseResult.tree.type);
-    assert.equal(parseResult.tree.type.kind, "Literal");
-    const literalType = parseResult.tree.type as LiteralType;
-    assert.equal(literalType.valueType, stringType);
+    assertTybscriType(parseResult.tree.valueType, {
+      kind: "Literal",
+      value: "123",
+      valueType: stringType,
+    });
   });
 });

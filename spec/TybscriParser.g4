@@ -8,10 +8,8 @@ script: statements EOF;
 
 // Declarations
 
-declaration: functionDeclaration | variableDeclaration;
-
 functionDeclaration:
-	FUN identifier NL* functionParameters (NL* COLON NL* type)? NL* block;
+	FUN Identifier NL* functionParameters (NL* COLON NL* type)? NL* block;
 
 functionParameters:
 	LPAREN NL* (parameter (NL* COMMA NL* parameter)*)? NL* RPAREN;
@@ -19,18 +17,21 @@ functionParameters:
 variableDeclaration: (VAR | VAL) variableDefinition;
 
 variableDefinition:
-	identifier (NL* COLON NL* type)? (
+	Identifier (NL* COLON NL* type)? (
 		NL* ASSIGNMENT NL* expression
 	)?;
 
-parameter: identifier NL* COLON NL* type;
+parameter: Identifier NL* COLON NL* type;
 
 // Statements
 
-statements: (statement (SEMICOLON | NL | EOF)+)*;
+statements: (statement statementEnd+)+;
+
+statementEnd: SEMICOLON | NL | EOF;
 
 statement:
-	declaration
+	functionDeclaration
+	| variableDeclaration
 	| assignmentStatement
 	| forStatement
 	| whileStatement
@@ -51,9 +52,9 @@ assignmentStatement:
 
 assignableExpression:
 	postfixExpression assignableSuffix
-	| identifier;
+	| scopeIdentifier;
 
-assignableSuffix: indexingSuffix | navigationSuffix;
+assignableSuffix: indexingSuffix | memberSuffix;
 
 // Expressions
 
@@ -97,11 +98,11 @@ expressionSuffix:
 	postfixOperator
 	| callSuffix
 	| indexingSuffix
-	| navigationSuffix;
+	| memberSuffix;
 
 indexingSuffix: LBRACKET NL* expression NL* RBRACKET;
 
-navigationSuffix: NL* DOT NL* identifier;
+memberSuffix: NL* DOT NL* Identifier;
 
 callSuffix: arguments lambdaLiteral?;
 
@@ -113,7 +114,7 @@ primaryExpression:
 	parenExpression
 	| ifExpression
 	| jumpExpression
-	| identifier
+	| scopeIdentifier
 	| literalConstant
 	| stringLiteral
 	| lambdaLiteral
@@ -151,9 +152,9 @@ lambdaParameter: variableDefinition;
 
 // Other
 
-identifier: Identifier;
+scopeIdentifier: Identifier;
 
-type: identifier;
+type: Identifier;
 
 body: block | expression;
 

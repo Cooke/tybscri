@@ -1,23 +1,48 @@
-import { SourceSpan } from "../common";
+import { DiagnosticMessage } from "..";
+import { DiagnosticSeverity, SourceSpan } from "../common";
 import { Type } from "../types/common";
 
-export class TypeNotFound {
-  constructor(public name: string) {}
+export interface AnalyzeContext {
+  onDiagnosticMessage?: (msg: DiagnosticMessage) => void;
 }
 
-export class UnknownType {}
-
-export type NodeValueType = Type | TypeNotFound | UnknownType | null;
-
 export abstract class Node {
-  // public abstract visit<TReturn = undefined, TContext = undefined>(
-  //   visitor: Visitor<TReturn, TContext>,
-  //   context: TContext
-  // ): TReturn;
+  private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" =
+    "not-analyzed";
+  private _valueType: Type | null = null;
 
   public abstract getChildren(): ReadonlyArray<Node>;
 
-  public abstract get type(): NodeValueType;
+  public get valueType(): Type | null {
+    if (this._analyzeState != "analyzed") {
+      throw new Error(
+        "Value type cannot be accessed the node has been analyzed"
+      );
+    }
+
+    return this._valueType;
+  }
+
+  public analyze(context: AnalyzeContext) {
+    if (this._analyzeState === "analyzed") {
+      return;
+    }
+
+    if (this._analyzeState === "analyzing") {
+      context.onDiagnosticMessage?.({
+        message: "Circular reference detected",
+        severity: DiagnosticSeverity.Error,
+        span: this.span,
+      });
+      return;
+    }
+
+    this._analyzeState = "analyzing";
+    this._valueType = this.analyzeInternal(context);
+    this._analyzeState = "analyzed";
+  }
+
+  protected abstract analyzeInternal(context: AnalyzeContext): Type | null;
 
   public get span(): SourceSpan {
     const children = this.getChildren();
@@ -32,14 +57,14 @@ export abstract class Node {
   }
 
   public toFullString() {
-    const lines: string[] = [];
+    const analyzeTree: string[] = [];
 
     function appendLine(lineContent: string, indent: number) {
       let preIndent = "";
       for (let i = 0; i < indent; i++) {
         preIndent += "  ";
       }
-      lines.push(preIndent + lineContent);
+      analyzeTree.push(preIndent + lineContent);
     }
 
     function visit(node: Node, indent: number) {
@@ -51,7 +76,7 @@ export abstract class Node {
 
     visit(this, 0);
 
-    return lines.join("\n");
+    return analyzeTree.join("\n");
   }
 
   public toString(): string {

@@ -2,36 +2,186 @@ import { CharStreams, CommonTokenStream, Token } from "antlr4ts";
 import {
   DiagnosticMessage,
   DiagnosticSeverity,
+  Scope,
   SourceSpan,
-  SymbolContext,
+  SourceSymbol,
 } from "./common";
 import { TybscriLexer } from "./generated/TybscriLexer";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
 import { IdentifierNode } from "./nodes/identifier";
+import { MemberNode } from "./nodes/member";
 import { LiteralNode } from "./nodes/literal";
 import { ActualTokenNode, MissingTokenNode, TokenNode } from "./nodes/token";
 import { LiteralType } from "./types/common";
 import { numberType } from "./types/number";
 import { stringType } from "./types/string";
+import { FunctionNode } from "./nodes/function";
+import { BlockNode } from "./nodes/block";
+import { MissingStatementNode, StatementNode } from "./nodes/statements";
+import { ScriptNode } from "./nodes/script";
+import {
+  VariableDeclarationNode,
+  VariableKind,
+} from "./nodes/variableDeclaration";
+import { InvocationNode } from "./nodes/invocation";
 
 const L = TybscriLexer;
 
 export interface ParseContext {
-  symbols?: SymbolContext;
-  onDiagnostic?: (event: DiagnosticMessage) => void;
+  scope?: Scope;
+  onDiagnosticMessage?: (event: DiagnosticMessage) => void;
 }
 
 export class Parser {
   private tokenStream: CommonTokenStream;
-  private symbolContext: SymbolContext;
+  private scope: Scope;
   private onDiagnosticMessage: ((event: DiagnosticMessage) => void) | undefined;
 
   public constructor(source: string, context: ParseContext) {
     this.tokenStream = new CommonTokenStream(
       new TybscriLexer(CharStreams.fromString(source))
     );
-    this.symbolContext = context.symbols ?? { resolve: () => null };
-    this.onDiagnosticMessage = context.onDiagnostic;
+    this.scope = context.scope ?? new Scope();
+    this.onDiagnosticMessage = context.onDiagnosticMessage;
+  }
+
+  public parseScript() {
+    this.scope = new Scope();
+    const children: StatementNode[] = [];
+
+    this.advanceWhileNL();
+    while (this.peek() !== L.EOF) {
+      children.push(this.parseStatement());
+      const semiToken = this.parseStatementEnd();
+      if (semiToken instanceof MissingTokenNode) {
+        this.advance();
+        children.push(semiToken);
+      }
+    }
+
+    return new ScriptNode(children);
+  }
+
+  private parseStatementEnd() {
+    let token = this.peek();
+    if (token === L.EOF) {
+      return this.createActualToken(this.peekToken());
+    }
+
+    var firstIteration = true;
+    while (true) {
+      switch (token) {
+        case L.NL:
+        case L.SEMICOLON:
+          this.advance();
+          break;
+
+        default:
+          return firstIteration
+            ? this.createMissingToken(this.peekToken(), L.NL)
+            : this.createActualToken(this.peekToken(-1));
+      }
+
+      token = this.peek();
+      firstIteration = false;
+    }
+  }
+
+  private parseStatement() {
+    switch (this.peek()) {
+      case L.FUN:
+        return this.parseFunctionDeclaration();
+
+      case L.VAL:
+        return this.parseVariableDeclaration();
+    }
+
+    const expression = this.parseExpression();
+
+    if (expression instanceof MissingExpressionNode) {
+      return new MissingStatementNode(expression.actualToken);
+    }
+
+    return expression;
+  }
+
+  private parseVariableDeclaration() {
+    const varOrVal = this.parseKnownToken();
+    const def = this.parseVariableDefinition();
+
+    const kind =
+      varOrVal.text === "var" ? VariableKind.Variable : VariableKind.Const;
+    const varDec = new VariableDeclarationNode(kind, def.name, def.value);
+    this.scope = this.scope.withSymbol(new SourceSymbol(def.name.text, varDec));
+    return varDec;
+  }
+
+  private parseVariableDefinition() {
+    const name = this.parseExpectedToken(L.Identifier);
+    this.advanceWhileNL();
+    const assign = this.parseExpectedToken(L.ASSIGNMENT);
+    this.advanceWhileNL();
+    const value = this.parseExpression();
+    return { name, assign, value } as const;
+  }
+
+  private parseBlock() {
+    this.scope = new Scope(this.scope);
+    const lcurl = this.parseExpectedToken(L.LCURL);
+    this.advanceWhileNL();
+    const statements = [this.parseExpression()];
+    this.advanceWhileNL();
+    const rcurl = this.parseExpectedToken(L.RCURL);
+
+    this.scope = this.scope.parent!;
+    return new BlockNode(statements);
+  }
+
+  private parseFunctionDeclaration() {
+    this.parseExpectedToken(L.FUN);
+    const identifier = this.parseExpectedToken(L.Identifier);
+    this.advanceWhileNL();
+    const params = this.parseFunctionParameters();
+    this.advanceWhileNL();
+
+    // let type: TypeSyntax | null = null;
+    // if (this.peek() === L.COLON) {
+    //   this.advance();
+    //   type = this.parseType();
+    // }
+
+    this.advanceWhileNL();
+    const body = this.parseBlock();
+    const functionNode = new FunctionNode(identifier, body);
+    this.scope.addHoistedSymbol(
+      new SourceSymbol(functionNode.name.text, functionNode)
+    );
+    return functionNode;
+  }
+
+  private parseFunctionParameters() {
+    this.parseExpectedToken(L.LPAREN);
+    this.advanceWhileNL();
+
+    // const valueParams: ParameterSyntax[] = [];
+    // while (this.peek() !== L.RPAREN) {
+    //   valueParams.push(this.parseFunctionValueParameter());
+    //   this.advanceWhileNL();
+    //   if (this.peek() === L.COMMA) {
+    //     this.advance();
+    //     this.advanceWhileNL();
+    //   } else {
+    //     break;
+    //   }
+    // }
+
+    this.parseExpectedToken(L.RPAREN);
+
+    return [];
+  }
+
+  parseExpression() {
+    return this.parsePostfixExpression();
   }
 
   public parsePrimaryExpression(): ExpressionNode {
@@ -48,7 +198,7 @@ export class Parser {
       }
 
       case L.Identifier:
-        return this.parseIdentifier();
+        return this.parseScopeIdentifier();
 
       case L.QUOTE_OPEN: {
         return this.parseStringLiteral();
@@ -175,18 +325,71 @@ export class Parser {
   //     }
   //   }
 
-  private parseIdentifier() {
+  private parseScopeIdentifier() {
     const token = this.parseExpectedToken(L.Identifier);
-    const symbol = this.symbolContext.resolve(token.text);
-    if (!symbol) {
-      this.reportDiagnostic({
-        message: `Cannot find name '${token.text}'`,
-        severity: DiagnosticSeverity.Error,
-        span: token.span,
-      });
+    return new IdentifierNode(token, this.scope);
+  }
+
+  private parsePostfixExpression(): ExpressionNode {
+    const primExp = this.parsePrimaryExpression();
+
+    let exp = primExp;
+    while (true) {
+      if (this.peek() === L.LPAREN) {
+        exp = this.parseCallSuffix(exp);
+        continue;
+      }
+
+      // Predict memberSuffix
+      let i = 1;
+      while (this.peek(i) === L.NL) {
+        i++;
+      }
+
+      if (this.peek(i) === L.DOT) {
+        exp = this.parseMemberSuffix(exp);
+        continue;
+      }
+
+      break;
     }
 
-    return new IdentifierNode(token, symbol);
+    return exp;
+  }
+
+  private parseCallSuffix(expression: ExpressionNode): InvocationNode {
+    return new InvocationNode(expression, this.parseValueArguments());
+  }
+
+  private parseValueArguments(): ExpressionNode[] {
+    this.parseExpectedToken(L.LPAREN);
+    this.advanceWhileNL();
+
+    if (this.peek() === L.RPAREN) {
+      this.parseKnownToken();
+      return [];
+    }
+
+    const args: ExpressionNode[] = [this.parseExpression()];
+    this.advanceWhileNL();
+
+    while (this.peek() === L.COMMA) {
+      this.advance();
+      this.advanceWhileNL();
+      args.push(this.parseExpression());
+      this.advanceWhileNL();
+    }
+
+    this.parseExpectedToken(L.RPAREN);
+    return args;
+  }
+
+  private parseMemberSuffix(expression: ExpressionNode): MemberNode {
+    this.advanceWhileNL();
+    this.parseExpectedToken(L.DOT);
+    this.advanceWhileNL();
+    const token = this.parseExpectedToken(L.Identifier);
+    return new MemberNode(expression, token);
   }
 
   //   private parseSemi(): TokenSyntax {

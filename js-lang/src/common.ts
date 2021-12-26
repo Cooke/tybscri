@@ -1,4 +1,6 @@
 import { TybscriLexer } from "./generated/TybscriLexer";
+import { AnalyzeContext } from "./nodes/base";
+import { ExpressionNode } from "./nodes/expression";
 import { Type } from "./types/common";
 
 export { TybscriLexer as Lexer };
@@ -14,12 +16,34 @@ export interface SourceSpan {
   readonly stop: SourceLocation;
 }
 
-export interface Symbol {
-  readonly valueType: Type;
+export abstract class Symbol {
+  constructor(public readonly name: string) {}
+
+  public abstract get valueType(): Type | null;
+
+  public abstract analyze(context: AnalyzeContext): void;
 }
 
-export interface SymbolContext {
-  resolve(name: string): Symbol | null;
+export class SourceSymbol extends Symbol {
+  constructor(name: string, public readonly node: ExpressionNode) {
+    super(name);
+  }
+
+  public get valueType(): Type | null {
+    return this.node.valueType;
+  }
+
+  public analyze(context: AnalyzeContext): void {
+    this.node.analyze(context);
+  }
+}
+
+export class ExternalSymbol extends Symbol {
+  constructor(name: string, public readonly valueType: Type) {
+    super(name);
+  }
+
+  public analyze(context: AnalyzeContext): void {}
 }
 
 export enum DiagnosticSeverity {
@@ -32,10 +56,31 @@ export interface DiagnosticMessage {
   span: SourceSpan;
 }
 
-export class Scope implements SymbolContext {
-  constructor(public readonly symbols: { [key: string]: Symbol }) {}
+export class Scope {
+  constructor(
+    public readonly parent: Scope | null = null,
+    private hoistedSymbols: Symbol[] = [],
+    private readonly symbols: Symbol[] = []
+  ) {}
 
-  resolve(name: string): Symbol | null {
-    return this.symbols[name] ?? null;
+  addHoistedSymbol(symbol: Symbol) {
+    this.hoistedSymbols.push(symbol);
+  }
+
+  withSymbol(symbol: Symbol): Scope {
+    return new Scope(
+      this.parent,
+      this.hoistedSymbols,
+      this.symbols.concat([symbol])
+    );
+  }
+
+  resolve(name: string): Symbol[] {
+    return [
+      ...this.symbols
+        .concat(this.hoistedSymbols)
+        .filter((x) => x.name === name),
+      ...(this.parent?.resolve(name) ?? []),
+    ];
   }
 }
