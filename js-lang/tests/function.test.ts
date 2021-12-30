@@ -2,6 +2,8 @@ import assert from "assert";
 import { DiagnosticMessage, parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
 import { InvocationNode } from "../src/nodes/invocation";
+import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
+import { numberType } from "../src/types/number";
 import { stringType } from "../src/types/string";
 import { assertTybscriType, assertType } from "./utils";
 
@@ -35,13 +37,15 @@ describe("Functions", function () {
   });
 
   it("invoke function result type", function () {
-    const parseResult = parseScript(`
+    const parseResult = parseScript(
+      `
     fun foo() {
         "bar"
     }
 
     foo()
-    `);
+    `
+    );
     const resultNode =
       parseResult.tree.statements[parseResult.tree.statements.length - 1];
     assertTybscriType(resultNode.valueType, {
@@ -62,5 +66,39 @@ describe("Functions", function () {
       { onDiagnosticMessage: (msg) => msgs.push(msg) }
     );
     assert.equal(msgs.length, 1);
+  });
+
+  it("indirect circular reference error", function () {
+    const msgs: DiagnosticMessage[] = [];
+    parseScript(
+      `
+    fun foo() {
+        bar()
+    }
+
+    fun bar() {
+      foo()
+    }
+    `,
+      { onDiagnosticMessage: (msg) => msgs.push(msg) }
+    );
+    assert.equal(msgs.length, 1);
+  });
+
+  it("future function depending on earlier variable", function () {
+    const parseResult = parseScript(`
+    val future = foo()
+    val bar = 123
+    fun foo() {
+        bar
+    }
+    `);
+    const varNode = parseResult.tree.statements[0];
+    assertType(varNode, VariableDeclarationNode);
+    assertTybscriType(varNode.valueType, {
+      kind: "Literal",
+      value: 123,
+      valueType: numberType,
+    });
   });
 });

@@ -4,52 +4,26 @@ import { getTypeDisplayName, Type } from "../types/common";
 
 export interface AnalyzeContext {
   onDiagnosticMessage?: (msg: DiagnosticMessage) => void;
-  scope: Scope;
 }
 
 export abstract class Node {
-  private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" =
-    "not-analyzed";
   private _valueType: Type | null = null;
 
   public abstract getChildren(): ReadonlyArray<Node>;
 
   public get valueType(): Type | null {
-    if (this._analyzeState != "analyzed") {
-      throw new Error(
-        "Value type cannot be accessed the node has been analyzed"
-      );
-    }
-
     return this._valueType;
   }
 
-  public analyze(context: AnalyzeContext) {
-    if (this._analyzeState === "analyzed") {
-      return;
+  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+    for (const child of this.getChildren()) {
+      child.setupSymbols(scope, context);
     }
-
-    if (this._analyzeState === "analyzing") {
-      this._valueType = this.handleCircularReference?.(context) ?? null;
-      this._analyzeState = "analyzed";
-      return;
-    }
-
-    this._analyzeState = "analyzing";
-    const analyzeResult = this.analyzeInternal(context);
-    if (this._analyzeState !== "analyzing") {
-      // Analyzed already done in a circular analyze
-      return;
-    }
-
-    this._valueType = analyzeResult;
-    this._analyzeState = "analyzed";
+    return scope;
   }
 
-  protected handleCircularReference?(
-    context: AnalyzeContext
-  ): Type | undefined {
-    return undefined;
+  public analyze(context: AnalyzeContext) {
+    this._valueType = this.analyzeInternal(context);
   }
 
   protected abstract analyzeInternal(context: AnalyzeContext): Type | null;

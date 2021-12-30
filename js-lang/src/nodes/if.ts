@@ -7,14 +7,18 @@ import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IfNode extends ExpressionNode {
+  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+    this.condition.setupSymbols(scope, context);
+    this.thenBlock.setupSymbols(
+      scope.withSymbols(this.condition.truthSymbols),
+      context
+    );
+    return scope;
+  }
+
   protected analyzeInternal(context: AnalyzeContext): Type | null {
     this.condition.analyze(context);
-    const thenContext: AnalyzeContext = {
-      ...context,
-      scope: new Scope(context.scope, this.condition.truthSymbols),
-    };
-
-    this.thenBlock.analyze(thenContext);
+    this.thenBlock.analyze(context);
     this.elseBlock?.analyze(context);
     const unionType: UnionType = {
       kind: "Union",

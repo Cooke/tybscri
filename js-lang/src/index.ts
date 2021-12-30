@@ -21,9 +21,11 @@ export function parseExpression(
 ): ExpressionParseResult {
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseExpression();
+  exp.setupSymbols(context?.scope ?? new Scope(), {
+    onDiagnosticMessage: context?.onDiagnosticMessage,
+  });
   exp.analyze({
     onDiagnosticMessage: context?.onDiagnosticMessage,
-    scope: context?.scope ?? new Scope(),
   });
   return {
     tree: exp,
@@ -40,9 +42,11 @@ export function parseScript(
 ): ScriptParseResult {
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseScript();
+  exp.setupSymbols(context?.scope ?? new Scope(), {
+    onDiagnosticMessage: context?.onDiagnosticMessage,
+  });
   exp.analyze({
     onDiagnosticMessage: context?.onDiagnosticMessage,
-    scope: context?.scope ?? new Scope(),
   });
   return {
     tree: exp,

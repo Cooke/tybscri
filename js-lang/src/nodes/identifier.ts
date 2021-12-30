@@ -8,13 +8,17 @@ export class IdentifierNode extends ExpressionNode {
   private symbol: Symbol | null = null;
 
   public get truthSymbols(): Symbol[] {
-    return [
-      new NarrowedSymbol(this.symbol!, narrowTypeTruthy(this.valueType!)),
-    ];
+    return this.symbol
+      ? [new NarrowedSymbol(this.symbol, (t) => narrowTypeTruthy(t))]
+      : [];
+  }
+
+  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+    this.symbol = scope.resolveLast(this.token.text);
+    return scope;
   }
 
   protected analyzeInternal(context: AnalyzeContext) {
-    this.symbol = context.scope.resolve(this.token.text);
     if (!this.symbol) {
       context.onDiagnosticMessage?.({
         message: `Cannot find name '${this.token.text}'`,
@@ -24,6 +28,7 @@ export class IdentifierNode extends ExpressionNode {
       return null;
     }
 
+    this.symbol.analyze(context);
     return this.symbol?.valueType ?? null;
   }
 

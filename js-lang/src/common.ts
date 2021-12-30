@@ -27,9 +27,15 @@ export abstract class Symbol {
 export class NarrowedSymbol extends Symbol {
   constructor(
     public readonly outerSymbol: Symbol,
-    public readonly valueType: Type
+    public readonly narrower: (t: Type) => Type
   ) {
     super(outerSymbol.name);
+  }
+
+  public get valueType(): Type | null {
+    return this.outerSymbol.valueType
+      ? this.narrower(this.outerSymbol.valueType)
+      : null;
   }
 
   public analyze(context: AnalyzeContext): void {
@@ -70,20 +76,28 @@ export interface DiagnosticMessage {
 }
 
 export class Scope {
+  public static empty = new Scope(null, []);
+
   constructor(
     public readonly parent: Scope | null = null,
     public readonly symbols: Symbol[] = []
   ) {}
 
-  get all(): Symbol[] {
-    return [...this.symbols, ...(this.parent?.all ?? [])];
+  withSymbols(symbols: Symbol[]) {
+    return new Scope(this.parent, symbols.concat(this.symbols));
   }
 
-  resolve(name: string): Symbol | null {
+  resolveLast(name: string): Symbol | null {
     return (
       this.symbols.find((x) => x.name === name) ??
-      this.parent?.resolve(name) ??
+      this.parent?.resolveLast(name) ??
       null
     );
+  }
+
+  resolveAll(name: string): Symbol[] {
+    return this.symbols
+      .filter((x) => x.name === name)
+      .concat(this.parent?.resolveAll(name) ?? []);
   }
 }

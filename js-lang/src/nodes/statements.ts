@@ -4,11 +4,7 @@ import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { ActualTokenNode } from "./token";
 
-export abstract class StatementNode extends Node {
-  public collectSymbols(): Symbol[] {
-    return [];
-  }
-}
+export abstract class StatementNode extends Node {}
 
 export class ExpressionStatementNode extends StatementNode {
   public getChildren(): readonly Node[] {

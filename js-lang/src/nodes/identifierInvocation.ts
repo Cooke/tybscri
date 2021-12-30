@@ -1,14 +1,19 @@
-import { DiagnosticSeverity } from "../common";
+import { DiagnosticSeverity, Scope } from "../common";
 import { Type } from "../types/common";
 import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IdentifierInvocationNode extends ExpressionNode {
+  scope = Scope.empty;
+
+  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+    this.scope = scope;
+    return scope;
+  }
+
   protected analyzeInternal(context: AnalyzeContext): Type | null {
-    const potentialTargets = context.scope.all.filter(
-      (x) => x.name === this.name.text
-    );
+    const potentialTargets = this.scope.resolveAll(this.name.text);
 
     for (const t of potentialTargets) {
       t.analyze(context);
@@ -18,9 +23,18 @@ export class IdentifierInvocationNode extends ExpressionNode {
       arg.analyze(context);
     }
 
-    if (potentialTargets.length !== 1) {
+    if (potentialTargets.length > 1) {
       context.onDiagnosticMessage?.({
-        message: `Several matched identifiers are currently not supported`,
+        message: `Ambiguous identifier '${this.name.text}' are currently not supported`,
+        severity: DiagnosticSeverity.Error,
+        span: this.name.span,
+      });
+      return null;
+    }
+
+    if (potentialTargets.length === 0) {
+      context.onDiagnosticMessage?.({
+        message: `Unknown name '${this.name.text}'`,
         severity: DiagnosticSeverity.Error,
         span: this.name.span,
       });
