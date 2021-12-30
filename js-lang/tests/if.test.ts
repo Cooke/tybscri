@@ -55,4 +55,27 @@ describe("If", function () {
       ],
     });
   });
+
+  it("narrow type with is", function () {
+    const parseResult = parseScript(`
+      var foo = "1"
+      val bar = foo
+      if (bar is "1") {
+        bar
+      } 
+    `);
+    const valNode =
+      parseResult.tree.statements[parseResult.tree.statements.length - 1];
+    assertTybscriType(valNode.valueType, {
+      kind: "Union",
+      types: [
+        {
+          kind: "Literal",
+          value: "1",
+          valueType: stringType,
+        },
+        nullType,
+      ],
+    });
+  });
 });

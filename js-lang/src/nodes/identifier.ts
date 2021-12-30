@@ -5,7 +5,7 @@ import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IdentifierNode extends ExpressionNode {
-  private symbol: Symbol | null = null;
+  public symbol: Symbol | null = null;
 
   public get truthSymbols(): Symbol[] {
     return this.symbol

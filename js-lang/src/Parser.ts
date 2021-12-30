@@ -31,6 +31,7 @@ import { InvocationNode } from "./nodes/invocation";
 import { IfNode } from "./nodes/if";
 import { booleanType } from "./types/boolean";
 import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
+import { IsNode } from "./nodes/is";
 
 const L = TybscriLexer;
 
@@ -177,8 +178,25 @@ export class Parser {
     return [];
   }
 
+  parseType() {
+    return this.parseStringLiteral();
+  }
+
   parseExpression() {
-    return this.parsePostfixExpression();
+    return this.parseIsExpression();
+  }
+
+  public parseIsExpression() {
+    let leftExp = this.parsePostfixExpression();
+
+    while (this.peek() === L.IS) {
+      const isToken = this.parseKnownToken();
+      this.advanceWhileNL();
+      const typeNode = this.parseType();
+      leftExp = new IsNode(leftExp, typeNode);
+    }
+
+    return leftExp;
   }
 
   public parsePrimaryExpression(): ExpressionNode {

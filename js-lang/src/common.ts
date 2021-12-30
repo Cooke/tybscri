@@ -1,6 +1,11 @@
 import { TybscriLexer } from "./generated/TybscriLexer";
 import { AnalyzeContext, Node } from "./nodes/base";
 import { ExpressionNode } from "./nodes/expression";
+import { FunctionNode } from "./nodes/function";
+import {
+  VariableDeclarationNode,
+  VariableKind,
+} from "./nodes/variableDeclaration";
 import { Type } from "./types/common";
 
 export { TybscriLexer as Lexer };
@@ -19,12 +24,18 @@ export interface SourceSpan {
 export abstract class Symbol {
   constructor(public readonly name: string) {}
 
+  public abstract get isConst(): boolean;
+
   public abstract get valueType(): Type | null;
 
   public abstract analyze(context: AnalyzeContext): void;
 }
 
 export class NarrowedSymbol extends Symbol {
+  public get isConst(): boolean {
+    return this.outerSymbol.isConst;
+  }
+
   constructor(
     public readonly outerSymbol: Symbol,
     public readonly narrower: (t: Type) => Type
@@ -44,6 +55,14 @@ export class NarrowedSymbol extends Symbol {
 }
 
 export class SourceSymbol extends Symbol {
+  public get isConst(): boolean {
+    return (
+      (this.node instanceof VariableDeclarationNode &&
+        this.node.kind === VariableKind.Const) ||
+      this.node instanceof FunctionNode
+    );
+  }
+
   constructor(name: string, public readonly node: Node) {
     super(name);
   }
@@ -58,6 +77,11 @@ export class SourceSymbol extends Symbol {
 }
 
 export class ExternalSymbol extends Symbol {
+  public get isConst(): boolean {
+    // TODO
+    return true;
+  }
+
   constructor(name: string, public readonly valueType: Type) {
     super(name);
   }
