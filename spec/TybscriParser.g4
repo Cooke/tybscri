@@ -157,7 +157,9 @@ lambdaParameter: variableDefinition;
 
 scopeIdentifier: Identifier;
 
-type: Identifier;
+type: simpleType (OR NL* simpleType)*;
+
+simpleType: Identifier | lineStringLiteral | literalConstant;
 
 body: block | expression;
 

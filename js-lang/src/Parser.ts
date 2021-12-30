@@ -15,7 +15,7 @@ import { ActualTokenNode, MissingTokenNode, TokenNode } from "./nodes/token";
 import { LiteralType } from "./types/common";
 import { numberType } from "./types/number";
 import { stringType } from "./types/string";
-import { FunctionNode } from "./nodes/function";
+import { FunctionNode, ParameterNode } from "./nodes/function";
 import { BlockNode } from "./nodes/block";
 import {
   ExpressionStatementNode,
@@ -32,6 +32,7 @@ import { IfNode } from "./nodes/if";
 import { booleanType } from "./types/boolean";
 import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
 import { IsNode } from "./nodes/is";
+import { TypeNode } from "./nodes/type";
 
 const L = TybscriLexer;
 
@@ -153,7 +154,7 @@ export class Parser {
 
     this.advanceWhileNL();
     const body = this.parseBlock();
-    const functionNode = new FunctionNode(identifier, body);
+    const functionNode = new FunctionNode(identifier, params, body);
     return functionNode;
   }
 
@@ -161,25 +162,53 @@ export class Parser {
     this.parseExpectedToken(L.LPAREN);
     this.advanceWhileNL();
 
-    // const valueParams: ParameterSyntax[] = [];
-    // while (this.peek() !== L.RPAREN) {
-    //   valueParams.push(this.parseFunctionValueParameter());
-    //   this.advanceWhileNL();
-    //   if (this.peek() === L.COMMA) {
-    //     this.advance();
-    //     this.advanceWhileNL();
-    //   } else {
-    //     break;
-    //   }
-    // }
+    const valueParams: ParameterNode[] = [];
+    while (this.peek() !== L.RPAREN) {
+      valueParams.push(this.parseParameter());
+      this.advanceWhileNL();
+      if (this.peek() === L.COMMA) {
+        this.advance();
+        this.advanceWhileNL();
+      } else {
+        break;
+      }
+    }
 
     this.parseExpectedToken(L.RPAREN);
 
-    return [];
+    return valueParams;
+  }
+
+  private parseFunctionValueParameter() {
+    return this.parseParameter();
+  }
+
+  private parseParameter() {
+    const ident = this.parseExpectedToken(L.Identifier);
+    this.advanceWhileNL();
+    const colon = this.parseExpectedToken(L.COLON);
+    this.advanceWhileNL();
+    const type = this.parseType();
+    return new ParameterNode(ident, colon, type);
   }
 
   parseType() {
-    return this.parseStringLiteral();
+    return this.parseSimpleType();
+  }
+
+  parseSimpleType() {
+    switch (this.peek()) {
+      case L.QUOTE_OPEN:
+        return new TypeNode(this.parseLineStringLiteral());
+
+      case L.INT:
+        return new TypeNode(this.parseNumberLiteral());
+
+      case L.Identifier:
+        return new TypeNode(this.parseIdentifier());
+    }
+
+    throw new Error("Unsupported simple type");
   }
 
   parseExpression() {
@@ -201,16 +230,8 @@ export class Parser {
 
   public parsePrimaryExpression(): ExpressionNode {
     switch (this.peek()) {
-      case L.INT: {
-        const syntaxToken = this.parseKnownToken();
-        const value = parseInt(syntaxToken.text);
-        const literalType: LiteralType = {
-          kind: "Literal",
-          value,
-          valueType: numberType,
-        };
-        return new LiteralNode([syntaxToken], value, literalType);
-      }
+      case L.INT:
+        return this.parseNumberLiteral();
 
       case L.IF:
         return this.parseIfExpression();
@@ -221,7 +242,7 @@ export class Parser {
         if (this.peek(peekIndex) === L.LPAREN) {
           return this.parseScopeIdentifierInvocation();
         } else {
-          return this.parseScopeIdentifier();
+          return this.parseIdentifier();
         }
       }
 
@@ -295,6 +316,17 @@ export class Parser {
 
   private parseStringLiteral() {
     return this.parseLineStringLiteral();
+  }
+
+  private parseNumberLiteral() {
+    const syntaxToken = this.parseKnownToken();
+    const value = parseInt(syntaxToken.text);
+    const literalType: LiteralType = {
+      kind: "Literal",
+      value,
+      valueType: numberType,
+    };
+    return new LiteralNode([syntaxToken], value, literalType);
   }
 
   private parseLineStringLiteral() {
@@ -410,7 +442,7 @@ export class Parser {
   //     }
   //   }
 
-  private parseScopeIdentifier() {
+  private parseIdentifier() {
     const token = this.parseExpectedToken(L.Identifier);
     return new IdentifierNode(token);
   }

@@ -6,6 +6,7 @@ import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
 import { numberType } from "../src/types/number";
 import { stringType } from "../src/types/string";
 import { assertTybscriType, assertType } from "./utils";
+import { createLiteralType } from "../src/types/utils";
 
 describe("Functions", function () {
   it("node", function () {
@@ -33,6 +34,31 @@ describe("Functions", function () {
         valueType: stringType,
       },
       parameters: [],
+    });
+  });
+
+  it("function parameters", function () {
+    const parseResult = parseScript(`
+    fun foo(arg1: "1", arg2: 2) {
+        arg1
+    }
+    `);
+    const funcNode = parseResult.tree.statements[0];
+    console.log(funcNode.toFullString());
+    assertType(funcNode, FunctionNode);
+    assertTybscriType(funcNode.valueType, {
+      kind: "Func",
+      returnType: createLiteralType("1"),
+      parameters: [
+        {
+          name: "arg1",
+          type: createLiteralType("1"),
+        },
+        {
+          name: "arg2",
+          type: createLiteralType(2),
+        },
+      ],
     });
   });
 

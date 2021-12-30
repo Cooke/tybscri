@@ -9,7 +9,13 @@ export class IdentifierNode extends ExpressionNode {
 
   public get truthSymbols(): Symbol[] {
     return this.symbol
-      ? [new NarrowedSymbol(this.symbol, (t) => narrowTypeTruthy(t))]
+      ? [
+          new NarrowedSymbol(this.symbol, () =>
+            this.symbol?.valueType
+              ? narrowTypeTruthy(this.symbol.valueType)
+              : null
+          ),
+        ]
       : [];
   }
 
@@ -37,7 +43,7 @@ export class IdentifierNode extends ExpressionNode {
     this.text = token.text;
   }
 
-  public readonly text: string | null;
+  public readonly text: string;
 
   public getChildren(): TokenNode[] {
     return [this.token];

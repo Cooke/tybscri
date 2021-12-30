@@ -31,6 +31,7 @@ MOD: '%';
 INCR: '++';
 DECR: '--';
 ANDAND: '&&';
+OR: '|';
 OROR: '||';
 EXCLAM: '!';
 COLON: ':';

@@ -5,6 +5,7 @@ import { AnalyzeContext, Node } from "./base";
 import { BlockNode } from "./block";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
+import { TypeNode } from "./type";
 
 export class FunctionNode extends StatementNode {
   private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" =
@@ -12,8 +13,19 @@ export class FunctionNode extends StatementNode {
 
   public symbol: SourceSymbol;
 
-  setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
-    this.body.setupSymbols(scope, context);
+  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+    for (const par of this.parameters) {
+      par.setupSymbols(scope, context);
+    }
+
+    this.body.setupSymbols(
+      new Scope(
+        scope,
+        this.parameters.map((x) => new SourceSymbol(x.name.text, x))
+      ),
+      context
+    );
+
     return scope;
   }
 
@@ -34,11 +46,17 @@ export class FunctionNode extends StatementNode {
       return {
         kind: "Func",
         returnType: unknownType,
-        parameters: [],
+        parameters: this.parameters.map((x) => ({
+          type: x.type.type ?? unknownType,
+          name: x.name.text,
+        })),
       } as FuncType;
     }
 
     this._analyzeState = "analyzing";
+    for (const par of this.parameters) {
+      par.analyze(context);
+    }
     this.body.analyze(context);
 
     if (this._analyzeState !== "analyzing") {
@@ -49,15 +67,18 @@ export class FunctionNode extends StatementNode {
     this._analyzeState = "analyzed";
     return {
       kind: "Func",
-      returnType: this.body.valueType,
-      parameters: [],
+      returnType: this.body.valueType ?? unknownType,
+      parameters: this.parameters.map((x) => ({
+        type: x.type.type ?? unknownType,
+        name: x.name.text,
+      })),
     } as FuncType;
   }
 
   public getChildren(): readonly Node[] {
     return [
       this.name,
-      // ...this.parameters,
+      ...this.parameters,
       // ...(this.returnType ? [this.returnType] : []),
       this.body,
     ];
@@ -65,7 +86,7 @@ export class FunctionNode extends StatementNode {
 
   constructor(
     public readonly name: TokenNode,
-    //public readonly parameters: Parameter[],
+    public readonly parameters: ParameterNode[],
     // public readonly returnType: TypeSyntax | null,
     public readonly body: BlockNode
   ) {
@@ -74,22 +95,21 @@ export class FunctionNode extends StatementNode {
   }
 }
 
-// export class Parameter extends Node {
-//   //   public visit<TReturn = undefined, TContext = undefined>(
-//   //     visitor: Visitor<TReturn, TContext>,
-//   //     context: TContext
-//   //   ): TReturn {
-//   //     return visitor.visitParameterSyntax(this, context);
-//   //   }
-//   public getChildren(): readonly Node[] {
-//     return [this.name, this.colon, this.type];
-//   }
+export class ParameterNode extends Node {
+  protected analyzeInternal(context: AnalyzeContext): Type | null {
+    this.type.analyze(context);
+    return this.type.type;
+  }
 
-//   constructor(
-//     public readonly name: TokenNode,
-//     public readonly colon: TokenNode,
-//     public readonly type: TypeSyntax
-//   ) {
-//     super();
-//   }
-// }
+  public getChildren(): readonly Node[] {
+    return [this.name, this.colon, this.type];
+  }
+
+  constructor(
+    public readonly name: TokenNode,
+    public readonly colon: TokenNode,
+    public readonly type: TypeNode
+  ) {
+    super();
+  }
+}

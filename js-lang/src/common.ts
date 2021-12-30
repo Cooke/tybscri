@@ -38,19 +38,16 @@ export class NarrowedSymbol extends Symbol {
 
   constructor(
     public readonly outerSymbol: Symbol,
-    public readonly narrower: (t: Type) => Type
+    private readonly narrower: (context: AnalyzeContext) => Type | null
   ) {
     super(outerSymbol.name);
   }
 
-  public get valueType(): Type | null {
-    return this.outerSymbol.valueType
-      ? this.narrower(this.outerSymbol.valueType)
-      : null;
-  }
+  public valueType: Type | null = null;
 
   public analyze(context: AnalyzeContext): void {
     this.outerSymbol.analyze(context);
+    this.valueType = this.narrower(context);
   }
 }
 

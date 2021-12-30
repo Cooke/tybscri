@@ -7,41 +7,39 @@ import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { IdentifierNode } from "./identifier";
 import { LiteralNode } from "./literal";
+import { TypeNode } from "./type";
 
 export class IsNode extends ExpressionNode {
   public get truthSymbols(): Symbol[] {
     return this.exp instanceof IdentifierNode && this.exp.symbol!.isConst
       ? [
-          new NarrowedSymbol(this.exp.symbol!, () => ({
-            kind: "Literal",
-            value: this.typeLiteral.value,
-            valueType:
-              typeof this.typeLiteral.value === "string"
-                ? stringType
-                : numberType,
-          })),
+          new NarrowedSymbol(this.exp.symbol!, (context) => {
+            this.type.analyze(context);
+            return this.type.type;
+          }),
         ]
       : [];
   }
 
   public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
     this.exp.setupSymbols(scope, context);
+    this.type.setupSymbols(scope, context);
     return scope;
   }
 
   protected analyzeInternal(context: AnalyzeContext): Type | null {
     this.exp.analyze(context);
-    this.typeLiteral.analyze(context);
+    this.type.analyze(context);
     return booleanType;
   }
 
   public getChildren(): readonly Node[] {
-    return [this.exp, this.typeLiteral];
+    return [this.exp, this.type];
   }
 
   constructor(
     public readonly exp: ExpressionNode,
-    public readonly typeLiteral: LiteralNode
+    public readonly type: TypeNode
   ) {
     super();
   }
