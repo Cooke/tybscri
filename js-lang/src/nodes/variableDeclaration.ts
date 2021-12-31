@@ -1,5 +1,5 @@
 import { DiagnosticSeverity, Scope, SourceSymbol } from "../common";
-import { Type, widenType } from "../types/common";
+import { widenType } from "../types/common";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { StatementNode } from "./statements";
@@ -11,9 +11,9 @@ export enum VariableKind {
 }
 
 export class VariableDeclarationNode extends StatementNode {
-  private symbol: SourceSymbol;
+  public symbol: SourceSymbol;
 
-  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+  public setupScopes(scope: Scope, context: AnalyzeContext) {
     if (scope.resolveLast(this.name.text) != null) {
       context.onDiagnosticMessage?.({
         message: `Cannot redeclare variable '${this.name.text}'`,
@@ -22,20 +22,20 @@ export class VariableDeclarationNode extends StatementNode {
       });
     }
 
-    this.value.setupSymbols(scope, context);
-    return scope.withSymbols([this.symbol]);
+    this.value.setupScopes(scope, context);
   }
 
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
+  public analyze(context: AnalyzeContext) {
     this.value.analyze(context);
 
     if (!this.value.valueType) {
-      return null;
+      return;
     }
 
-    return this.kind === VariableKind.Const
-      ? this.value.valueType
-      : widenType(this.value.valueType);
+    this.valueType =
+      this.kind === VariableKind.Const
+        ? this.value.valueType
+        : widenType(this.value.valueType);
   }
 
   constructor(
@@ -43,11 +43,7 @@ export class VariableDeclarationNode extends StatementNode {
     public readonly name: TokenNode,
     public readonly value: ExpressionNode
   ) {
-    super();
+    super([name, value]);
     this.symbol = new SourceSymbol(this.name.text, this);
-  }
-
-  public getChildren() {
-    return [this.name, this.value];
   }
 }

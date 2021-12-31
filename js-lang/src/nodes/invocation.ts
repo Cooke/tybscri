@@ -1,10 +1,11 @@
 import { DiagnosticSeverity } from "../common";
 import { FuncType, Type } from "../types/common";
+import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 
 export class InvocationNode extends ExpressionNode {
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
+  public analyze(context: AnalyzeContext) {
     this.target.analyze(context);
     for (const arg of this.argumentList) {
       arg.analyze(context);
@@ -16,20 +17,16 @@ export class InvocationNode extends ExpressionNode {
         severity: DiagnosticSeverity.Error,
         span: this.target.span,
       });
-      return null;
+      return;
     }
 
-    return this.target.valueType.returnType;
-  }
-
-  public getChildren(): readonly Node[] {
-    return [this.target, ...this.argumentList];
+    this.valueType = this.target.valueType.returnType;
   }
 
   constructor(
     public readonly target: ExpressionNode,
     public readonly argumentList: ExpressionNode[]
   ) {
-    super();
+    super([target, ...argumentList]);
   }
 }

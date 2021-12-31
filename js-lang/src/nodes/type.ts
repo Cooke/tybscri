@@ -2,45 +2,42 @@ import { Scope, Symbol } from "../common";
 import { Type } from "../types/common";
 import { numberType } from "../types/number";
 import { stringType } from "../types/string";
+import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
-import { ExpressionNode } from "./expression";
 import { IdentifierNode } from "./identifier";
 import { LiteralNode } from "./literal";
 
-export class TypeNode extends ExpressionNode {
-  public type: Type | null = null;
+export class TypeNode extends Node {
+  private _type: Type = unknownType;
+
+  public get type() {
+    return this._type;
+  }
+
   private typeSymbol: Symbol | null = null;
 
-  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+  public setupScopes(scope: Scope, context: AnalyzeContext) {
     if (this.node instanceof IdentifierNode) {
-      this.typeSymbol = scope.resolveLast(this.node.text);
+      this.typeSymbol = scope.resolveLast(this.node.token.text);
       // TODO report if not found
     } else {
-      this.type = {
+      this._type = {
         kind: "Literal",
         value: this.node.value,
         valueType:
           typeof this.node.value === "string" ? stringType : numberType,
       };
     }
-
-    return scope;
   }
 
-  protected analyzeInternal(context: AnalyzeContext) {
+  public analyze(context: AnalyzeContext) {
     if (this.typeSymbol) {
       this.typeSymbol.analyze(context);
-      this.type = this.typeSymbol.valueType;
+      this._type = this.typeSymbol.valueType;
     }
-
-    return null;
-  }
-
-  public getChildren(): Node[] {
-    return [this.node];
   }
 
   constructor(public readonly node: LiteralNode | IdentifierNode) {
-    super();
+    super([node]);
   }
 }

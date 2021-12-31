@@ -8,6 +8,7 @@ import {
   Scope,
 } from "../src/common";
 import { stringType } from "../src/types/string";
+import { unknownType } from "../src/types/unknown";
 import { assertTybscriType } from "./utils";
 
 describe("Identifiers", function () {
@@ -16,7 +17,7 @@ describe("Identifiers", function () {
     const parseResult = parseExpression("data", {
       onDiagnosticMessage: (msg) => msgs.push(msg),
     });
-    assert.equal(parseResult.tree.valueType, null);
+    assert.equal(parseResult.tree.valueType, unknownType);
     assert.equal(msgs.length, 1);
     assert.equal(msgs[0].severity, DiagnosticSeverity.Error);
   });

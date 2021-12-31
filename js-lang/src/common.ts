@@ -2,11 +2,13 @@ import { TybscriLexer } from "./generated/TybscriLexer";
 import { AnalyzeContext, Node } from "./nodes/base";
 import { ExpressionNode } from "./nodes/expression";
 import { FunctionNode } from "./nodes/function";
+import { StatementNode } from "./nodes/statements";
 import {
   VariableDeclarationNode,
   VariableKind,
 } from "./nodes/variableDeclaration";
 import { Type } from "./types/common";
+import { unknownType } from "./types/unknown";
 
 export { TybscriLexer as Lexer };
 
@@ -26,7 +28,7 @@ export abstract class Symbol {
 
   public abstract get isConst(): boolean;
 
-  public abstract get valueType(): Type | null;
+  public abstract get valueType(): Type;
 
   public abstract analyze(context: AnalyzeContext): void;
 }
@@ -38,12 +40,12 @@ export class NarrowedSymbol extends Symbol {
 
   constructor(
     public readonly outerSymbol: Symbol,
-    private readonly narrower: (context: AnalyzeContext) => Type | null
+    private readonly narrower: (context: AnalyzeContext) => Type
   ) {
     super(outerSymbol.name);
   }
 
-  public valueType: Type | null = null;
+  public valueType: Type = unknownType;
 
   public analyze(context: AnalyzeContext): void {
     this.outerSymbol.analyze(context);
@@ -60,11 +62,17 @@ export class SourceSymbol extends Symbol {
     );
   }
 
-  constructor(name: string, public readonly node: Node) {
+  constructor(
+    name: string,
+    public readonly node: {
+      analyze(context: AnalyzeContext): void;
+      valueType: Type;
+    }
+  ) {
     super(name);
   }
 
-  public get valueType(): Type | null {
+  public get valueType(): Type {
     return this.node.valueType;
   }
 

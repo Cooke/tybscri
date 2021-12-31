@@ -7,16 +7,15 @@ import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IfNode extends ExpressionNode {
-  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
-    this.condition.setupSymbols(scope, context);
-    this.thenBlock.setupSymbols(
+  public setupScopes(scope: Scope, context: AnalyzeContext) {
+    this.condition.setupScopes(scope, context);
+    this.thenBlock.setupScopes(
       scope.withSymbols(this.condition.truthSymbols),
       context
     );
-    return scope;
   }
 
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
+  public analyze(context: AnalyzeContext) {
     this.condition.analyze(context);
     this.thenBlock.analyze(context);
     this.elseBlock?.analyze(context);
@@ -29,18 +28,7 @@ export class IfNode extends ExpressionNode {
           ]
         : [this.thenBlock.valueType ?? unknownType, nullType],
     };
-    return unionType;
-  }
-
-  public getChildren(): readonly Node[] {
-    return [
-      this.ifToken,
-      this.openParen,
-      this.condition,
-      this.closeParen,
-      this.thenBlock,
-      ...(this.elseBlock ? [this.elseBlock] : []),
-    ];
+    this.valueType = unionType;
   }
 
   constructor(
@@ -51,6 +39,13 @@ export class IfNode extends ExpressionNode {
     public readonly thenBlock: ExpressionNode,
     public readonly elseBlock: ExpressionNode | null
   ) {
-    super();
+    super([
+      ifToken,
+      openParen,
+      condition,
+      closeParen,
+      thenBlock,
+      ...(elseBlock ? [elseBlock] : []),
+    ]);
   }
 }

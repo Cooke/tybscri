@@ -38,13 +38,18 @@ describe("Functions", function () {
   });
 
   it("function parameters", function () {
-    const parseResult = parseScript(`
+    const msgs: any[] = [];
+    const parseResult = parseScript(
+      `
     fun foo(arg1: "1", arg2: 2) {
         arg1
     }
-    `);
+    `,
+      {
+        onDiagnosticMessage: (msg) => msgs.push(msg),
+      }
+    );
     const funcNode = parseResult.tree.statements[0];
-    console.log(funcNode.toFullString());
     assertType(funcNode, FunctionNode);
     assertTybscriType(funcNode.valueType, {
       kind: "Func",

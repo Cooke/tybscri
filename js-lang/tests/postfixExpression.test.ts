@@ -8,6 +8,6 @@ describe("Postfix expressions", function () {
     const parseResult = parseExpression("data.prop1");
     const node = parseResult.tree;
     assertType(node, MemberNode);
-    assert.equal(node.memberName, "prop1");
+    assert.equal(node.member.text, "prop1");
   });
 });

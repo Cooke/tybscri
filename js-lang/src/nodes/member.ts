@@ -5,50 +5,43 @@ import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class MemberNode extends ExpressionNode {
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
+  public analyze(context: AnalyzeContext) {
     this.expression.analyze(context);
+
     if (!this.expression.valueType) {
       // An error should be reported elsewhere
-      return null;
+      return;
     }
 
     const members = getAllTypeMembers(this.expression.valueType);
-    const matchingMembers = members.filter((x) => x.name === this.memberName);
+    const matchingMembers = members.filter((x) => x.name === this.member.text);
     if (matchingMembers.length === 0) {
       context.onDiagnosticMessage?.({
         message: `No member with name '${
-          this.memberName
+          this.member.text
         }' exists on type '${getTypeDisplayName(this.expression.valueType)}'`,
         severity: DiagnosticSeverity.Error,
-        span: this.memberNameToken.span,
+        span: this.member.span,
       });
-      return null;
+      return;
     }
 
     if (matchingMembers.length > 1) {
       context.onDiagnosticMessage?.({
         message: `Member overloading is currently not supported`,
         severity: DiagnosticSeverity.Error,
-        span: this.memberNameToken.span,
+        span: this.member.span,
       });
-      return null;
+      return;
     }
 
-    return matchingMembers[0].type;
-  }
-
-  public getChildren() {
-    return [this.expression, this.memberNameToken];
-  }
-
-  public get memberName() {
-    return this.memberNameToken.text;
+    this.valueType = matchingMembers[0].type;
   }
 
   constructor(
     public readonly expression: ExpressionNode,
-    public readonly memberNameToken: TokenNode
+    public readonly member: TokenNode
   ) {
-    super();
+    super([expression, member]);
   }
 }

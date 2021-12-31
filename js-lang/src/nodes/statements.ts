@@ -1,35 +1,36 @@
-import { Symbol } from "../common";
-import { Type } from "../types/common";
-import { AnalyzeContext, Node } from "./base";
+import { getTypeDisplayName, Type } from "../types/common";
+import { unknownType } from "../types/unknown";
+import { Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { ActualTokenNode } from "./token";
 
-export abstract class StatementNode extends Node {}
+export abstract class StatementNode extends Node {
+  private _valueType: Type = unknownType;
 
-export class ExpressionStatementNode extends StatementNode {
-  public getChildren(): readonly Node[] {
-    return [this.expression];
+  public get valueType(): Type {
+    return this._valueType;
   }
 
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
-    this.expression.analyze(context);
+  protected set valueType(val: Type) {
+    this._valueType = val;
+  }
+
+  public toString(): string {
+    return `${super.toString()} (type: ${getTypeDisplayName(this.valueType)})`;
+  }
+}
+
+export class ExpressionStatementNode extends StatementNode {
+  public get valueType(): Type {
     return this.expression.valueType;
   }
 
   constructor(public readonly expression: ExpressionNode) {
-    super();
+    super([expression]);
   }
 }
 
 export class MissingStatementNode extends StatementNode {
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
-    return null;
-  }
-
-  public getChildren(): readonly Node[] {
-    return [];
-  }
-
   public get span() {
     return {
       start: this.actualToken.span.start,
@@ -38,6 +39,6 @@ export class MissingStatementNode extends StatementNode {
   }
 
   constructor(public readonly actualToken: ActualTokenNode) {
-    super();
+    super([]);
   }
 }

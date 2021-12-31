@@ -19,7 +19,7 @@ export abstract class TokenNode extends Node {
   }
 
   constructor(private readonly tokenType: number, span: SourceSpan) {
-    super();
+    super([]);
     this._span = span;
   }
 

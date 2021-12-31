@@ -13,25 +13,23 @@ export class FunctionNode extends StatementNode {
 
   public symbol: SourceSymbol;
 
-  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+  public setupScopes(scope: Scope, context: AnalyzeContext) {
     for (const par of this.parameters) {
-      par.setupSymbols(scope, context);
+      par.setupScopes(scope, context);
     }
 
-    this.body.setupSymbols(
+    this.body.setupScopes(
       new Scope(
         scope,
         this.parameters.map((x) => new SourceSymbol(x.name.text, x))
       ),
       context
     );
-
-    return scope;
   }
 
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
+  public analyze(context: AnalyzeContext) {
     if (this._analyzeState === "analyzed") {
-      return this.valueType;
+      return;
     }
 
     if (this._analyzeState === "analyzing") {
@@ -43,7 +41,7 @@ export class FunctionNode extends StatementNode {
         span: this.span,
       });
 
-      return {
+      this.valueType = {
         kind: "Func",
         returnType: unknownType,
         parameters: this.parameters.map((x) => ({
@@ -51,6 +49,7 @@ export class FunctionNode extends StatementNode {
           name: x.name.text,
         })),
       } as FuncType;
+      return;
     }
 
     this._analyzeState = "analyzing";
@@ -61,11 +60,11 @@ export class FunctionNode extends StatementNode {
 
     if (this._analyzeState !== "analyzing") {
       // Analyzed already done in a circular analyze
-      return this.valueType;
+      return;
     }
 
     this._analyzeState = "analyzed";
-    return {
+    this.valueType = {
       kind: "Func",
       returnType: this.body.valueType ?? unknownType,
       parameters: this.parameters.map((x) => ({
@@ -75,34 +74,20 @@ export class FunctionNode extends StatementNode {
     } as FuncType;
   }
 
-  public getChildren(): readonly Node[] {
-    return [
-      this.name,
-      ...this.parameters,
-      // ...(this.returnType ? [this.returnType] : []),
-      this.body,
-    ];
-  }
-
   constructor(
     public readonly name: TokenNode,
     public readonly parameters: ParameterNode[],
     // public readonly returnType: TypeSyntax | null,
     public readonly body: BlockNode
   ) {
-    super();
+    super([name, ...parameters, body]);
     this.symbol = new SourceSymbol(name.text, this);
   }
 }
 
 export class ParameterNode extends Node {
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
-    this.type.analyze(context);
+  public get valueType() {
     return this.type.type;
-  }
-
-  public getChildren(): readonly Node[] {
-    return [this.name, this.colon, this.type];
   }
 
   constructor(
@@ -110,6 +95,6 @@ export class ParameterNode extends Node {
     public readonly colon: TokenNode,
     public readonly type: TypeNode
   ) {
-    super();
+    super([name, colon, type]);
   }
 }

@@ -1,18 +1,18 @@
 import { DiagnosticSeverity, Scope } from "../common";
 import { Type } from "../types/common";
+import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IdentifierInvocationNode extends ExpressionNode {
-  scope = Scope.empty;
+  private scope = Scope.empty;
 
-  public setupSymbols(scope: Scope, context: AnalyzeContext): Scope {
+  public setupScopes(scope: Scope, context: AnalyzeContext) {
     this.scope = scope;
-    return scope;
   }
 
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
+  public analyze(context: AnalyzeContext) {
     const potentialTargets = this.scope.resolveAll(this.name.text);
 
     for (const t of potentialTargets) {
@@ -29,7 +29,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
         severity: DiagnosticSeverity.Error,
         span: this.name.span,
       });
-      return null;
+      return;
     }
 
     if (potentialTargets.length === 0) {
@@ -38,7 +38,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
         severity: DiagnosticSeverity.Error,
         span: this.name.span,
       });
-      return null;
+      return;
     }
 
     const target = potentialTargets[0];
@@ -48,20 +48,15 @@ export class IdentifierInvocationNode extends ExpressionNode {
         severity: DiagnosticSeverity.Error,
         span: this.name.span,
       });
-      return null;
+      return;
     }
 
-    return target.valueType.returnType;
+    this.valueType = target.valueType.returnType;
   }
-
-  public getChildren(): readonly Node[] {
-    return [this.name, ...this.argumentList];
-  }
-
   constructor(
     public readonly name: TokenNode,
     public readonly argumentList: ExpressionNode[]
   ) {
-    super();
+    super([name, ...argumentList]);
   }
 }
