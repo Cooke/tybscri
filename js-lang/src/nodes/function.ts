@@ -1,8 +1,10 @@
 import { DiagnosticSeverity, Scope, SourceSymbol, Symbol } from "../common";
-import { FuncType, Type } from "../types/common";
+import { FuncType, reduceUnionType, Type, UnionType } from "../types/common";
+import { nullType } from "../types/null";
 import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
 import { BlockNode } from "./block";
+import { ReturnNode } from "./return";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
 import { TypeNode } from "./type";
@@ -63,15 +65,39 @@ export class FunctionNode extends StatementNode {
       return;
     }
 
+    const allReturns = this.findReturns(this.body);
+    const unionType: UnionType = {
+      kind: "Union",
+      types: allReturns
+        .map((x) => x.expression?.valueType ?? nullType)
+        .concat([this.body.valueType]),
+    };
+    const returnType = reduceUnionType(unionType);
+
     this._analyzeState = "analyzed";
     this.valueType = {
       kind: "Func",
-      returnType: this.body.valueType ?? unknownType,
+      returnType,
       parameters: this.parameters.map((x) => ({
         type: x.type.type ?? unknownType,
         name: x.name.text,
       })),
     } as FuncType;
+  }
+
+  private findReturns(node: Node): ReturnNode[] {
+    if (node instanceof ReturnNode) {
+      return [node];
+    }
+
+    const returns: ReturnNode[] = [];
+    for (const child of node.children) {
+      if (!(child instanceof FunctionNode)) {
+        returns.push(...this.findReturns(child));
+      }
+    }
+
+    return returns;
   }
 
   constructor(

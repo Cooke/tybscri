@@ -33,6 +33,7 @@ import { booleanType } from "./types/boolean";
 import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
 import { IsNode } from "./nodes/is";
 import { TypeNode } from "./nodes/type";
+import { ReturnNode } from "./nodes/return";
 
 const L = TybscriLexer;
 
@@ -253,9 +254,22 @@ export class Parser {
       case L.QUOTE_OPEN: {
         return this.parseStringLiteral();
       }
+      case L.RETURN:
+        return this.parseReturnExpression();
     }
 
     return new MissingExpressionNode(this.createActualToken(this.peekToken()));
+  }
+
+  private parseReturnExpression() {
+    const returnToken = this.parseExpectedToken(L.RETURN);
+    if (this.peek() !== L.NL) {
+      const exp = this.parseExpression();
+
+      return new ReturnNode(returnToken, exp);
+    }
+
+    return new ReturnNode(returnToken, null);
   }
 
   private parseIfExpression() {

@@ -6,7 +6,7 @@ import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
 import { numberType } from "../src/types/number";
 import { stringType } from "../src/types/string";
 import { assertTybscriType, assertType } from "./utils";
-import { createLiteralType } from "../src/types/utils";
+import { createLiteralType, createUnionType } from "../src/types/utils";
 
 describe("Functions", function () {
   it("node", function () {
@@ -28,11 +28,68 @@ describe("Functions", function () {
     assertType(funcNode, FunctionNode);
     assertTybscriType(funcNode.valueType, {
       kind: "Func",
-      returnType: {
-        kind: "Literal",
-        value: "bar",
-        valueType: stringType,
-      },
+      returnType: createLiteralType("bar"),
+      parameters: [],
+    });
+  });
+
+  it("explicit return", function () {
+    const parseResult = parseScript(`
+    fun foo() {
+        return "bar"
+    }
+    `);
+    const funcNode = parseResult.tree.statements[0];
+    assertType(funcNode, FunctionNode);
+    assertTybscriType(funcNode.valueType, {
+      kind: "Func",
+      returnType: createLiteralType("bar"),
+      parameters: [],
+    });
+  });
+
+  it("several returns", function () {
+    const parseResult = parseScript(`
+    fun foo() {
+      if (1) {
+        return 1
+      }
+
+      if (2) {
+        return 2
+      }
+
+      return 3
+    }
+    `);
+    const funcNode = parseResult.tree.statements[0];
+    assertType(funcNode, FunctionNode);
+    assertTybscriType(funcNode.valueType, {
+      kind: "Func",
+      returnType: createUnionType(
+        createLiteralType(1),
+        createLiteralType(2),
+        createLiteralType(3)
+      ),
+      parameters: [],
+    });
+  });
+
+  it("handle inner functions", function () {
+    const parseResult = parseScript(`
+    fun foo() {
+      fun bar() {
+        return "bar"
+      }
+
+      return "123"
+    }
+    `);
+    const funcNode = parseResult.tree.statements[0];
+    assertType(funcNode, FunctionNode);
+    assertTybscriType(funcNode.valueType, {
+      kind: "Func",
+      returnType: createLiteralType("123"),
       parameters: [],
     });
   });

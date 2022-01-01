@@ -1,14 +1,20 @@
 import { booleanType, trueType } from "./boolean";
+import { neverType } from "./never";
 
 export type Type =
   | UnionType
   | LiteralType
   | FuncType
   | ObjectType
-  | UnknownType;
+  | UnknownType
+  | NeverType;
 
 export interface UnknownType {
   readonly kind: "Unknown";
+}
+
+export interface NeverType {
+  readonly kind: "Never";
 }
 
 export interface UnionType {
@@ -111,6 +117,10 @@ export function getAllTypeMembers(type: Type): MemberDef[] {
   return [];
 }
 
+export function areTypesEqual(from: Type, to: Type) {
+  return isTypeAssignableToType(from, to) && isTypeAssignableToType(to, from);
+}
+
 export function isTypeAssignableToType(from: Type, to: Type): boolean {
   switch (to.kind) {
     case "Object":
@@ -136,6 +146,7 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
         case "Literal":
           return isTypeAssignableToType(from.valueType, to);
 
+        case "Never":
         case "Unknown":
           return false;
       }
@@ -163,9 +174,9 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
       return from.kind === "Literal" && from.value === to.value;
     }
 
-    case "Unknown": {
+    case "Never":
+    case "Unknown":
       return false;
-    }
   }
 }
 
@@ -185,4 +196,35 @@ export function narrowTypeTruthy(type: Type) {
   }
 
   return type;
+}
+
+export function reduceUnionType(union: UnionType) {
+  if (union.types.length === 0) {
+    return neverType;
+  }
+
+  const testTypes = union.types.filter((x) => x.kind !== "Never");
+  const resultTypes: Type[] = [];
+  for (const type of testTypes) {
+    if (!resultTypes.some((t) => isTypeAssignableToType(type, t))) {
+      const replaceIndex = resultTypes.findIndex((t) =>
+        isTypeAssignableToType(t, type)
+      );
+      if (replaceIndex !== -1) {
+        resultTypes[replaceIndex] = type;
+      } else {
+        resultTypes.push(type);
+      }
+    }
+  }
+
+  if (resultTypes.length === 1) {
+    return resultTypes[0];
+  }
+
+  const result: UnionType = {
+    kind: "Union",
+    types: resultTypes,
+  };
+  return result;
 }
