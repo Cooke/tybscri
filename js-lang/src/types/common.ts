@@ -203,7 +203,12 @@ export function reduceUnionType(union: UnionType) {
     return neverType;
   }
 
-  const testTypes = union.types.filter((x) => x.kind !== "Never");
+  const testTypes = union.types
+    .reduce<Type[]>(
+      (p, c) => (c.kind === "Union" ? p.concat(c.types) : [...p, c]),
+      []
+    )
+    .filter((x) => x.kind !== "Never");
   const resultTypes: Type[] = [];
   for (const type of testTypes) {
     if (!resultTypes.some((t) => isTypeAssignableToType(type, t))) {

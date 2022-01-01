@@ -7,7 +7,7 @@ export class ReturnNode extends ExpressionNode {
     public readonly token: TokenNode,
     public readonly expression: ExpressionNode | null
   ) {
-    super([token]);
+    super([token, ...(expression ? [expression] : [])]);
     this.valueType = neverType;
   }
 }

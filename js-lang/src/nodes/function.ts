@@ -72,6 +72,7 @@ export class FunctionNode extends StatementNode {
         .map((x) => x.expression?.valueType ?? nullType)
         .concat([this.body.valueType]),
     };
+
     const returnType = reduceUnionType(unionType);
 
     this._analyzeState = "analyzed";
@@ -86,15 +87,17 @@ export class FunctionNode extends StatementNode {
   }
 
   private findReturns(node: Node): ReturnNode[] {
+    if (node instanceof FunctionNode) {
+      return [];
+    }
+
     if (node instanceof ReturnNode) {
       return [node];
     }
 
     const returns: ReturnNode[] = [];
     for (const child of node.children) {
-      if (!(child instanceof FunctionNode)) {
-        returns.push(...this.findReturns(child));
-      }
+      returns.push(...this.findReturns(child));
     }
 
     return returns;

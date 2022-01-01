@@ -35,5 +35,17 @@ describe("Types", function () {
       const reduced = reduceUnionType(union);
       assertTybscriType(reduced, createUnionType(numberType, stringType));
     });
+
+    it("reduce nested unions", function () {
+      const union = createUnionType(
+        createLiteralType("123"),
+        createUnionType(createLiteralType(123), stringType)
+      );
+      const reduced = reduceUnionType(union);
+      assertTybscriType(
+        reduced,
+        createUnionType(stringType, createLiteralType(123))
+      );
+    });
   });
 });

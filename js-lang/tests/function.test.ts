@@ -7,6 +7,7 @@ import { numberType } from "../src/types/number";
 import { stringType } from "../src/types/string";
 import { assertTybscriType, assertType } from "./utils";
 import { createLiteralType, createUnionType } from "../src/types/utils";
+import { printTree } from "../src/utils";
 
 describe("Functions", function () {
   it("node", function () {

@@ -4,36 +4,35 @@ import {
   DiagnosticSeverity,
   Scope,
   SourceSpan,
-  SourceSymbol,
 } from "./common";
 import { TybscriLexer } from "./generated/TybscriLexer";
-import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
-import { IdentifierNode } from "./nodes/identifier";
-import { MemberNode } from "./nodes/member";
-import { LiteralNode } from "./nodes/literal";
-import { ActualTokenNode, MissingTokenNode, TokenNode } from "./nodes/token";
-import { LiteralType } from "./types/common";
-import { numberType } from "./types/number";
-import { stringType } from "./types/string";
-import { FunctionNode, ParameterNode } from "./nodes/function";
 import { BlockNode } from "./nodes/block";
+import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
+import { FunctionNode, ParameterNode } from "./nodes/function";
+import { IdentifierNode } from "./nodes/identifier";
+import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
+import { IfNode } from "./nodes/if";
+import { InvocationNode } from "./nodes/invocation";
+import { IsNode } from "./nodes/is";
+import { LiteralNode } from "./nodes/literal";
+import { MemberNode } from "./nodes/member";
+import { ReturnNode } from "./nodes/return";
+import { ScriptNode } from "./nodes/script";
 import {
   ExpressionStatementNode,
   MissingStatementNode,
   StatementNode,
 } from "./nodes/statements";
-import { ScriptNode } from "./nodes/script";
+import { ActualTokenNode, MissingTokenNode, TokenNode } from "./nodes/token";
+import { TypeNode } from "./nodes/type";
 import {
   VariableDeclarationNode,
   VariableKind,
 } from "./nodes/variableDeclaration";
-import { InvocationNode } from "./nodes/invocation";
-import { IfNode } from "./nodes/if";
 import { booleanType } from "./types/boolean";
-import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
-import { IsNode } from "./nodes/is";
-import { TypeNode } from "./nodes/type";
-import { ReturnNode } from "./nodes/return";
+import { LiteralType } from "./types/common";
+import { numberType } from "./types/number";
+import { stringType } from "./types/string";
 
 const L = TybscriLexer;
 
@@ -131,11 +130,14 @@ export class Parser {
   }
 
   private parseBlock() {
-    const lcurl = this.parseExpectedToken(L.LCURL);
+    this.parseExpectedToken(L.LCURL);
     this.advanceWhileNL();
-    const statements = [this.parseStatement()];
-    this.advanceWhileNL();
-    const rcurl = this.parseExpectedToken(L.RCURL);
+    const statements: StatementNode[] = [];
+    while (this.peek() !== L.RCURL) {
+      statements.push(this.parseStatement());
+      this.advanceWhileNL();
+    }
+    this.parseExpectedToken(L.RCURL);
 
     return new BlockNode(statements);
   }
