@@ -7,7 +7,7 @@ import {
   ExternalSymbol,
   Scope,
 } from "../src/common";
-import { stringType } from "../src/types/string";
+import { stringType } from "../src/types";
 import { unknownType } from "../src/types/unknown";
 import { assertTybscriType } from "./utils";
 

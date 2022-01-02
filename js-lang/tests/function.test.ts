@@ -1,13 +1,10 @@
 import assert from "assert";
 import { DiagnosticMessage, parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
-import { InvocationNode } from "../src/nodes/invocation";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
-import { numberType } from "../src/types/number";
-import { stringType } from "../src/types/string";
-import { assertTybscriType, assertType } from "./utils";
+import { numberType, stringType } from "../src/types";
 import { createLiteralType, createUnionType } from "../src/types/utils";
-import { printTree } from "../src/utils";
+import { assertTybscriType, assertType } from "./utils";
 
 describe("Functions", function () {
   it("node", function () {

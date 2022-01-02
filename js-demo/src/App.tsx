@@ -1,12 +1,12 @@
-import Editor, { loader, useMonaco, Monaco } from "@monaco-editor/react";
-import {
-  parseExpression,
-  TybscriTokensProvider,
-} from "tybscri-monaco-integration";
-import { DiagnosticMessage } from "tybscri";
+import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import "./App.css";
 import { MarkerSeverity } from "monaco-editor";
+import { DiagnosticMessage, parseScript, printTree } from "tybscri";
+import {
+  TybscriTokensProvider,
+  TybscriCompletionItemProvider,
+} from "tybscri-monaco-integration";
+import "./App.css";
 
 loader.init().then((m) => {
   m.languages.register({ id: "tybscri" });
@@ -19,15 +19,10 @@ loader.init().then((m) => {
     ],
   });
   m.languages.setTokensProvider("tybscri", new TybscriTokensProvider());
-  // const tybscriCompletionProvider = new TybscriCompeletionItemProvider(
-  //   scriptProvider
-  // );
-  // // m.languages.registerHoverProvider("dom", domMonacoLangProvider)
-  // m.languages.registerCompletionItemProvider(
-  //   "tybscri",
-  //   tybscriCompletionProvider
-  // );
-  // mon = m;
+  m.languages.registerCompletionItemProvider(
+    "tybscri",
+    new TybscriCompletionItemProvider()
+  );
 });
 
 function App() {
@@ -42,11 +37,11 @@ function App() {
         onMount={(editor, monaco) => {
           editor.onDidChangeModelContent((ev) => {
             const messages: DiagnosticMessage[] = [];
-            const output = parseExpression(editor.getValue(), {
-              onDiagnostic: (msg) => messages.push(msg),
+            const output = parseScript(editor.getValue(), {
+              onDiagnosticMessage: (msg) => messages.push(msg),
             });
             console.log("Parse output");
-            console.log(output.tree.toFullString());
+            console.log(printTree(output.tree));
             const errors = messages.map((msg) => {
               const monacoMarker: monaco.editor.IMarkerData = {
                 severity: MarkerSeverity.Error,

@@ -1,6 +1,5 @@
-import { DiagnosticMessage, parseScript } from "../src";
-import { numberType } from "../src/types/number";
-import { stringType } from "../src/types/string";
+import { parseScript } from "../src";
+import { numberType, stringType } from "../src/types";
 import { assertTybscriType } from "./utils";
 
 describe("Variables", function () {

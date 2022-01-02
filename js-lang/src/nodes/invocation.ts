@@ -3,6 +3,7 @@ import { FuncType, Type } from "../types/common";
 import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
+import { TokenNode } from "./token";
 
 export class InvocationNode extends ExpressionNode {
   public analyze(context: AnalyzeContext) {
@@ -25,8 +26,10 @@ export class InvocationNode extends ExpressionNode {
 
   constructor(
     public readonly target: ExpressionNode,
-    public readonly argumentList: ExpressionNode[]
+    public readonly argumentList: ExpressionNode[],
+    public readonly lparan: TokenNode,
+    public readonly rparan: TokenNode
   ) {
-    super([target, ...argumentList]);
+    super([target, ...argumentList, lparan, rparan]);
   }
 }

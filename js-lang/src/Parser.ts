@@ -31,8 +31,8 @@ import {
 } from "./nodes/variableDeclaration";
 import { booleanType } from "./types/boolean";
 import { LiteralType } from "./types/common";
-import { numberType } from "./types/number";
-import { stringType } from "./types/string";
+import { numberType } from "./types";
+import { stringType } from "./types";
 
 const L = TybscriLexer;
 
@@ -130,16 +130,16 @@ export class Parser {
   }
 
   private parseBlock() {
-    this.parseExpectedToken(L.LCURL);
+    const lcurl = this.parseExpectedToken(L.LCURL);
     this.advanceWhileNL();
     const statements: StatementNode[] = [];
-    while (this.peek() !== L.RCURL) {
+    while (this.peek() !== L.RCURL && this.peek() !== L.EOF) {
       statements.push(this.parseStatement());
       this.advanceWhileNL();
     }
-    this.parseExpectedToken(L.RCURL);
+    const rcurl = this.parseExpectedToken(L.RCURL);
 
-    return new BlockNode(statements);
+    return new BlockNode(lcurl, statements, rcurl);
   }
 
   private parseFunctionDeclaration() {
@@ -166,7 +166,7 @@ export class Parser {
     this.advanceWhileNL();
 
     const valueParams: ParameterNode[] = [];
-    while (this.peek() !== L.RPAREN) {
+    while (this.peek() !== L.RPAREN && this.peek() !== L.EOF) {
       valueParams.push(this.parseParameter());
       this.advanceWhileNL();
       if (this.peek() === L.COMMA) {
@@ -282,6 +282,14 @@ export class Parser {
     const expression = this.parseExpression();
     this.advanceWhileNL();
     const rparen = this.parseExpectedToken(L.RPAREN);
+    if (rparen instanceof MissingTokenNode) {
+      this.reportDiagnostic({
+        message: "Expected ')'",
+        span: rparen.actualToken.span,
+        severity: DiagnosticSeverity.Error,
+      });
+    }
+
     this.advanceWhileNL();
     const thenStatement = this.parseBody();
 
@@ -371,93 +379,6 @@ export class Parser {
     );
   }
 
-  //   private parseIfExpression() {
-  //     const ifkeyword = this.parseSyntaxToken(L.IF);
-  //     this.advanceWhileNL();
-  //     const lparen = this.parseSyntaxToken(L.LPAREN);
-  //     this.advanceWhileNL();
-  //     const expression = this.parseExpression();
-  //     this.advanceWhileNL();
-  //     const rparen = this.parseSyntaxToken(L.RPAREN);
-  //     this.advanceWhileNL();
-  //     const thenStatement = this.parseBlock();
-
-  //     // Search for else
-  //     let i = 1;
-  //     while (this.peek(i) === L.NL) {
-  //       i++;
-  //     }
-
-  //     let elseStatement: BlockSyntax | null = null;
-  //     if (this.peek(i) === L.ELSE) {
-  //       this.advanceWhileNL();
-  //       this.advance();
-  //       this.advanceWhileNL();
-  //       elseStatement = this.parseBlock();
-  //     }
-
-  //     return new IfSyntax(
-  //       ifkeyword,
-  //       lparen,
-  //       expression,
-  //       rparen,
-  //       thenStatement,
-  //       elseStatement
-  //     );
-  //   }
-
-  //   private parseBlock() {
-  //     const lcurl = this.parseSyntaxToken(L.LCURL);
-  //     this.advanceWhileNL();
-  //     const statements = this.parseStatements();
-  //     this.advanceWhileNL();
-  //     const rcurl = this.parseSyntaxToken(L.RCURL);
-
-  //     return new BlockSyntax(lcurl, rcurl, statements);
-  //   }
-
-  //   private parseStatements() {
-  //     const statements: StatementSyntax[] = [];
-
-  //     let statement = this.parseStatement();
-  //     while (!(statement instanceof MissingStatementSyntax)) {
-  //       statements.push(statement);
-
-  //       if (this.parseSemis() instanceof MissingTokenSyntax) {
-  //         return statements;
-  //       }
-
-  //       statement = this.parseStatement();
-  //     }
-
-  //     return statements;
-  //   }
-
-  //   private parseSemis() {
-  //     let token = this.peek();
-  //     if (token === L.EOF) {
-  //       return this.createActualToken(this.peekToken());
-  //     }
-
-  //     var firstIteration = true;
-  //     while (true) {
-  //       switch (token) {
-  //         case L.NL:
-  //         case L.SEMICOLON:
-  //           this.advance();
-  //           break;
-
-  //         default:
-  //           return firstIteration
-  //             ? this.createMissingToken(this.peekToken(), L.NL)
-  //             : this.createActualToken(this.peekToken(-1));
-  //       }
-
-  //       token = this.peek();
-  //       firstIteration = false;
-  //     }
-  //   }
-
   private parseIdentifier() {
     const token = this.parseExpectedToken(L.Identifier);
     return new IdentifierNode(token);
@@ -466,7 +387,7 @@ export class Parser {
   private parseScopeIdentifierInvocation() {
     const token = this.parseExpectedToken(L.Identifier);
     const callArgs = this.parseValueArguments();
-    return new IdentifierInvocationNode(token, callArgs);
+    return new IdentifierInvocationNode(token, ...callArgs);
   }
 
   private parsePostfixExpression(): ExpressionNode {
@@ -497,16 +418,16 @@ export class Parser {
   }
 
   private parseCallSuffix(expression: ExpressionNode): InvocationNode {
-    return new InvocationNode(expression, this.parseValueArguments());
+    return new InvocationNode(expression, ...this.parseValueArguments());
   }
 
-  private parseValueArguments(): ExpressionNode[] {
-    this.parseExpectedToken(L.LPAREN);
+  private parseValueArguments(): [ExpressionNode[], TokenNode, TokenNode] {
+    const lparen = this.parseExpectedToken(L.LPAREN);
     this.advanceWhileNL();
 
     if (this.peek() === L.RPAREN) {
-      this.parseKnownToken();
-      return [];
+      const rparen = this.parseKnownToken();
+      return [[], lparen, rparen];
     }
 
     const args: ExpressionNode[] = [this.parseExpression()];
@@ -519,8 +440,8 @@ export class Parser {
       this.advanceWhileNL();
     }
 
-    this.parseExpectedToken(L.RPAREN);
-    return args;
+    const rparen = this.parseExpectedToken(L.RPAREN);
+    return [args, lparen, rparen];
   }
 
   private parseMemberSuffix(expression: ExpressionNode): MemberNode {
@@ -569,7 +490,7 @@ export class Parser {
       missingTokenType,
       {
         start: actualTokenSyntax.span.start,
-        stop: actualTokenSyntax.span.stop,
+        stop: actualTokenSyntax.span.start,
       },
       actualTokenSyntax
     );
@@ -594,12 +515,12 @@ export class Parser {
     return {
       start: {
         index: token.startIndex,
-        column: token.charPositionInLine,
+        column: token.charPositionInLine + 1,
         line: token.line,
       },
       stop: {
         index: token.stopIndex,
-        column: token.charPositionInLine,
+        column: token.charPositionInLine + 1,
         line: token.line,
       },
     };

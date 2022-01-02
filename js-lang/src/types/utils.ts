@@ -1,6 +1,5 @@
 import { LiteralType, Type, UnionType } from "./common";
-import { numberType } from "./number";
-import { stringType } from "./string";
+import { numberType, stringType } from "./";
 
 export function createLiteralType(value: string | number): LiteralType {
   return {

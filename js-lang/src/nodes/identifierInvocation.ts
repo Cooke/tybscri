@@ -55,8 +55,10 @@ export class IdentifierInvocationNode extends ExpressionNode {
   }
   constructor(
     public readonly name: TokenNode,
-    public readonly argumentList: ExpressionNode[]
+    public readonly argumentList: ExpressionNode[],
+    public readonly lparan: TokenNode,
+    public readonly rparan: TokenNode
   ) {
-    super([name, ...argumentList]);
+    super([name, ...argumentList, lparan, rparan]);
   }
 }

@@ -3,7 +3,11 @@ import { Lexer, Scope } from "./common";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { ParseContext, Parser } from "./Parser";
+
+export * from "./types/common";
+export { printTree } from "./utils";
 export { DiagnosticMessage } from "./common";
+export { Node } from "./nodes/base";
 
 export { Parser, Lexer };
 

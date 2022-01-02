@@ -1,8 +1,7 @@
 import { parseScript } from "../src";
 import { booleanType } from "../src/types/boolean";
 import { nullType } from "../src/types/null";
-import { numberType } from "../src/types/number";
-import { stringType } from "../src/types/string";
+import { numberType, stringType } from "../src/types";
 import { assertTybscriType } from "./utils";
 
 describe("If", function () {

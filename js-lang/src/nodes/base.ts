@@ -1,4 +1,4 @@
-import { DiagnosticMessage } from "..";
+import { DiagnosticMessage, Type } from "..";
 import { Scope, SourceSpan } from "../common";
 
 export interface AnalyzeContext {
@@ -6,6 +6,10 @@ export interface AnalyzeContext {
 }
 
 export abstract class Node {
+  public get valueType(): Type | undefined {
+    return undefined;
+  }
+
   constructor(public readonly children: Node[]) {}
 
   public setupScopes(scope: Scope, context: AnalyzeContext) {

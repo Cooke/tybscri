@@ -1,9 +1,8 @@
-import { reduceUnionType, UnionType } from "../src/types/common";
+import { numberType, stringType } from "../src/types";
+import { reduceUnionType } from "../src/types/common";
 import { neverType } from "../src/types/never";
-import { stringType } from "../src/types/string";
-import { assertTybscriType } from "./utils";
 import { createLiteralType, createUnionType } from "../src/types/utils";
-import { numberType } from "../src/types/number";
+import { assertTybscriType } from "./utils";
 
 describe("Types", function () {
   describe("reduce union", function () {

@@ -31,15 +31,11 @@ export interface LiteralType {
 export interface ObjectType {
   readonly kind: "Object";
   readonly base: ObjectType | null;
-  readonly members: Array<MemberDef>;
+  readonly members: Array<ObjectMember>;
   readonly name: string;
 }
 
-export interface TypeParameterDef {
-  readonly name: string;
-}
-
-export interface MemberDef {
+export interface ObjectMember {
   readonly isConst: boolean;
   readonly name: string;
   readonly type: Type;
@@ -47,17 +43,13 @@ export interface MemberDef {
 
 export interface FuncType {
   readonly kind: "Func";
-  readonly parameters: readonly ParameterDef[];
+  readonly parameters: readonly FuncParameter[];
   readonly returnType: Type;
 }
 
-export interface ParameterDef {
+export interface FuncParameter {
   readonly name: string;
   readonly type: Type;
-}
-
-export interface TypeTable {
-  [name: string]: Type;
 }
 
 export function getTypeDisplayName(type: Type): string {
@@ -84,10 +76,13 @@ export function getTypeDisplayName(type: Type): string {
   }
 }
 
-export function getAllTypeMembers(type: Type): MemberDef[] {
+export function getAllTypeMembers(type: Type): ObjectMember[] {
   switch (type.kind) {
     case "Object":
       return type.members.concat(type.base ? getAllTypeMembers(type.base) : []);
+
+    case "Literal":
+      return getAllTypeMembers(type.valueType);
 
     case "Union":
       if (type.types.length === 0) {
@@ -95,7 +90,7 @@ export function getAllTypeMembers(type: Type): MemberDef[] {
       }
 
       const members = getAllTypeMembers(type.types[0]).reduce<{
-        [key: string]: MemberDef;
+        [key: string]: ObjectMember;
       }>((o, member) => {
         o[member.name] = member;
         return o;

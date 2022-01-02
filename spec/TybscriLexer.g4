@@ -63,7 +63,7 @@ FLOAT: Digits? '.' Digits;
 INT: Digit+;
 TRUE: 'true';
 FALSE: 'false';
-NullLiteral: 'null';
+NULL: 'null';
 
 // Identifiers
 Identifier: (Letter | '_') (Letter | '_' | Digit)*;

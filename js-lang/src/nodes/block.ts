@@ -1,14 +1,18 @@
 import { Scope, Symbol } from "../common";
 import { Type } from "../types/common";
+import { unknownType } from "../types/unknown";
 import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { FunctionNode } from "./function";
 import { StatementNode } from "./statements";
+import { TokenNode } from "./token";
 import { VariableDeclarationNode } from "./variableDeclaration";
 
 export class BlockNode extends ExpressionNode {
   public get valueType(): Type {
-    return this.statements[this.statements.length - 1].valueType;
+    return (
+      this.statements[this.statements.length - 1]?.valueType ?? unknownType
+    );
   }
 
   public setupScopes(scope: Scope, context: AnalyzeContext) {
@@ -26,7 +30,11 @@ export class BlockNode extends ExpressionNode {
     }
   }
 
-  constructor(public readonly statements: StatementNode[]) {
-    super(statements);
+  constructor(
+    public readonly leftCurl: TokenNode,
+    public readonly statements: StatementNode[],
+    public readonly rightCurl: TokenNode
+  ) {
+    super([leftCurl, ...statements, rightCurl]);
   }
 }
