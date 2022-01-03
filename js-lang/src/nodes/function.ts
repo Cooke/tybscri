@@ -27,6 +27,8 @@ export class FunctionNode extends StatementNode {
       ),
       context
     );
+
+    this.scope = scope;
   }
 
   public analyze(context: AnalyzeContext) {

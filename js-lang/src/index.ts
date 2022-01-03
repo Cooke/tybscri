@@ -7,7 +7,7 @@ import { ParseContext, Parser } from "./Parser";
 export * from "./types/common";
 export { printTree } from "./utils";
 export { DiagnosticMessage } from "./common";
-export { Node } from "./nodes/base";
+export * from "./nodes";
 
 export { Parser, Lexer };
 

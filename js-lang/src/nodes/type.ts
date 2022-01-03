@@ -28,6 +28,8 @@ export class TypeNode extends Node {
           typeof this.node.value === "string" ? stringType : numberType,
       };
     }
+
+    this.scope = scope;
   }
 
   public analyze(context: AnalyzeContext) {

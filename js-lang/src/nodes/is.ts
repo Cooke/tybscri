@@ -10,7 +10,7 @@ export class IsNode extends ExpressionNode {
     return booleanType;
   }
 
-  public get truthSymbols(): Symbol[] {
+  public createTruthNarrowedSymbols(): Symbol[] {
     return this.exp instanceof IdentifierNode && this.exp.symbol!.isConst
       ? [
           new NarrowedSymbol(this.exp.symbol!, (context) => {

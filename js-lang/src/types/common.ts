@@ -64,8 +64,8 @@ export function getTypeDisplayName(type: Type): string {
         : type.value.toString();
 
     case "Func":
-      return `(${type.parameters.map((p) =>
-        getTypeDisplayName(p.type)
+      return `(${type.parameters.map(
+        (p) => `${p.name}: ${getTypeDisplayName(p.type)}`
       )}) => ${getTypeDisplayName(type.returnType)}`;
 
     case "Union":

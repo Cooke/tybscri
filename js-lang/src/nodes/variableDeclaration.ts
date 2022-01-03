@@ -23,6 +23,7 @@ export class VariableDeclarationNode extends StatementNode {
     }
 
     this.value.setupScopes(scope, context);
+    this.scope = scope;
   }
 
   public analyze(context: AnalyzeContext) {

@@ -28,6 +28,8 @@ export class ScriptNode extends Node {
         blockScope = blockScope.withSymbols([statement.symbol]);
       }
     }
+
+    this.scope = blockScope;
   }
 
   public get span(): SourceSpan {

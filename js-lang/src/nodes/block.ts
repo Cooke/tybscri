@@ -28,6 +28,8 @@ export class BlockNode extends ExpressionNode {
         blockScope = blockScope.withSymbols([statement.symbol]);
       }
     }
+
+    this.scope = blockScope;
   }
 
   constructor(

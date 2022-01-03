@@ -1,17 +1,9 @@
-import { DiagnosticSeverity, Scope } from "../common";
-import { Type } from "../types/common";
-import { unknownType } from "../types/unknown";
-import { AnalyzeContext, Node } from "./base";
+import { DiagnosticSeverity } from "../common";
+import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IdentifierInvocationNode extends ExpressionNode {
-  private scope = Scope.empty;
-
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
-    this.scope = scope;
-  }
-
   public analyze(context: AnalyzeContext) {
     const potentialTargets = this.scope.resolveAll(this.name.text);
 

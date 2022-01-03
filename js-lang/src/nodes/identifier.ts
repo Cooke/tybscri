@@ -8,7 +8,7 @@ import { TokenNode } from "./token";
 export class IdentifierNode extends ExpressionNode {
   public symbol: Symbol | null = null;
 
-  public get truthSymbols(): Symbol[] {
+  public createTruthNarrowedSymbols(): Symbol[] {
     return this.symbol
       ? [
           new NarrowedSymbol(this.symbol, () =>
@@ -22,6 +22,7 @@ export class IdentifierNode extends ExpressionNode {
 
   public setupScopes(scope: Scope, context: AnalyzeContext) {
     this.symbol = scope.resolveLast(this.token.text);
+    this.scope = scope;
   }
 
   public analyze(context: AnalyzeContext) {

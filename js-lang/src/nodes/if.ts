@@ -1,4 +1,4 @@
-import { Scope } from "../common";
+import { Scope, Symbol } from "../common";
 import { Type, UnionType } from "../types/common";
 import { nullType } from "../types/null";
 import { unknownType } from "../types/unknown";
@@ -7,16 +7,20 @@ import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IfNode extends ExpressionNode {
+  private thenSymbols: Symbol[] = [];
+
   public setupScopes(scope: Scope, context: AnalyzeContext) {
     this.condition.setupScopes(scope, context);
-    this.thenBlock.setupScopes(
-      scope.withSymbols(this.condition.truthSymbols),
-      context
-    );
+    this.thenSymbols = this.condition.createTruthNarrowedSymbols();
+    this.thenBlock.setupScopes(scope.withSymbols(this.thenSymbols), context);
+    this.scope = scope;
   }
 
   public analyze(context: AnalyzeContext) {
     this.condition.analyze(context);
+    for (const sym of this.thenSymbols) {
+      sym.analyze(context);
+    }
     this.thenBlock.analyze(context);
     this.elseBlock?.analyze(context);
     const unionType: UnionType = {

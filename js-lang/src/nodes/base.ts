@@ -6,6 +6,16 @@ export interface AnalyzeContext {
 }
 
 export abstract class Node {
+  private _scope: Scope = Scope.empty;
+
+  public get scope() {
+    return this._scope;
+  }
+
+  protected set scope(val: Scope) {
+    this._scope = val;
+  }
+
   public get valueType(): Type | undefined {
     return undefined;
   }
@@ -16,6 +26,7 @@ export abstract class Node {
     for (const child of this.children) {
       child.setupScopes(scope, context);
     }
+    this._scope = scope;
   }
 
   public analyze(context: AnalyzeContext) {

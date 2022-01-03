@@ -56,7 +56,20 @@ function mapToScope(tokenTypes: number[], scope: string) {
 
 const scopeMap: { [key: number]: string } = {
   ...mapToScope(
-    [L.IF, L.VAR, L.VAL, L.TRUE, L.FALSE, L.FOR, L.WHILE, L.NULL, L.ELSE],
+    [
+      L.IF,
+      L.VAR,
+      L.VAL,
+      L.TRUE,
+      L.FALSE,
+      L.FOR,
+      L.WHILE,
+      L.NULL,
+      L.ELSE,
+      L.FUN,
+      L.IS,
+      L.RETURN,
+    ],
     "keyword"
   ),
   ...mapToScope([L.Identifier], "identifier"),

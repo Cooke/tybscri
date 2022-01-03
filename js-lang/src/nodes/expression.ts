@@ -15,7 +15,7 @@ export abstract class ExpressionNode extends Node {
     this._valueType = val;
   }
 
-  public get truthSymbols(): Symbol[] {
+  public createTruthNarrowedSymbols(): Symbol[] {
     return [];
   }
 

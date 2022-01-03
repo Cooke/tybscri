@@ -209,9 +209,16 @@ export class Parser {
 
       case L.Identifier:
         return new TypeNode(this.parseIdentifier());
-    }
 
-    throw new Error("Unsupported simple type");
+      default:
+        const ident = this.parseIdentifier();
+        this.reportDiagnostic({
+          message: `Expected a type.`,
+          severity: DiagnosticSeverity.Error,
+          span: ident.span,
+        });
+        return new TypeNode(ident);
+    }
   }
 
   parseExpression() {
