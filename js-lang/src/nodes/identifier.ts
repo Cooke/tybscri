@@ -1,6 +1,6 @@
 import { DiagnosticSeverity, NarrowedSymbol, Scope, Symbol } from "../common";
-import { narrowTypeTruthy, Type } from "../types/common";
-import { unknownType } from "../types/unknown";
+import { unknownType } from "../types";
+import { narrowTypeTruthy } from "../types/functions";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";

@@ -2,8 +2,7 @@ import assert from "assert";
 import { DiagnosticMessage, parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
-import { numberType, stringType } from "../src/types";
-import { createLiteralType, createUnionType } from "../src/types/utils";
+import { createLiteralType, createUnionType, numberType, stringType } from "../src/types";
 import { assertTybscriType, assertType } from "./utils";
 
 describe("Functions", function () {

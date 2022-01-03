@@ -1,7 +1,20 @@
-import { numberType, stringType } from "../src/types";
-import { reduceUnionType } from "../src/types/common";
-import { neverType } from "../src/types/never";
-import { createLiteralType, createUnionType } from "../src/types/utils";
+import assert from "assert";
+import {
+  booleanType,
+  listType,
+  neverType,
+  numberType,
+  objectType,
+  stringType,
+} from "../src/types/types";
+import {
+  createGenericType,
+  createLiteralType,
+  createUnionType,
+  getAllTypeMembers,
+  isTypeAssignableToType,
+  reduceUnionType,
+} from "../src/types/functions";
 import { assertTybscriType } from "./utils";
 
 describe("Types", function () {
@@ -35,6 +48,17 @@ describe("Types", function () {
       assertTybscriType(reduced, createUnionType(numberType, stringType));
     });
 
+    it("reduce literal types", function () {
+      const union = createUnionType(
+        createLiteralType(1),
+        createLiteralType(2),
+        createLiteralType(3),
+        numberType
+      );
+      const reduced = reduceUnionType(union);
+      assertTybscriType(reduced, numberType);
+    });
+
     it("reduce nested unions", function () {
       const union = createUnionType(
         createLiteralType("123"),
@@ -45,6 +69,47 @@ describe("Types", function () {
         reduced,
         createUnionType(stringType, createLiteralType(123))
       );
+    });
+  });
+
+  describe("hierarchy", function () {
+    it("string assignable to object", function () {
+      assert.ok(isTypeAssignableToType(stringType, objectType));
+    });
+  });
+
+  describe("generics", function () {
+    it("covariance", function () {
+      const stringList = createGenericType(listType, [stringType]);
+      const objectList = createGenericType(listType, [objectType]);
+      assert.ok(isTypeAssignableToType(stringList, objectList));
+    });
+
+    it("substitute type parameters", function () {
+      const stringList = createGenericType(listType, [stringType]);
+      const filterMember = getAllTypeMembers(stringList).find(
+        (x) => x.name === "filter"
+      );
+      assert.ok(filterMember);
+      assertTybscriType(filterMember.type, {
+        kind: "Func",
+        parameters: [
+          {
+            name: "predicate",
+            type: {
+              kind: "Func",
+              parameters: [
+                {
+                  name: "item",
+                  type: stringType,
+                },
+              ],
+              returnType: booleanType,
+            },
+          },
+        ],
+        returnType: stringList,
+      });
     });
   });
 });

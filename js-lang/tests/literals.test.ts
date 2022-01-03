@@ -1,6 +1,19 @@
-import { parseExpression } from "../src";
-import { numberType, stringType } from "../src/types";
-import { booleanType } from "../src/types/boolean";
+import {
+  createGenericType,
+  createLiteralType,
+  createUnionType,
+  parseExpression,
+} from "../src";
+import { ExternalSymbol, Scope } from "../src/common";
+import {
+  booleanType,
+  FuncType,
+  listType,
+  nullType,
+  numberType,
+  stringType,
+  trueType,
+} from "../src/types";
 import { assertTybscriType } from "./utils";
 
 describe("Literals", function () {
@@ -29,5 +42,50 @@ describe("Literals", function () {
       value: true,
       valueType: booleanType,
     });
+  });
+
+  it("collection", function () {
+    const parseResult = parseExpression('[true, 123, "321"]');
+    assertTybscriType(
+      parseResult.tree.valueType,
+      createGenericType(listType, [
+        createUnionType(
+          trueType,
+          createLiteralType(123),
+          createLiteralType("321")
+        ),
+      ])
+    );
+  });
+
+  it("lambda", function () {
+    const expectedType: FuncType = {
+      kind: "Func",
+      parameters: [
+        {
+          name: "str",
+          type: stringType,
+        },
+      ],
+      returnType: numberType,
+    };
+    const parseResult = parseExpression("{ it.length }", {}, expectedType);
+    assertTybscriType(parseResult.tree.valueType, expectedType);
+  });
+
+  it("trailing lambda with parathesis", function () {
+    const stringListType = createGenericType(listType, [stringType]);
+    const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
+    const parseResult = parseExpression("list.filter() { it.length }", {
+      scope,
+    });
+    assertTybscriType(parseResult.tree.valueType, stringListType);
+  });
+
+  it("trailing lambda without parathesis", function () {
+    const stringListType = createGenericType(listType, [stringType]);
+    const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
+    const parseResult = parseExpression("list.filter { it.length }", { scope });
+    assertTybscriType(parseResult.tree.valueType, stringListType);
   });
 });

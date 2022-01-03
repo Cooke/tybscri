@@ -1,5 +1,6 @@
-import { DiagnosticMessage, Type } from "..";
+import { DiagnosticMessage } from "..";
 import { Scope, SourceSpan } from "../common";
+import { Type } from "../types/TypescriptTypes";
 
 export interface AnalyzeContext {
   onDiagnosticMessage?: (msg: DiagnosticMessage) => void;
@@ -29,7 +30,7 @@ export abstract class Node {
     this._scope = scope;
   }
 
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: AnalyzeContext, expectedType?: Type | null) {
     for (const child of this.children) {
       child.analyze(context);
     }

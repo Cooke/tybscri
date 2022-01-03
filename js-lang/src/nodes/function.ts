@@ -1,13 +1,15 @@
 import { DiagnosticSeverity, Scope, SourceSymbol, Symbol } from "../common";
-import { FuncType, reduceUnionType, Type, UnionType } from "../types/common";
-import { nullType } from "../types/null";
-import { unknownType } from "../types/unknown";
+import { reduceUnionType } from "../types/functions";
+import { FuncType, Type, UnionType } from "../types/TypescriptTypes";
+import { nullType } from "../types";
+import { unknownType } from "../types";
 import { AnalyzeContext, Node } from "./base";
 import { BlockNode } from "./block";
 import { ReturnNode } from "./return";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
 import { TypeNode } from "./type";
+import { LambdaLiteralNode } from "./lambdaLiteral";
 
 export class FunctionNode extends StatementNode {
   private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" =
@@ -89,7 +91,7 @@ export class FunctionNode extends StatementNode {
   }
 
   private findReturns(node: Node): ReturnNode[] {
-    if (node instanceof FunctionNode) {
+    if (node instanceof FunctionNode || node instanceof LambdaLiteralNode) {
       return [];
     }
 

@@ -4,7 +4,6 @@ import {
   Node,
   parseScript,
   getAllTypeMembers,
-  ObjectMember,
   MemberNode,
   getTypeDisplayName,
 } from "tybscri";
@@ -85,6 +84,7 @@ function calcMemberSuggestions(
           : monaco.languages.CompletionItemKind.Field,
       range: wordRange,
       label: m.name,
+      detail: getTypeDisplayName(m.type),
     })) ?? [];
   return suggestions;
 }

@@ -1,5 +1,5 @@
-import { getTypeDisplayName, Type } from "../types/common";
-import { unknownType } from "../types/unknown";
+import { getTypeDisplayName } from "../types/functions";
+import { unknownType, Type } from "../types";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { ActualTokenNode } from "./token";

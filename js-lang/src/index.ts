@@ -1,10 +1,11 @@
 import { CharStreams } from "antlr4ts";
-import { Lexer, Scope } from "./common";
+import { DiagnosticSeverity, Lexer, Scope } from "./common";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { ParseContext, Parser } from "./Parser";
+import { getTypeDisplayName, isTypeAssignableToType, Type } from "./types";
 
-export * from "./types/common";
+export * from "./types/functions";
 export { printTree } from "./utils";
 export { DiagnosticMessage } from "./common";
 export * from "./nodes";
@@ -21,16 +22,33 @@ export function createLexer(source: string) {
 
 export function parseExpression(
   expression: string,
-  context?: ParseContext
+  context?: ParseContext,
+  expectedType?: Type
 ): ExpressionParseResult {
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseExpression();
   exp.setupScopes(context?.scope ?? new Scope(), {
     onDiagnosticMessage: context?.onDiagnosticMessage,
   });
-  exp.analyze({
-    onDiagnosticMessage: context?.onDiagnosticMessage,
-  });
+  exp.analyze(
+    {
+      onDiagnosticMessage: context?.onDiagnosticMessage,
+    },
+    expectedType
+  );
+
+  if (expectedType && !isTypeAssignableToType(exp.valueType, expectedType)) {
+    context?.onDiagnosticMessage?.({
+      message: `Expression type '${getTypeDisplayName(
+        exp.valueType
+      )}' is not assignable to expected type ' ${getTypeDisplayName(
+        expectedType
+      )}'`,
+      severity: DiagnosticSeverity.Error,
+      span: exp.span,
+    });
+  }
+
   return {
     tree: exp,
   };

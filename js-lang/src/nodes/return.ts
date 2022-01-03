@@ -1,4 +1,4 @@
-import { neverType } from "../types/never";
+import { neverType } from "../types";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 

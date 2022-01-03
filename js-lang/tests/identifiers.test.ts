@@ -7,8 +7,7 @@ import {
   ExternalSymbol,
   Scope,
 } from "../src/common";
-import { stringType } from "../src/types";
-import { unknownType } from "../src/types/unknown";
+import { stringType, unknownType } from "../src/types";
 import { assertTybscriType } from "./utils";
 
 describe("Identifiers", function () {

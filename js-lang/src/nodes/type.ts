@@ -1,8 +1,7 @@
 import { Scope, Symbol } from "../common";
-import { Type } from "../types/common";
-import { numberType } from "../types";
-import { stringType } from "../types";
-import { unknownType } from "../types/unknown";
+import { unknownType } from "../types";
+import { numberType, stringType } from "../types/types";
+import { Type } from "../types/TypescriptTypes";
 import { AnalyzeContext, Node } from "./base";
 import { IdentifierNode } from "./identifier";
 import { LiteralNode } from "./literal";

@@ -7,8 +7,8 @@ import {
   VariableDeclarationNode,
   VariableKind,
 } from "./nodes/variableDeclaration";
-import { Type } from "./types/common";
-import { unknownType } from "./types/unknown";
+import { Type } from "./types/TypescriptTypes";
+import { unknownType } from "./types";
 
 export { TybscriLexer as Lexer };
 

@@ -1,6 +1,7 @@
 import { DiagnosticSeverity } from "../common";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
+import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class IdentifierInvocationNode extends ExpressionNode {
@@ -9,10 +10,6 @@ export class IdentifierInvocationNode extends ExpressionNode {
 
     for (const t of potentialTargets) {
       t.analyze(context);
-    }
-
-    for (const arg of this.argumentList) {
-      arg.analyze(context);
     }
 
     if (potentialTargets.length > 1) {
@@ -34,7 +31,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
     }
 
     const target = potentialTargets[0];
-    if (target.valueType?.kind !== "Func") {
+    if (target.valueType.kind !== "Func") {
       context.onDiagnosticMessage?.({
         message: `The expression cannot be invoked`,
         severity: DiagnosticSeverity.Error,
@@ -43,14 +40,31 @@ export class IdentifierInvocationNode extends ExpressionNode {
       return;
     }
 
+    const args = [
+      ...this.argumentList,
+      ...(this.trailingLambda ? [this.trailingLambda] : []),
+    ];
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+      const expectedType = target.valueType.parameters[i]?.type;
+      arg.analyze(context, expectedType);
+    }
+
     this.valueType = target.valueType.returnType;
   }
   constructor(
     public readonly name: TokenNode,
+    public readonly lparan: TokenNode | null,
     public readonly argumentList: ExpressionNode[],
-    public readonly lparan: TokenNode,
-    public readonly rparan: TokenNode
+    public readonly rparan: TokenNode | null,
+    public readonly trailingLambda: LambdaLiteralNode | null
   ) {
-    super([name, ...argumentList, lparan, rparan]);
+    super([
+      name,
+      ...(lparan ? [lparan] : []),
+      ...argumentList,
+      ...(rparan ? [rparan] : []),
+      ...(trailingLambda ? [trailingLambda] : []),
+    ]);
   }
 }

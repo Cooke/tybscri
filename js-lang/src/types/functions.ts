@@ -1,61 +1,30 @@
-import { booleanType, trueType } from "./boolean";
-import { neverType } from "./never";
-
-export type Type =
-  | UnionType
-  | LiteralType
-  | FuncType
-  | ObjectType
-  | UnknownType
-  | NeverType;
-
-export interface UnknownType {
-  readonly kind: "Unknown";
-}
-
-export interface NeverType {
-  readonly kind: "Never";
-}
-
-export interface UnionType {
-  readonly kind: "Union";
-  readonly types: Type[];
-}
-
-export interface LiteralType {
-  readonly kind: "Literal";
-  readonly value: any;
-  readonly valueType: Type;
-}
-
-export interface ObjectType {
-  readonly kind: "Object";
-  readonly base: ObjectType | null;
-  readonly members: Array<ObjectMember>;
-  readonly name: string;
-}
-
-export interface ObjectMember {
-  readonly isConst: boolean;
-  readonly name: string;
-  readonly type: Type;
-}
-
-export interface FuncType {
-  readonly kind: "Func";
-  readonly parameters: readonly FuncParameter[];
-  readonly returnType: Type;
-}
-
-export interface FuncParameter {
-  readonly name: string;
-  readonly type: Type;
-}
+import {
+  booleanType,
+  neverType,
+  numberType,
+  stringType,
+  trueType,
+} from "./types";
+import {
+  Type,
+  GenericParameterType,
+  ObjectMember,
+  ObjectType,
+  UnionType,
+  GenericTypeDefinition,
+  GenericType,
+  LiteralType,
+} from "./TypescriptTypes";
 
 export function getTypeDisplayName(type: Type): string {
   switch (type.kind) {
     case "Object":
       return type.name;
+
+    case "Generic":
+      return `${type.definition.name}<${type.typeArguments
+        .map(getTypeDisplayName)
+        .join(", ")}>`;
 
     case "Literal":
       return type.valueType.kind === "Object" &&
@@ -76,6 +45,47 @@ export function getTypeDisplayName(type: Type): string {
   }
 }
 
+interface TypeParameterAssignment {
+  parameter: GenericParameterType;
+  assignment: Type;
+}
+
+function substituteTypeParameter(
+  type: Type,
+  substitutions: TypeParameterAssignment[]
+): Type {
+  switch (type.kind) {
+    case "GenericParameter":
+      return (
+        substitutions.find((x) => x.parameter === type)?.assignment ?? type
+      );
+
+    case "Func": {
+      const parameters = type.parameters.map((x) => ({
+        ...x,
+        type: substituteTypeParameter(x.type, substitutions),
+      }));
+      return {
+        kind: "Func",
+        parameters,
+        returnType: substituteTypeParameter(type.returnType, substitutions),
+      };
+    }
+
+    case "Generic": {
+      return {
+        kind: "Generic",
+        definition: type.definition,
+        typeArguments: type.typeArguments.map((t) =>
+          substituteTypeParameter(t, substitutions)
+        ),
+      };
+    }
+  }
+
+  return type;
+}
+
 export function getAllTypeMembers(type: Type): ObjectMember[] {
   switch (type.kind) {
     case "Object":
@@ -83,6 +93,26 @@ export function getAllTypeMembers(type: Type): ObjectMember[] {
 
     case "Literal":
       return getAllTypeMembers(type.valueType);
+
+    case "Generic":
+      const assignments = type.definition.typeParameters.reduce<
+        TypeParameterAssignment[]
+      >(
+        (p, c, index) => [
+          ...p,
+          { parameter: c, assignment: type.typeArguments[index] },
+        ],
+        []
+      );
+
+      return type.definition.members
+        .map((x) => ({
+          ...x,
+          type: substituteTypeParameter(x.type, assignments),
+        }))
+        .concat(
+          type.definition.base ? getAllTypeMembers(type.definition.base) : []
+        );
 
     case "Union":
       if (type.types.length === 0) {
@@ -141,6 +171,13 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
         case "Literal":
           return isTypeAssignableToType(from.valueType, to);
 
+        case "Generic":
+          return (
+            !!from.definition.base &&
+            isTypeAssignableToType(from.definition.base, to)
+          );
+
+        case "GenericParameter":
         case "Never":
         case "Unknown":
           return false;
@@ -169,6 +206,16 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
       return from.kind === "Literal" && from.value === to.value;
     }
 
+    case "Generic":
+      return (
+        from.kind === "Generic" &&
+        to.definition === from.definition &&
+        from.typeArguments.every((ft, fi) =>
+          isTypeAssignableToType(ft, to.typeArguments[fi])
+        )
+      );
+
+    case "GenericParameter":
     case "Never":
     case "Unknown":
       return false;
@@ -198,23 +245,18 @@ export function reduceUnionType(union: UnionType) {
     return neverType;
   }
 
-  const testTypes = union.types
-    .reduce<Type[]>(
-      (p, c) => (c.kind === "Union" ? p.concat(c.types) : [...p, c]),
-      []
-    )
-    .filter((x) => x.kind !== "Never");
+  const testTypes = getFlattenTypes(union).filter((x) => x.kind !== "Never");
+
   const resultTypes: Type[] = [];
   for (const type of testTypes) {
     if (!resultTypes.some((t) => isTypeAssignableToType(type, t))) {
-      const replaceIndex = resultTypes.findIndex((t) =>
-        isTypeAssignableToType(t, type)
-      );
-      if (replaceIndex !== -1) {
-        resultTypes[replaceIndex] = type;
-      } else {
-        resultTypes.push(type);
+      for (let i = resultTypes.length - 1; i >= 0; i--) {
+        if (isTypeAssignableToType(resultTypes[i], type)) {
+          resultTypes.splice(i, 1);
+        }
       }
+
+      resultTypes.push(type);
     }
   }
 
@@ -227,4 +269,55 @@ export function reduceUnionType(union: UnionType) {
     types: resultTypes,
   };
   return result;
+}
+
+function getFlattenTypes(type: Type): Type[] {
+  if (type.kind === "Union") {
+    return type.types.reduce<Type[]>(
+      (p, c) => [...p, ...getFlattenTypes(c)],
+      []
+    );
+  }
+
+  return [type];
+}
+
+export function createGenericType(
+  definition: GenericTypeDefinition,
+  args: Type[]
+): GenericType {
+  if (args.length !== definition.typeParameters.length) {
+    throw new Error(
+      "Invalid number of type arguments when creating generic type from definition: " +
+        definition.name
+    );
+  }
+
+  return {
+    kind: "Generic",
+    definition,
+    typeArguments: args,
+  };
+}
+
+export function createLiteralType(
+  value: string | number | boolean
+): LiteralType {
+  return {
+    kind: "Literal",
+    value,
+    valueType:
+      typeof value === "string"
+        ? stringType
+        : typeof value === "boolean"
+        ? booleanType
+        : numberType,
+  };
+}
+
+export function createUnionType(...types: Type[]): UnionType {
+  return {
+    kind: "Union",
+    types,
+  };
 }

@@ -1,6 +1,7 @@
 import { Symbol } from "../common";
-import { getTypeDisplayName, Type } from "../types/common";
-import { unknownType } from "../types/unknown";
+import { getTypeDisplayName } from "../types/functions";
+import { Type } from "../types";
+import { unknownType } from "../types";
 import { Node } from "./base";
 import { ActualTokenNode } from "./token";
 

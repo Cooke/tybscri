@@ -1,1 +1,3 @@
-export { numberType, objectType, stringType } from "./init";
+export * from "./TypescriptTypes";
+export * from "./types";
+export * from "./functions";

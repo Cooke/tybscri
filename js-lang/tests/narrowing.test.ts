@@ -1,14 +1,9 @@
 import assert from "assert";
-import { DiagnosticMessage, parseScript } from "../src";
-import { FunctionNode } from "../src/nodes/function";
+import { createLiteralType, createUnionType, parseScript } from "../src";
 import { IfNode } from "../src/nodes/if";
 import { ExpressionStatementNode } from "../src/nodes/statements";
-import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
-import { numberType, stringType } from "../src/types";
-import { booleanType, trueType } from "../src/types/boolean";
-import { nullType } from "../src/types/null";
-import { createLiteralType, createUnionType } from "../src/types/utils";
-import { assertTybscriType, assertType } from "./utils";
+import { nullType, trueType } from "../src/types";
+import { assertTybscriType } from "./utils";
 
 describe("Narrowing", function () {
   it("narrowed type in branch", function () {

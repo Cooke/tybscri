@@ -1,7 +1,7 @@
 import { Scope, Symbol } from "../common";
-import { Type } from "../types/common";
-import { unknownType } from "../types/unknown";
-import { AnalyzeContext, Node } from "./base";
+import { unknownType } from "../types";
+import { Type } from "../types/TypescriptTypes";
+import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { FunctionNode } from "./function";
 import { StatementNode } from "./statements";

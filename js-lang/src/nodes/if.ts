@@ -1,8 +1,7 @@
 import { Scope, Symbol } from "../common";
-import { Type, UnionType } from "../types/common";
-import { nullType } from "../types/null";
-import { unknownType } from "../types/unknown";
-import { AnalyzeContext, Node } from "./base";
+import { nullType, unknownType } from "../types";
+import { UnionType } from "../types/TypescriptTypes";
+import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 

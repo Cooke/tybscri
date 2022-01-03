@@ -1,4 +1,4 @@
-import { LiteralType } from "../types/common";
+import { LiteralType } from "../types/TypescriptTypes";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";
 

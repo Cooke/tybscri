@@ -2,8 +2,8 @@ import assert from "assert";
 import {
   getTypeDisplayName,
   isTypeAssignableToType,
-  Type,
-} from "../src/types/common";
+} from "../src/types/functions";
+import { Type } from "../src/types/TypescriptTypes";
 
 export function assertEqual<T>(val: any, expected: T): asserts val is T {
   assert.equal(val, expected);
@@ -26,7 +26,8 @@ export function assertTybscriType<T extends Type>(
   assert.ok(actual, `Actual type is null`);
   assert.ok(
     isTypeAssignableToType(actual, expected) &&
-      isTypeAssignableToType(expected, actual),
+      isTypeAssignableToType(expected, actual) &&
+      actual.kind === expected.kind,
     `Actual type '${getTypeDisplayName(
       actual
     )}' but expected type '${getTypeDisplayName(expected)}'`

@@ -29,10 +29,10 @@ import {
   VariableDeclarationNode,
   VariableKind,
 } from "./nodes/variableDeclaration";
-import { booleanType } from "./types/boolean";
-import { LiteralType } from "./types/common";
-import { numberType } from "./types";
-import { stringType } from "./types";
+import { booleanType, numberType, stringType } from "./types";
+import { LiteralType } from "./types/TypescriptTypes";
+import { CollectionLiteralNode } from "./nodes/collectionLiteral";
+import { LambdaLiteralNode } from "./nodes/lambdaLiteral";
 
 const L = TybscriLexer;
 
@@ -134,7 +134,12 @@ export class Parser {
     this.advanceWhileNL();
     const statements: StatementNode[] = [];
     while (this.peek() !== L.RCURL && this.peek() !== L.EOF) {
-      statements.push(this.parseStatement());
+      const statement = this.parseStatement();
+      statements.push(statement);
+      if (statement instanceof MissingStatementNode) {
+        this.advance();
+      }
+
       this.advanceWhileNL();
     }
     const rcurl = this.parseExpectedToken(L.RCURL);
@@ -249,8 +254,11 @@ export class Parser {
       case L.Identifier: {
         let peekIndex = 1;
         while (this.peek(++peekIndex) === L.NL) {}
-        if (this.peek(peekIndex) === L.LPAREN) {
-          return this.parseScopeIdentifierInvocation();
+        if (
+          this.peek(peekIndex) === L.LPAREN ||
+          this.peek(peekIndex) === L.LCURL
+        ) {
+          return this.parseIdentifierInvocation();
         } else {
           return this.parseIdentifier();
         }
@@ -260,14 +268,73 @@ export class Parser {
       case L.TRUE:
         return this.parseBooleanLiteral();
 
-      case L.QUOTE_OPEN: {
+      case L.QUOTE_OPEN:
         return this.parseStringLiteral();
-      }
+
       case L.RETURN:
         return this.parseReturnExpression();
+
+      case L.LBRACKET:
+        return this.parseCollectionLiteral();
+
+      case L.LCURL:
+        return this.parseLambdaLiteral();
     }
 
     return new MissingExpressionNode(this.createActualToken(this.peekToken()));
+  }
+
+  private parseLambdaLiteral() {
+    const lcurl = this.parseExpectedToken(L.LCURL);
+    this.advanceWhileNL();
+
+    const statements: StatementNode[] = [];
+    while (this.peek() !== L.RCURL && this.peek() !== L.EOF) {
+      const statement = this.parseStatement();
+      statements.push(statement);
+      if (statement instanceof MissingStatementNode) {
+        this.advance();
+      }
+
+      this.advanceWhileNL();
+    }
+
+    const rcurl = this.parseExpectedToken(L.RCURL);
+
+    return new LambdaLiteralNode(lcurl, statements, rcurl);
+  }
+
+  private parseCollectionLiteral() {
+    const lbracket = this.parseExpectedToken(L.LBRACKET);
+    this.advanceWhileNL();
+
+    const expressions: ExpressionNode[] = [];
+    let first = true;
+    while (this.peek() !== L.RBRACKET && this.peek() !== L.EOF) {
+      if (!first) {
+        const comma = this.parseExpectedToken(L.COMMA);
+        if (comma instanceof MissingTokenNode) {
+          this.reportDiagnostic({
+            message: "Missing commna",
+            severity: DiagnosticSeverity.Error,
+            span: comma.span,
+          });
+        }
+        this.advanceWhileNL();
+      }
+
+      first = false;
+      const exp = this.parseExpression();
+      expressions.push(exp);
+      if (exp instanceof MissingExpressionNode) {
+        this.advance();
+      }
+
+      this.advanceWhileNL();
+    }
+
+    const rbracket = this.parseExpectedToken(L.RBRACKET);
+    return new CollectionLiteralNode(lbracket, expressions, rbracket);
   }
 
   private parseReturnExpression() {
@@ -391,7 +458,7 @@ export class Parser {
     return new IdentifierNode(token);
   }
 
-  private parseScopeIdentifierInvocation() {
+  private parseIdentifierInvocation() {
     const token = this.parseExpectedToken(L.Identifier);
     const callArgs = this.parseValueArguments();
     return new IdentifierInvocationNode(token, ...callArgs);
@@ -402,7 +469,7 @@ export class Parser {
 
     let exp = primExp;
     while (true) {
-      if (this.peek() === L.LPAREN) {
+      if (this.peek() === L.LPAREN || this.peek() === L.LCURL) {
         exp = this.parseCallSuffix(exp);
         continue;
       }
@@ -425,30 +492,49 @@ export class Parser {
   }
 
   private parseCallSuffix(expression: ExpressionNode): InvocationNode {
-    return new InvocationNode(expression, ...this.parseValueArguments());
+    const args = this.parseValueArguments();
+    return new InvocationNode(expression, ...args);
   }
 
-  private parseValueArguments(): [ExpressionNode[], TokenNode, TokenNode] {
+  private parseValueArguments(): [
+    TokenNode | null,
+    ExpressionNode[],
+    TokenNode | null,
+    LambdaLiteralNode | null
+  ] {
+    if (this.peek() === L.LCURL) {
+      const lambdaLiteral = this.parseLambdaLiteral();
+      return [null, [], null, lambdaLiteral];
+    }
+
     const lparen = this.parseExpectedToken(L.LPAREN);
     this.advanceWhileNL();
 
-    if (this.peek() === L.RPAREN) {
-      const rparen = this.parseKnownToken();
-      return [[], lparen, rparen];
-    }
+    const args: ExpressionNode[] = [];
 
-    const args: ExpressionNode[] = [this.parseExpression()];
-    this.advanceWhileNL();
+    while (this.peek() !== L.RPAREN && this.peek() !== L.EOF) {
+      const expression = this.parseExpression();
+      args.push(expression);
+      if (expression instanceof MissingExpressionNode) {
+        this.advance();
+      }
 
-    while (this.peek() === L.COMMA) {
-      this.advance();
       this.advanceWhileNL();
-      args.push(this.parseExpression());
-      this.advanceWhileNL();
+
+      if (this.peek() === L.COMMA) {
+        this.advance();
+        this.advanceWhileNL();
+      }
     }
 
     const rparen = this.parseExpectedToken(L.RPAREN);
-    return [args, lparen, rparen];
+
+    if (this.peek() === L.LCURL) {
+      const lambdaLiteral = this.parseLambdaLiteral();
+      return [lparen, args, rparen, lambdaLiteral];
+    }
+
+    return [lparen, args, rparen, null];
   }
 
   private parseMemberSuffix(expression: ExpressionNode): MemberNode {

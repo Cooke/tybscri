@@ -1,6 +1,5 @@
 import { NarrowedSymbol, Symbol } from "../common";
-import { booleanType } from "../types/boolean";
-import { Type } from "../types/common";
+import { booleanType, Type } from "../types";
 import { ExpressionNode } from "./expression";
 import { IdentifierNode } from "./identifier";
 import { TypeNode } from "./type";

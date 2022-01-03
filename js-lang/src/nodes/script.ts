@@ -1,12 +1,9 @@
-import { Scope, SourceSpan } from "../common";
-import { Type } from "../types/common";
-import { unknownType } from "../types/unknown";
+import { Scope, SourceSpan, Symbol } from "../common";
+import { Type, unknownType } from "../types";
 import { AnalyzeContext, Node } from "./base";
-import { BlockNode } from "./block";
 import { FunctionNode } from "./function";
 import { StatementNode } from "./statements";
 import { VariableDeclarationNode } from "./variableDeclaration";
-import { Symbol } from "../common";
 
 export class ScriptNode extends Node {
   public get valueType(): Type {
