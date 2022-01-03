@@ -6,7 +6,7 @@ export type Type =
   | UnknownType
   | NeverType
   | GenericType
-  | GenericParameterType;
+  | GenericTypeParameter;
 
 export interface UnknownType {
   readonly kind: "Unknown";
@@ -29,8 +29,8 @@ export interface LiteralType {
 
 export interface GenericTypeDefinition {
   readonly kind: "GenericTypeDefinition";
-  readonly typeParameters: GenericParameterType[];
-  readonly base: ObjectType | null;
+  readonly typeParameters: GenericTypeParameter[];
+  readonly base: ObjectType | FuncType | null;
   readonly members: Array<ObjectMember>;
   readonly name: string;
 }
@@ -41,7 +41,7 @@ export interface GenericType {
   readonly typeArguments: Type[];
 }
 
-export interface GenericParameterType {
+export interface GenericTypeParameter {
   readonly kind: "GenericParameter";
   readonly name: string;
 }
@@ -53,10 +53,20 @@ export interface ObjectType {
   readonly name: string;
 }
 
-export interface ObjectMember {
+export type ObjectMember = StandardObjectMember | GenericObjectMemberDefinition;
+
+export interface StandardObjectMember {
+  readonly kind: "StandardMember";
   readonly isConst: boolean;
   readonly name: string;
   readonly type: Type;
+}
+
+export interface GenericObjectMemberDefinition {
+  readonly kind: "GenericMemberDefinition";
+  readonly isConst: boolean;
+  readonly name: string;
+  readonly definition: GenericTypeDefinition;
 }
 
 export interface FuncType {

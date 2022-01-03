@@ -75,17 +75,19 @@ describe("Literals", function () {
 
   it("trailing lambda with parathesis", function () {
     const stringListType = createGenericType(listType, [stringType]);
+    const numberListType = createGenericType(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
-    const parseResult = parseExpression("list.filter() { it.length }", {
+    const parseResult = parseExpression("list.map() { it.length }", {
       scope,
     });
-    assertTybscriType(parseResult.tree.valueType, stringListType);
+    assertTybscriType(parseResult.tree.valueType, numberListType);
   });
 
   it("trailing lambda without parathesis", function () {
     const stringListType = createGenericType(listType, [stringType]);
+    const numberListType = createGenericType(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
-    const parseResult = parseExpression("list.filter { it.length }", { scope });
-    assertTybscriType(parseResult.tree.valueType, stringListType);
+    const parseResult = parseExpression("list.map { it.length }", { scope });
+    assertTybscriType(parseResult.tree.valueType, numberListType);
   });
 });

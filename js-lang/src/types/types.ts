@@ -1,5 +1,5 @@
 import {
-  GenericParameterType,
+  GenericTypeParameter,
   GenericTypeDefinition,
   LiteralType,
   NeverType,
@@ -51,6 +51,7 @@ assign(objectType, {
   base: null,
   members: [
     {
+      kind: "StandardMember",
       isConst: true,
       name: "toString",
       type: {
@@ -73,14 +74,16 @@ assign(stringType, {
   kind: "Object",
   name: "string",
   base: objectType,
-  members: [{ isConst: true, name: "length", type: numberType }],
+  members: [
+    { kind: "StandardMember", isConst: true, name: "length", type: numberType },
+  ],
 });
 
-const listTypeParameter: GenericParameterType = {
+const listTypeParameter: GenericTypeParameter = {
   kind: "GenericParameter",
   name: "T",
 };
-const listFilterReturnTypeParameter: GenericParameterType = {
+const listMapReturnTypeParameter: GenericTypeParameter = {
   kind: "GenericParameter",
   name: "T",
 };
@@ -90,11 +93,13 @@ assign(listType, {
   base: objectType,
   members: [
     {
+      kind: "StandardMember",
       name: "length",
       isConst: true,
       type: numberType,
     },
     {
+      kind: "StandardMember",
       name: "filter",
       isConst: true,
       type: {
@@ -113,6 +118,34 @@ assign(listType, {
           kind: "Generic",
           definition: listType,
           typeArguments: [listTypeParameter],
+        },
+      },
+    },
+    {
+      kind: "GenericMemberDefinition",
+      name: "map",
+      isConst: true,
+      definition: { FIX HERE
+        kind: "GenericTypeDefinition",
+        typeParameters: [listMapReturnTypeParameter],
+        members: [],
+        base: {
+          kind: "Func",
+          parameters: [
+            {
+              name: "mapper",
+              type: {
+                kind: "Func",
+                parameters: [{ name: "item", type: listTypeParameter }],
+                returnType: listMapReturnTypeParameter,
+              },
+            },
+          ],
+          returnType: {
+            kind: "Generic",
+            definition: listType,
+            typeArguments: [listMapReturnTypeParameter],
+          },
         },
       },
     },

@@ -7,7 +7,7 @@ import {
 } from "./types";
 import {
   Type,
-  GenericParameterType,
+  GenericTypeParameter,
   ObjectMember,
   ObjectType,
   UnionType,
@@ -46,7 +46,7 @@ export function getTypeDisplayName(type: Type): string {
 }
 
 interface TypeParameterAssignment {
-  parameter: GenericParameterType;
+  parameter: GenericTypeParameter;
   assignment: Type;
 }
 
