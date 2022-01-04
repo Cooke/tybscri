@@ -1,5 +1,11 @@
 import { DiagnosticSeverity } from "../common";
-import { getAllTypeMembers, getTypeDisplayName } from "../types";
+import {
+  bindTypeParameters,
+  FuncType,
+  getAllTypeMembers,
+  getTypeDisplayName,
+  inferTypeArguments,
+} from "../types";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
@@ -66,7 +72,22 @@ export class MemberInvocationNode extends ExpressionNode {
     }
 
     if (member.typeParameters && member.typeParameters.length > 0) {
-      this.valueType = member.type;
+      const typeAssignments = inferTypeArguments(
+        member.type.parameters,
+        args.map((x) => x.valueType)
+      );
+
+      const closedFuncType = bindTypeParameters(
+        member.type,
+        typeAssignments,
+        []
+      ) as FuncType;
+
+      console.log("Type arguments", typeAssignments);
+      console.log("Closed func", closedFuncType);
+
+      this.valueType = closedFuncType.returnType;
+      return;
     }
 
     this.valueType = member.type.returnType;

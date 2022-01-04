@@ -1,6 +1,7 @@
+import { GenericObjectDefinition } from ".";
 import {
   GenericTypeParameter,
-  GenericTypeDefinition,
+  // GenericObjectDefinition,
   LiteralType,
   NeverType,
   ObjectType,
@@ -10,7 +11,7 @@ import {
 export const objectType = {} as ObjectType;
 export const numberType = {} as ObjectType;
 export const stringType = {} as ObjectType;
-export const listType = {} as GenericTypeDefinition;
+export const listType = {} as GenericObjectDefinition;
 
 export const unknownType: UnknownType = {
   kind: "Unknown",
@@ -76,7 +77,7 @@ assign(stringType, {
   members: [{ isConst: true, name: "length", type: numberType }],
 });
 
-const listTypeParameter: GenericTypeParameter = {
+const listItemTypeParameter: GenericTypeParameter = {
   kind: "GenericParameter",
   name: "T",
 };
@@ -84,10 +85,21 @@ const listMapReturnTypeParameter: GenericTypeParameter = {
   kind: "GenericParameter",
   name: "T",
 };
+
+const listMapReturnType = {} as ObjectType;
+const listObjectType = {} as ObjectType;
+
 assign(listType, {
-  kind: "GenericTypeDefinition",
-  typeParameters: [listTypeParameter],
+  kind: "GenericObjectDefinition",
+  typeParameters: [listItemTypeParameter],
+  objectType: listObjectType,
+});
+
+assign(listObjectType, {
+  kind: "Object",
+  name: "List",
   base: objectType,
+  typeArguments: [listItemTypeParameter],
   members: [
     {
       name: "length",
@@ -104,16 +116,12 @@ assign(listType, {
             name: "predicate",
             type: {
               kind: "Func",
-              parameters: [{ name: "item", type: listTypeParameter }],
+              parameters: [{ name: "item", type: listItemTypeParameter }],
               returnType: booleanType,
             },
           },
         ],
-        returnType: {
-          kind: "Generic",
-          definition: listType,
-          typeArguments: [listTypeParameter],
-        },
+        returnType: listObjectType,
       },
     },
     {
@@ -127,20 +135,20 @@ assign(listType, {
             name: "mapper",
             type: {
               kind: "Func",
-              parameters: [{ name: "item", type: listTypeParameter }],
+              parameters: [{ name: "item", type: listItemTypeParameter }],
               returnType: listMapReturnTypeParameter,
             },
           },
         ],
-        returnType: {
-          kind: "Generic",
-          definition: listType,
-          typeArguments: [listMapReturnTypeParameter],
-        },
+        returnType: listMapReturnType,
       },
     },
   ],
-  name: "List",
+});
+
+assign(listMapReturnType, {
+  ...listType.objectType,
+  typeArguments: [listMapReturnTypeParameter],
 });
 
 function assign<T>(type: T, value: T) {

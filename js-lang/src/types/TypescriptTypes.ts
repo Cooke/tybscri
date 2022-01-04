@@ -5,7 +5,6 @@ export type Type =
   | ObjectType
   | UnknownType
   | NeverType
-  | GenericType
   | GenericTypeParameter;
 
 export interface UnknownType {
@@ -27,40 +26,6 @@ export interface LiteralType {
   readonly valueType: Type;
 }
 
-// export interface GenericTypeDefinition {
-//   readonly kind: "GenericTypeDefinition";
-//   readonly typeParameters: GenericTypeParameter[];
-//   readonly base: ObjectType | null;
-//   readonly members: Array<ObjectMember>;
-//   readonly name: string;
-// }
-
-export interface GenericType {
-  readonly kind: "Generic";
-  readonly over: ObjectType | FuncType;
-  readonly typeArguments: Type[];
-}
-
-export interface GenericTypeParameter {
-  readonly kind: "GenericParameter";
-  readonly name: string;
-}
-
-export interface ObjectType {
-  readonly kind: "Object";
-  readonly base: ObjectType | null;
-  readonly members: Array<ObjectMember>;
-  readonly name: string;
-  readonly typeParameters?: GenericTypeParameter[];
-}
-
-export interface ObjectMember {
-  readonly isConst: boolean;
-  readonly name: string;
-  readonly type: Type;
-  readonly typeParameters?: GenericTypeParameter[];
-}
-
 export interface FuncType {
   readonly kind: "Func";
   readonly parameters: readonly FuncParameter[];
@@ -70,4 +35,44 @@ export interface FuncType {
 export interface FuncParameter {
   readonly name: string;
   readonly type: Type;
+}
+
+export interface ObjectType {
+  readonly kind: "Object";
+  readonly base: ObjectType | null;
+  readonly members: Array<ObjectMember>;
+  readonly name: string;
+  readonly typeArguments?: Type[];
+}
+
+export type ObjectMember = StandardObjectMember | GenericObjectMemberDefinition;
+
+export interface StandardObjectMember {
+  readonly isConst: boolean;
+  readonly name: string;
+  readonly type: Type;
+  readonly typeParameters: undefined;
+}
+
+export interface GenericObjectMemberDefinition {
+  readonly isConst: boolean;
+  readonly name: string;
+  readonly type: Type;
+  readonly typeParameters?: GenericTypeParameter[];
+}
+
+export interface GenericTypeParameter {
+  readonly kind: "GenericParameter";
+  readonly name: string;
+}
+export interface GenericObjectDefinition {
+  readonly kind: "GenericObjectDefinition";
+  readonly typeParameters: GenericTypeParameter[];
+  readonly objectType: ObjectType;
+}
+
+export interface GenericFuncDefinition {
+  readonly kind: "GenericFuncDefinition";
+  readonly typeParameters: GenericTypeParameter[];
+  readonly funcType: FuncType;
 }

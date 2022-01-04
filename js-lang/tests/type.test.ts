@@ -3,6 +3,7 @@ import {
   booleanType,
   listType,
   neverType,
+  nullType,
   numberType,
   objectType,
   stringType,
@@ -16,6 +17,13 @@ import {
   reduceUnionType,
 } from "../src/types/functions";
 import { assertTybscriType } from "./utils";
+import {
+  FuncType,
+  GenericTypeParameter,
+  inferTypes,
+  ObjectType,
+} from "../src/types";
+import { join } from "path/posix";
 
 describe("Types", function () {
   describe("reduce union", function () {
@@ -83,6 +91,135 @@ describe("Types", function () {
       const stringList = createGenericType(listType, [stringType]);
       const objectList = createGenericType(listType, [objectType]);
       assert.ok(isTypeAssignableToType(stringList, objectList));
+    });
+
+    it("infer type parameter directly", function () {
+      const typeParameter: GenericTypeParameter = {
+        kind: "GenericParameter",
+        name: "T",
+      };
+      const inferredTypes = inferTypes(typeParameter, stringType);
+      assert.deepEqual(inferredTypes, [
+        {
+          parameter: typeParameter,
+          assignment: stringType,
+        },
+      ]);
+    });
+
+    it("infer type parameter from func return type", function () {
+      const typeParameter: GenericTypeParameter = {
+        kind: "GenericParameter",
+        name: "T",
+      };
+      const toType: FuncType = {
+        kind: "Func",
+        parameters: [],
+        returnType: typeParameter,
+      };
+      const fromType: FuncType = {
+        kind: "Func",
+        parameters: [],
+        returnType: stringType,
+      };
+      const inferredTypes = inferTypes(toType, fromType);
+      assert.deepEqual(inferredTypes, [
+        {
+          parameter: typeParameter,
+          assignment: stringType,
+        },
+      ]);
+    });
+
+    it("infer type parameter from func parameter", function () {
+      const typeParameter: GenericTypeParameter = {
+        kind: "GenericParameter",
+        name: "T",
+      };
+      const toType: FuncType = {
+        kind: "Func",
+        parameters: [{ name: "arg1", type: typeParameter }],
+        returnType: nullType,
+      };
+      const fromType: FuncType = {
+        kind: "Func",
+        parameters: [{ name: "param", type: stringType }],
+        returnType: nullType,
+      };
+      const inferredTypes = inferTypes(toType, fromType);
+      assert.deepEqual(inferredTypes, [
+        {
+          parameter: typeParameter,
+          assignment: stringType,
+        },
+      ]);
+    });
+
+    it("infer type parameter from func of func parameter", function () {
+      const typeParameter: GenericTypeParameter = {
+        kind: "GenericParameter",
+        name: "T",
+      };
+      const toType: FuncType = {
+        kind: "Func",
+        parameters: [
+          {
+            name: "arg1",
+            type: {
+              kind: "Func",
+              parameters: [],
+              returnType: typeParameter,
+            },
+          },
+        ],
+        returnType: nullType,
+      };
+      const fromType: FuncType = {
+        kind: "Func",
+        parameters: [
+          {
+            name: "param",
+            type: {
+              kind: "Func",
+              parameters: [],
+              returnType: stringType,
+            },
+          },
+        ],
+        returnType: nullType,
+      };
+      const inferredTypes = inferTypes(toType, fromType);
+      assert.deepEqual(inferredTypes, [
+        {
+          parameter: typeParameter,
+          assignment: stringType,
+        },
+      ]);
+    });
+
+    it("infer type parameter from object type parameter", function () {
+      const typeParameter: GenericTypeParameter = {
+        kind: "GenericParameter",
+        name: "T",
+      };
+      const toType: ObjectType = {
+        kind: "Object",
+        base: null,
+        name: "MyObject",
+        members: [],
+        typeArguments: [typeParameter],
+      };
+      const fromType: ObjectType = {
+        ...toType,
+        typeArguments: [stringType],
+      };
+      const inferredTypes = inferTypes(toType, fromType);
+      assert.deepEqual(inferredTypes, [
+        {
+          parameter: typeParameter,
+          assignment: stringType,
+        },
+      ]);
     });
 
     it("substitute type parameters", function () {
