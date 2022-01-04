@@ -1,7 +1,6 @@
-import { GenericObjectDefinition } from ".";
+import { createGenericType } from "./genericFunctions";
 import {
   GenericTypeParameter,
-  // GenericObjectDefinition,
   LiteralType,
   NeverType,
   ObjectType,
@@ -11,7 +10,7 @@ import {
 export const objectType = {} as ObjectType;
 export const numberType = {} as ObjectType;
 export const stringType = {} as ObjectType;
-export const listType = {} as GenericObjectDefinition;
+export const listType = {} as ObjectType;
 
 export const unknownType: UnknownType = {
   kind: "Unknown",
@@ -87,15 +86,8 @@ const listMapReturnTypeParameter: GenericTypeParameter = {
 };
 
 const listMapReturnType = {} as ObjectType;
-const listObjectType = {} as ObjectType;
 
 assign(listType, {
-  kind: "GenericObjectDefinition",
-  typeParameters: [listItemTypeParameter],
-  objectType: listObjectType,
-});
-
-assign(listObjectType, {
   kind: "Object",
   name: "List",
   base: objectType,
@@ -121,7 +113,7 @@ assign(listObjectType, {
             },
           },
         ],
-        returnType: listObjectType,
+        returnType: listType,
       },
     },
     {
@@ -146,10 +138,10 @@ assign(listObjectType, {
   ],
 });
 
-assign(listMapReturnType, {
-  ...listType.objectType,
-  typeArguments: [listMapReturnTypeParameter],
-});
+assign(
+  listMapReturnType,
+  createGenericType(listType, [listMapReturnTypeParameter])
+);
 
 function assign<T>(type: T, value: T) {
   Object.assign(type, value);

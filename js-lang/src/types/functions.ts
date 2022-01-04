@@ -1,4 +1,4 @@
-import { FuncType, GenericFuncDefinition, GenericObjectDefinition } from ".";
+import { TypeParameterAssignment } from "./genericFunctions";
 import {
   booleanType,
   neverType,
@@ -16,6 +16,7 @@ import {
   Type,
   UnionType,
 } from "./TypescriptTypes";
+export * from "./genericFunctions";
 
 export function getTypeDisplayName(type: Type): string {
   switch (type.kind) {
@@ -45,71 +46,6 @@ export function getTypeDisplayName(type: Type): string {
     default:
       return type.kind;
   }
-}
-
-export interface TypeParameterAssignment {
-  parameter: GenericTypeParameter;
-  assignment: Type;
-}
-
-export function bindTypeParameters(
-  type: Type,
-  substitutions: TypeParameterAssignment[],
-  boundTypes: [Type, Type][]
-): Type {
-  const boundType = boundTypes.find((x) => x[0] === type)?.[1];
-  if (boundType) {
-    return boundType;
-  }
-
-  switch (type.kind) {
-    case "Object":
-      const boundObjectType = {} as ObjectType;
-      boundTypes.push([type, boundObjectType]);
-      assign(boundObjectType, {
-        ...type,
-        kind: "Object",
-        base: type.base
-          ? (bindTypeParameters(
-              type.base,
-              substitutions,
-              boundTypes
-            ) as ObjectType)
-          : null,
-        members: type.members.map((member) => ({
-          ...member,
-          type: bindTypeParameters(member.type, substitutions, boundTypes),
-        })),
-        typeArguments: type.typeArguments?.map((t) =>
-          bindTypeParameters(t, substitutions, boundTypes)
-        ),
-      });
-      return boundObjectType;
-
-    case "GenericParameter":
-      return (
-        substitutions.find((x) => x.parameter === type)?.assignment ?? type
-      );
-
-    case "Func": {
-      const parameters = type.parameters.map((param) => ({
-        ...param,
-        type: bindTypeParameters(param.type, substitutions, boundTypes),
-      }));
-      return {
-        ...type,
-        kind: "Func",
-        parameters,
-        returnType: bindTypeParameters(
-          type.returnType,
-          substitutions,
-          boundTypes
-        ),
-      };
-    }
-  }
-
-  return type;
 }
 
 export function getAllTypeMembers(type: Type): ObjectMember[] {
@@ -275,37 +211,6 @@ function getFlattenTypes(type: Type): Type[] {
   return [type];
 }
 
-export function createGenericType(
-  definition: GenericObjectDefinition | GenericFuncDefinition,
-  args: Type[]
-): ObjectType | FuncType {
-  if (definition.typeParameters.length !== args.length) {
-    throw new Error(
-      "Type argument mismatch when creating a closed generic type"
-    );
-  }
-
-  const typeAssignments =
-    definition.typeParameters.map<TypeParameterAssignment>((arg, index) => ({
-      parameter: arg as GenericTypeParameter,
-      assignment: args[index],
-    }));
-
-  if (definition.kind === "GenericObjectDefinition") {
-    return bindTypeParameters(
-      definition.objectType,
-      typeAssignments,
-      []
-    ) as ObjectType;
-  } else {
-    return bindTypeParameters(
-      definition.funcType,
-      typeAssignments,
-      []
-    ) as FuncType;
-  }
-}
-
 export function createLiteralType(
   value: string | number | boolean
 ): LiteralType {
@@ -382,8 +287,4 @@ export function inferTypes(to: Type, from: Type): TypeParameterAssignment[] {
   }
 
   return [];
-}
-
-function assign<T>(type: T, value: T) {
-  Object.assign(type, value);
 }

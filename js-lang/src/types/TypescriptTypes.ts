@@ -65,14 +65,3 @@ export interface GenericTypeParameter {
   readonly kind: "GenericParameter";
   readonly name: string;
 }
-export interface GenericObjectDefinition {
-  readonly kind: "GenericObjectDefinition";
-  readonly typeParameters: GenericTypeParameter[];
-  readonly objectType: ObjectType;
-}
-
-export interface GenericFuncDefinition {
-  readonly kind: "GenericFuncDefinition";
-  readonly typeParameters: GenericTypeParameter[];
-  readonly funcType: FuncType;
-}

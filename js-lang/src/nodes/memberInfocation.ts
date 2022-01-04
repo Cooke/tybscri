@@ -1,11 +1,11 @@
 import { DiagnosticSeverity } from "../common";
 import {
-  bindTypeParameters,
   FuncType,
   getAllTypeMembers,
   getTypeDisplayName,
   inferTypeArguments,
 } from "../types";
+import { substituteTypeParameters } from "../types/genericFunctions";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
@@ -77,14 +77,11 @@ export class MemberInvocationNode extends ExpressionNode {
         args.map((x) => x.valueType)
       );
 
-      const closedFuncType = bindTypeParameters(
+      const closedFuncType = substituteTypeParameters(
         member.type,
         typeAssignments,
         []
       ) as FuncType;
-
-      console.log("Type arguments", typeAssignments);
-      console.log("Closed func", closedFuncType);
 
       this.valueType = closedFuncType.returnType;
       return;
