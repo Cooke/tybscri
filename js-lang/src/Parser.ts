@@ -33,6 +33,7 @@ import { booleanType, numberType, stringType } from "./types";
 import { LiteralType } from "./types/TypescriptTypes";
 import { CollectionLiteralNode } from "./nodes/collectionLiteral";
 import { LambdaLiteralNode } from "./nodes/lambdaLiteral";
+import { MemberInvocationNode } from "./nodes/memberInfocation";
 
 const L = TybscriLexer;
 
@@ -542,6 +543,12 @@ export class Parser {
     this.parseExpectedToken(L.DOT);
     this.advanceWhileNL();
     const token = this.parseExpectedToken(L.Identifier);
+
+    if (this.peek() === L.LPAREN || this.peek() === L.LCURL) {
+      const callArgs = this.parseValueArguments();
+      return new MemberInvocationNode(expression, token, ...callArgs);
+    }
+
     return new MemberNode(expression, token);
   }
 

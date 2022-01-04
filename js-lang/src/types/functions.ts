@@ -11,18 +11,20 @@ import {
   ObjectMember,
   ObjectType,
   UnionType,
-  GenericTypeDefinition,
   GenericType,
   LiteralType,
 } from "./TypescriptTypes";
 
 export function getTypeDisplayName(type: Type): string {
   switch (type.kind) {
+    case "GenericParameter":
+      return `${type.name}`;
+
     case "Object":
       return type.name;
 
     case "Generic":
-      return `${type.definition.name}<${type.typeArguments
+      return `${getTypeDisplayName(type.over)}<${type.typeArguments
         .map(getTypeDisplayName)
         .join(", ")}>`;
 
@@ -75,7 +77,7 @@ function substituteTypeParameter(
     case "Generic": {
       return {
         kind: "Generic",
-        definition: type.definition,
+        over: type.over,
         typeArguments: type.typeArguments.map((t) =>
           substituteTypeParameter(t, substitutions)
         ),
@@ -95,25 +97,44 @@ export function getAllTypeMembers(type: Type): ObjectMember[] {
       return getAllTypeMembers(type.valueType);
 
     case "Generic":
-      const assignments = type.definition.typeParameters.reduce<
-        TypeParameterAssignment[]
-      >(
-        (p, c, index) => [
-          ...p,
-          { parameter: c, assignment: type.typeArguments[index] },
-        ],
-        []
-      );
-
-      return type.definition.members
-        .map((x) => ({
-          ...x,
-          type: substituteTypeParameter(x.type, assignments),
-        }))
-        .concat(
-          type.definition.base ? getAllTypeMembers(type.definition.base) : []
+      if (type.over.kind === "Object") {
+        const assignments = (type.over.typeParameters ?? []).reduce<
+          TypeParameterAssignment[]
+        >(
+          (p, c, index) => [
+            ...p,
+            { parameter: c, assignment: type.typeArguments[index] },
+          ],
+          []
         );
 
+        return type.definition.members
+          .map((x) => ({
+            ...x,
+            type: substituteTypeParameter(x.type, assignments),
+          }))
+          .concat(
+            type.definition.base ? getAllTypeMembers(type.definition.base) : []
+          );
+      } else {
+        const assignments = type.definition.parameters
+          .map((x) => x.type)
+          .concat([type.definition.returnType])
+          .filter(
+            (x): x is GenericTypeParameter => x.kind === "GenericParameter"
+          )
+          .reduce<TypeParameterAssignment[]>(
+            (p, c, index) => [
+              ...p,
+              { parameter: c, assignment: type.typeArguments[index] },
+            ],
+            []
+          );
+
+        return getAllTypeMembers(
+          substituteTypeParameter(type.definition, assignments)
+        );
+      }
     case "Union":
       if (type.types.length === 0) {
         return [];

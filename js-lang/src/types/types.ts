@@ -51,7 +51,6 @@ assign(objectType, {
   base: null,
   members: [
     {
-      kind: "StandardMember",
       isConst: true,
       name: "toString",
       type: {
@@ -74,9 +73,7 @@ assign(stringType, {
   kind: "Object",
   name: "string",
   base: objectType,
-  members: [
-    { kind: "StandardMember", isConst: true, name: "length", type: numberType },
-  ],
+  members: [{ isConst: true, name: "length", type: numberType }],
 });
 
 const listTypeParameter: GenericTypeParameter = {
@@ -93,13 +90,11 @@ assign(listType, {
   base: objectType,
   members: [
     {
-      kind: "StandardMember",
       name: "length",
       isConst: true,
       type: numberType,
     },
     {
-      kind: "StandardMember",
       name: "filter",
       isConst: true,
       type: {
@@ -122,30 +117,25 @@ assign(listType, {
       },
     },
     {
-      kind: "GenericMemberDefinition",
       name: "map",
       isConst: true,
-      definition: { FIX HERE
-        kind: "GenericTypeDefinition",
-        typeParameters: [listMapReturnTypeParameter],
-        members: [],
-        base: {
-          kind: "Func",
-          parameters: [
-            {
-              name: "mapper",
-              type: {
-                kind: "Func",
-                parameters: [{ name: "item", type: listTypeParameter }],
-                returnType: listMapReturnTypeParameter,
-              },
+      typeParameters: [listMapReturnTypeParameter],
+      type: {
+        kind: "Func",
+        parameters: [
+          {
+            name: "mapper",
+            type: {
+              kind: "Func",
+              parameters: [{ name: "item", type: listTypeParameter }],
+              returnType: listMapReturnTypeParameter,
             },
-          ],
-          returnType: {
-            kind: "Generic",
-            definition: listType,
-            typeArguments: [listMapReturnTypeParameter],
           },
+        ],
+        returnType: {
+          kind: "Generic",
+          definition: listType,
+          typeArguments: [listMapReturnTypeParameter],
         },
       },
     },
