@@ -18,6 +18,8 @@
   },
   "scripts": {
     "gen": "antlr4ts -o ./src/generated ../spec/TybscriLexer.g4",
+    "build": "tsc --project tsconfig.build.json",
+    "build:watch": "yarn build --watch",
     "test": "mocha -r ts-node/register 'tests/**/*.ts'",
     "test:watch": "yarn test -w --watch-files 'tests/**/*.ts,src/**/*.*'"
   },
