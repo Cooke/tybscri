@@ -1,12 +1,13 @@
 import { CharStreams } from "antlr4ts";
-import { DiagnosticSeverity, Lexer, Scope } from "./common";
+import { DiagnosticSeverity, Lexer } from "./common";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
-import { ParseContext, Parser } from "./Parser";
-import { getTypeDisplayName, isTypeAssignableToType, Type } from "./types";
+import { ParseContext, Parser } from "./parser";
+import { Scope } from "./scope";
+import { getTypeDisplayName, isTypeAssignableToType, Type } from "./typeSystem";
 
-export * from "./types/functions";
-export { printTree } from "./utils";
+export * from "./typeSystem/functions";
+export { treeToString as printTree } from "./utils";
 export { DiagnosticMessage } from "./common";
 export * from "./nodes";
 

@@ -1,5 +1,5 @@
 import { parseScript } from "../src";
-import { numberType } from "../src/types";
+import { numberType } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("If", function () {

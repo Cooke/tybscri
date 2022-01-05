@@ -1,14 +1,13 @@
 import assert from "assert";
+import { parseExpression } from "../src";
 import {
-  deriveObjectType,
   createLiteralType,
   createUnionType,
+  deriveObjectType,
   getAllTypeMembers,
-  getTypeDisplayName,
-  objectTypeToString,
-} from "../src/types/functions";
-import { listType, numberType, stringType } from "../src/types/types";
-import { parseExpression, printTree } from "../src";
+} from "../src/typeSystem/functions";
+import { numberType, stringType } from "../src/typeSystem/types";
+import { listType } from "../src/typeSystem/listType";
 import { assertTybscriType } from "./utils";
 
 describe("Member", function () {

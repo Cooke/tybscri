@@ -7,7 +7,7 @@ import {
   createUnionType,
   numberType,
   stringType,
-} from "../src/types";
+} from "../src/typeSystem";
 import { assertTybscriType, assertType } from "./utils";
 
 describe("Functions", function () {

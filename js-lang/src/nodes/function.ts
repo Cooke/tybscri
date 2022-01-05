@@ -1,8 +1,9 @@
-import { DiagnosticSeverity, Scope, SourceSymbol, Symbol } from "../common";
-import { reduceUnionType } from "../types/functions";
-import { FuncType, Type, UnionType } from "../types/TypescriptTypes";
-import { nullType } from "../types";
-import { unknownType } from "../types";
+import { DiagnosticSeverity } from "../common";
+import { SourceSymbol } from "../symbols";
+import { reduceUnionType } from "../typeSystem/functions";
+import { FuncType, Type, UnionType } from "../typeSystem/common";
+import { nullType } from "../typeSystem";
+import { unknownType } from "../typeSystem";
 import { AnalyzeContext, Node } from "./base";
 import { BlockNode } from "./block";
 import { ReturnNode } from "./return";
@@ -10,6 +11,7 @@ import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
 import { TypeNode } from "./type";
 import { LambdaLiteralNode } from "./lambdaLiteral";
+import { Scope } from "../scope";
 
 export class FunctionNode extends StatementNode {
   private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" =

@@ -1,12 +1,10 @@
 import { DiagnosticSeverity } from "../common";
 import {
   bindType,
-  FuncType,
   getAllTypeMembers,
   getTypeDisplayName,
   inferTypeArguments,
-  objectTypeToString,
-} from "../types";
+} from "../typeSystem";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
@@ -78,10 +76,7 @@ export class MemberInvocationNode extends ExpressionNode {
         args.map((x) => x.valueType)
       );
 
-      this.valueType = bindType(
-        member.type.returnType,
-        typeAssignments
-      );
+      this.valueType = bindType(member.type.returnType, typeAssignments);
       return;
     }
 

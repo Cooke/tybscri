@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "../common";
-import { getAllTypeMembers, getTypeDisplayName } from "../types/functions";
+import { getAllTypeMembers, getTypeDisplayName } from "../typeSystem/functions";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";

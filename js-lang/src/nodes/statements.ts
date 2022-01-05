@@ -1,5 +1,5 @@
-import { getTypeDisplayName } from "../types/functions";
-import { unknownType, Type } from "../types";
+import { getTypeDisplayName } from "../typeSystem/functions";
+import { unknownType, Type } from "../typeSystem";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { ActualTokenNode } from "./token";

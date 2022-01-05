@@ -1,6 +1,7 @@
 import { DiagnosticMessage } from "..";
-import { Scope, SourceSpan } from "../common";
-import { Type } from "../types/TypescriptTypes";
+import { SourceSpan } from "../common";
+import { Scope } from "../scope";
+import { Type } from "../typeSystem/common";
 
 export interface AnalyzeContext {
   onDiagnosticMessage?: (msg: DiagnosticMessage) => void;

@@ -5,7 +5,7 @@ import {
   inferTypes,
   ObjectMember,
   TypeParameter,
-} from "../src/types";
+} from "../src/typeSystem";
 import {
   createLiteralType,
   createUnionType,
@@ -14,16 +14,16 @@ import {
   inferTypeArguments,
   isTypeAssignableToType,
   reduceUnionType,
-} from "../src/types/functions";
+} from "../src/typeSystem/functions";
 import {
   booleanType,
-  listType,
   neverType,
   nullType,
   numberType,
   objectType,
   stringType,
-} from "../src/types/types";
+} from "../src/typeSystem/types";
+import { listType } from "../src/typeSystem/listType";
 import { assertTybscriType } from "./utils";
 
 describe("Types", function () {

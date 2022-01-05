@@ -2,7 +2,7 @@ import assert from "assert";
 import { createLiteralType, createUnionType, parseScript } from "../src";
 import { IfNode } from "../src/nodes/if";
 import { ExpressionStatementNode } from "../src/nodes/statements";
-import { nullType, trueType } from "../src/types";
+import { nullType, trueType } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("Narrowing", function () {

@@ -30,7 +30,6 @@ export interface FuncType {
   readonly kind: "Func";
   readonly parameters: readonly FuncParameter[];
   readonly returnType: Type;
-  // readonly typeParameters?: TypeParameter[];
 }
 
 export interface FuncParameter {

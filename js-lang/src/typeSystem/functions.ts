@@ -1,7 +1,7 @@
 import {
-  TypeParameterBinding,
-  isGenericType,
   bindType,
+  isGenericType,
+  TypeParameterBinding,
 } from "./genericFunctions";
 import {
   booleanType,
@@ -13,15 +13,14 @@ import {
 } from "./types";
 import {
   FuncParameter,
-  TypeParameter,
+  GenericObjectType,
   LiteralType,
   ObjectMember,
   ObjectType,
   Type,
-  UnionType,
   TypeParameterVariance,
-  GenericObjectType,
-} from "./TypescriptTypes";
+  UnionType,
+} from "./common";
 export * from "./genericFunctions";
 
 export function getTypeDisplayName(type: Type): string {
@@ -370,26 +369,4 @@ function assert(condition: any, msg?: string): asserts condition {
   if (!condition) {
     throw new Error(msg);
   }
-}
-
-export function objectTypeToString(type: ObjectType) {
-  return `${type.name}<${
-    type.typeParameters
-      ?.map(
-        (tp, tpi) =>
-          `${tp.variance ? tp.variance + " " : ""}${tp.name} ${
-            type.typeArguments?.[tpi]
-              ? `= ${getTypeDisplayName(type.typeArguments?.[tpi])}`
-              : ""
-          }`
-      )
-      .join(", ") ?? ""
-  }>\n    ${type.members
-    .map(
-      (m) =>
-        `${m.name}<${
-          m.typeParameters?.map((tp) => `${tp.name}`).join(",") ?? ""
-        }>: ${getTypeDisplayName(m.type)}`
-    )
-    .join("\n    ")}`;
 }

@@ -4,7 +4,7 @@ import {
   Type,
   TypeParameter,
   FuncType,
-} from "./TypescriptTypes";
+} from "./common";
 
 export interface TypeParameterBinding {
   parameter: TypeParameter;

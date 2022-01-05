@@ -1,19 +1,19 @@
 import {
-  deriveObjectType,
   createLiteralType,
   createUnionType,
+  deriveObjectType,
   parseExpression,
 } from "../src";
-import { ExternalSymbol, Scope } from "../src/common";
+import { Scope } from "../src/scope";
+import { ExternalSymbol } from "../src/symbols";
 import {
   booleanType,
   FuncType,
   listType,
-  nullType,
   numberType,
   stringType,
   trueType,
-} from "../src/types";
+} from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("Literals", function () {

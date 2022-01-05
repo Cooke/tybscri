@@ -1,10 +1,5 @@
 import { CharStreams, CommonTokenStream, Token } from "antlr4ts";
-import {
-  DiagnosticMessage,
-  DiagnosticSeverity,
-  Scope,
-  SourceSpan,
-} from "./common";
+import { DiagnosticMessage, DiagnosticSeverity, SourceSpan } from "./common";
 import { TybscriLexer } from "./generated/TybscriLexer";
 import { BlockNode } from "./nodes/block";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
@@ -29,11 +24,12 @@ import {
   VariableDeclarationNode,
   VariableKind,
 } from "./nodes/variableDeclaration";
-import { booleanType, numberType, stringType } from "./types";
-import { LiteralType } from "./types/TypescriptTypes";
+import { booleanType, numberType, stringType } from "./typeSystem";
+import { LiteralType } from "./typeSystem/common";
 import { CollectionLiteralNode } from "./nodes/collectionLiteral";
 import { LambdaLiteralNode } from "./nodes/lambdaLiteral";
-import { MemberInvocationNode } from "./nodes/memberInfocation";
+import { MemberInvocationNode } from "./nodes/memberInvocation";
+import { Scope } from "./scope";
 
 const L = TybscriLexer;
 

@@ -1,5 +1,7 @@
-import { DiagnosticSeverity, Scope, SourceSymbol } from "../common";
-import { widenType } from "../types/functions";
+import { DiagnosticSeverity } from "../common";
+import { Scope } from "../scope";
+import { SourceSymbol } from "../symbols";
+import { widenType } from "../typeSystem/functions";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { StatementNode } from "./statements";

@@ -1,5 +1,5 @@
 import { parseScript } from "../src";
-import { numberType, stringType } from "../src/types";
+import { numberType, stringType } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("Variables", function () {

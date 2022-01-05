@@ -1,11 +1,12 @@
-import { DiagnosticSeverity, Scope, SourceSymbol, Symbol } from "../common";
-import { neverType, nullType, unknownType } from "../types";
+import { SourceSymbol, Symbol } from "../symbols";
+import { Scope } from "../scope";
+import { neverType, nullType, unknownType } from "../typeSystem";
 import {
   getTypeDisplayName,
   isTypeAssignableToType,
   reduceUnionType,
-} from "../types/functions";
-import { FuncType, Type, UnionType } from "../types/TypescriptTypes";
+} from "../typeSystem/functions";
+import { FuncType, Type, UnionType } from "../typeSystem/common";
 import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";
 import { FunctionNode } from "./function";
@@ -13,6 +14,7 @@ import { ReturnNode } from "./return";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
 import { VariableDeclarationNode } from "./variableDeclaration";
+import { DiagnosticSeverity } from "../common";
 
 export class LambdaLiteralNode extends ExpressionNode {
   private itParameterType: Type = unknownType;

@@ -1,5 +1,5 @@
 import { Lexer, SourceSpan } from "../common";
-import { Type } from "../types/TypescriptTypes";
+import { Type } from "../typeSystem/common";
 import { AnalyzeContext, Node } from "./base";
 
 // TODO: should the tokens be nodes in the tree? Or could they be trivia in the nodes?

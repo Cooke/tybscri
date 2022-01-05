@@ -1,13 +1,9 @@
 import assert from "assert";
-import { error } from "console";
 import { parseExpression } from "../src";
-import {
-  DiagnosticMessage,
-  DiagnosticSeverity,
-  ExternalSymbol,
-  Scope,
-} from "../src/common";
-import { stringType, unknownType } from "../src/types";
+import { DiagnosticMessage, DiagnosticSeverity } from "../src/common";
+import { Scope } from "../src/scope";
+import { ExternalSymbol } from "../src/symbols";
+import { stringType, unknownType } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("Identifiers", function () {
