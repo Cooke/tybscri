@@ -4,13 +4,12 @@ import {
   GenericObjectType,
   inferTypes,
   ObjectMember,
-  ObjectType,
   TypeParameter,
 } from "../src/types";
 import {
-  bindObjectTypeParameters,
   createLiteralType,
   createUnionType,
+  deriveObjectType,
   getAllTypeMembers,
   inferTypeArguments,
   isTypeAssignableToType,
@@ -103,8 +102,8 @@ describe("Types", function () {
         typeArguments: [typeParameter],
         typeParameters: [typeParameter],
       };
-      const ofString = bindObjectTypeParameters(myType, [stringType]);
-      const ofObject = bindObjectTypeParameters(myType, [objectType]);
+      const ofString = deriveObjectType(myType, [stringType]);
+      const ofObject = deriveObjectType(myType, [objectType]);
       assert.ok(isTypeAssignableToType(ofString, ofObject));
       assert.ok(!isTypeAssignableToType(ofObject, ofString));
     });
@@ -119,8 +118,8 @@ describe("Types", function () {
         typeArguments: [typeParameter],
         typeParameters: [typeParameter],
       };
-      const ofString = bindObjectTypeParameters(myType, [stringType]);
-      const ofObject = bindObjectTypeParameters(myType, [objectType]);
+      const ofString = deriveObjectType(myType, [stringType]);
+      const ofObject = deriveObjectType(myType, [objectType]);
       assert.ok(!isTypeAssignableToType(ofString, ofObject));
       assert.ok(!isTypeAssignableToType(ofObject, ofString));
     });
@@ -139,8 +138,8 @@ describe("Types", function () {
         typeArguments: [typeParameter],
         typeParameters: [typeParameter],
       };
-      const ofString = bindObjectTypeParameters(myType, [stringType]);
-      const ofObject = bindObjectTypeParameters(myType, [objectType]);
+      const ofString = deriveObjectType(myType, [stringType]);
+      const ofObject = deriveObjectType(myType, [objectType]);
       assert.ok(!isTypeAssignableToType(ofString, ofObject));
       assert.ok(isTypeAssignableToType(ofObject, ofString));
     });
@@ -154,7 +153,7 @@ describe("Types", function () {
       assert.deepEqual(inferredTypes, [
         {
           parameter: typeParameter,
-          assignment: stringType,
+          to: stringType,
         },
       ]);
     });
@@ -178,7 +177,7 @@ describe("Types", function () {
       assert.deepEqual(inferredTypes, [
         {
           parameter: typeParameter,
-          assignment: stringType,
+          to: stringType,
         },
       ]);
     });
@@ -202,7 +201,7 @@ describe("Types", function () {
       assert.deepEqual(inferredTypes, [
         {
           parameter: typeParameter,
-          assignment: stringType,
+          to: stringType,
         },
       ]);
     });
@@ -244,7 +243,7 @@ describe("Types", function () {
       assert.deepEqual(inferredTypes, [
         {
           parameter: typeParameter,
-          assignment: stringType,
+          to: stringType,
         },
       ]);
     });
@@ -266,13 +265,13 @@ describe("Types", function () {
         kind: "TypeParameter",
         name: "T",
       };
-      const toType = bindObjectTypeParameters(definition, [typeParameter2]);
-      const fromType = bindObjectTypeParameters(definition, [stringType]);
+      const toType = deriveObjectType(definition, [typeParameter2]);
+      const fromType = deriveObjectType(definition, [stringType]);
       const inferredTypes = inferTypes(toType, fromType);
       assert.deepEqual(inferredTypes, [
         {
           parameter: typeParameter2,
-          assignment: stringType,
+          to: stringType,
         },
       ]);
     });
@@ -292,25 +291,20 @@ describe("Types", function () {
         ],
         returnType: typeParameter,
       };
-      const member: ObjectMember = {
-        name: "member",
-        isConst: false,
-        typeParameters: [typeParameter],
-        type: memberFuncType,
-      };
-      const typeAssignments = inferTypeArguments(memberFuncType.parameters, [
+
+      const bindings = inferTypeArguments(memberFuncType.parameters, [
         stringType,
       ]);
-      assert.deepEqual(typeAssignments, [
+      assert.deepEqual(bindings, [
         {
           parameter: typeParameter,
-          assignment: stringType,
+          to: stringType,
         },
       ]);
     });
 
     it("members of bound object should also be bound", function () {
-      const stringList = bindObjectTypeParameters(listType, [stringType]);
+      const stringList = deriveObjectType(listType, [stringType]);
       const filterMember = getAllTypeMembers(stringList).find(
         (x) => x.name === "filter"
       );

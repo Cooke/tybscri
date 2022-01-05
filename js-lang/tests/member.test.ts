@@ -1,6 +1,6 @@
 import assert from "assert";
 import {
-  bindObjectTypeParameters,
+  deriveObjectType,
   createLiteralType,
   createUnionType,
   getAllTypeMembers,
@@ -24,10 +24,9 @@ describe("Member", function () {
   describe("inferred return type", function () {
     it("from map", function () {
       const result = parseExpression(`[1, 2].map { it.toString() }`);
-      console.log(objectTypeToString(result.tree.valueType as any));
       assertTybscriType(
         result.tree.valueType,
-        bindObjectTypeParameters(listType, [stringType])
+        deriveObjectType(listType, [stringType])
       );
     });
 
@@ -35,10 +34,9 @@ describe("Member", function () {
       const result = parseExpression(
         `[1, 2].map { it.toString() }.map { it.length }`
       );
-      console.log(objectTypeToString(result.tree.valueType as any));
       assertTybscriType(
         result.tree.valueType,
-        bindObjectTypeParameters(listType, [numberType])
+        deriveObjectType(listType, [numberType])
       );
     });
   });

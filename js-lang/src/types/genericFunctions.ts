@@ -1,60 +1,52 @@
-import { FuncType } from ".";
 import {
   GenericObjectType,
   ObjectType,
   Type,
   TypeParameter,
+  FuncType,
 } from "./TypescriptTypes";
 
-export interface TypeParameterAssignment {
+export interface TypeParameterBinding {
   parameter: TypeParameter;
-  assignment: Type;
+  to: Type;
 }
 
-export function bindTypeFromAssignments(
-  type: Type,
-  assignments: TypeParameterAssignment[]
-): Type {
+export function bindType(type: Type, bindings: TypeParameterBinding[]): Type {
   switch (type.kind) {
     case "Object":
-      return bindObjectFromAssignments(type, assignments);
+      return bindObjectType(type, bindings);
 
     case "Func":
-      return bindFuncFromAssignments(type, assignments);
+      return bindFuncType(type, bindings);
 
     case "TypeParameter":
-      return assignments.find((x) => x.parameter === type)?.assignment ?? type;
+      return bindings.find((x) => x.parameter === type)?.to ?? type;
   }
 
-  throw new Error("Not supported to bind " + type.kind);
+  return type;
 }
 
-function bindFuncFromAssignments(
+function bindFuncType(
   type: FuncType,
-  assignments: TypeParameterAssignment[]
+  bindings: TypeParameterBinding[]
 ): FuncType {
   return {
     ...type,
     parameters: type.parameters.map((param) => ({
       ...param,
-      type: bindTypeFromAssignments(param.type, assignments),
+      type: bindType(param.type, bindings),
     })),
-    returnType: bindTypeFromAssignments(type.returnType, assignments),
+    returnType: bindType(type.returnType, bindings),
   };
 }
 
-function bindObjectFromAssignments(
-  type: ObjectType,
-  assignments: TypeParameterAssignment[]
-) {
+function bindObjectType(type: ObjectType, bindings: TypeParameterBinding[]) {
   if (!isGenericType(type)) {
     return type;
   }
 
   const typeArguments = type.typeArguments.map((param) => {
-    return (
-      assignments.find((ass) => ass.parameter === param)?.assignment ?? param
-    );
+    return bindings.find((ass) => ass.parameter === param)?.to ?? param;
   });
 
   return {
@@ -63,7 +55,7 @@ function bindObjectFromAssignments(
   };
 }
 
-export function bindObjectTypeParameters(
+export function deriveObjectType(
   type: GenericObjectType,
   typeArguments: Type[]
 ): GenericObjectType {

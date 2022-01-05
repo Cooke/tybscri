@@ -1,5 +1,5 @@
 import { GenericObjectType } from ".";
-import { bindObjectTypeParameters } from "./genericFunctions";
+import { deriveObjectType } from "./genericFunctions";
 import {
   TypeParameter,
   LiteralType,
@@ -144,11 +144,11 @@ assign(listType, {
 
 assign(
   listOfItemType,
-  bindObjectTypeParameters(listType, [itemType])
+  deriveObjectType(listType, [itemType])
 );
 assign(
   listOfResultType,
-  bindObjectTypeParameters(listType, [resultType])
+  deriveObjectType(listType, [resultType])
 );
 
 function assign<T>(type: T, value: T) {

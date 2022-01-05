@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "../common";
 import {
-  bindTypeFromAssignments,
+  bindType,
   FuncType,
   getAllTypeMembers,
   getTypeDisplayName,
@@ -78,18 +78,10 @@ export class MemberInvocationNode extends ExpressionNode {
         args.map((x) => x.valueType)
       );
 
-      const returnType = bindTypeFromAssignments(
+      this.valueType = bindType(
         member.type.returnType,
         typeAssignments
       );
-
-      console.log(
-        "Pre bound",
-        objectTypeToString(member.type.returnType as any)
-      );
-      console.log("Post bound", objectTypeToString(returnType as any));
-
-      this.valueType = returnType;
       return;
     }
 

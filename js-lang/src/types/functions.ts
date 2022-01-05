@@ -1,7 +1,7 @@
 import {
-  TypeParameterAssignment,
+  TypeParameterBinding,
   isGenericType,
-  bindTypeFromAssignments,
+  bindType,
 } from "./genericFunctions";
 import {
   booleanType,
@@ -55,10 +55,10 @@ export function getTypeDisplayName(type: Type): string {
   }
 }
 
-function getTypeAssignments(type: GenericObjectType) {
+function getTypeAssignments(type: GenericObjectType): TypeParameterBinding[] {
   return type.typeParameters.map((parameter, index) => ({
     parameter,
-    assignment: type.typeArguments[index],
+    to: type.typeArguments[index],
   }));
 }
 
@@ -70,7 +70,7 @@ export function getAllTypeMembers(type: Type): ObjectMember[] {
         return type.members
           .map((member) => ({
             ...member,
-            type: bindTypeFromAssignments(member.type, typeAssignments),
+            type: bindType(member.type, typeAssignments),
           }))
           .concat(type.base ? getAllTypeMembers(type.base) : []);
       }
@@ -313,8 +313,8 @@ export function createUnionType(...types: Type[]): UnionType {
 export function inferTypeArguments(
   parameters: readonly FuncParameter[],
   argTypes: readonly Type[]
-): TypeParameterAssignment[] {
-  const results: TypeParameterAssignment[] = [];
+): TypeParameterBinding[] {
+  const results: TypeParameterBinding[] = [];
   for (let i = 0; i < parameters.length; i++) {
     const param = parameters[i];
     results.push(...inferTypes(param.type, argTypes[i] ?? unknownType));
@@ -322,15 +322,15 @@ export function inferTypeArguments(
   return results;
 }
 
-export function inferTypes(to: Type, from: Type): TypeParameterAssignment[] {
+export function inferTypes(to: Type, from: Type): TypeParameterBinding[] {
   switch (to.kind) {
     case "TypeParameter":
-      return [{ assignment: from, parameter: to }];
+      return [{ to: from, parameter: to }];
 
     case "Object":
       const fromObject = from.kind === "Object" ? from : null;
 
-      const results: TypeParameterAssignment[] = [];
+      const results: TypeParameterBinding[] = [];
 
       for (let i = 0; i < (to.typeArguments?.length ?? 0); i++) {
         results.push(
@@ -346,7 +346,7 @@ export function inferTypes(to: Type, from: Type): TypeParameterAssignment[] {
     case "Func": {
       const fromFunc = from.kind === "Func" ? from : null;
 
-      const results: TypeParameterAssignment[] = [
+      const results: TypeParameterBinding[] = [
         ...inferTypes(to.returnType, fromFunc?.returnType ?? unknownType),
       ];
 

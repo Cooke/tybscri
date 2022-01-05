@@ -1,5 +1,5 @@
 import {
-  bindObjectTypeParameters,
+  deriveObjectType,
   createLiteralType,
   createUnionType,
   parseExpression,
@@ -46,7 +46,7 @@ describe("Literals", function () {
 
   it("collection", function () {
     const parseResult = parseExpression('[true, 123, "321"]');
-    const expected = bindObjectTypeParameters(listType, [
+    const expected = deriveObjectType(listType, [
       createUnionType(
         trueType,
         createLiteralType(123),
@@ -72,8 +72,8 @@ describe("Literals", function () {
   });
 
   it("trailing lambda with parathesis", function () {
-    const stringListType = bindObjectTypeParameters(listType, [stringType]);
-    const numberListType = bindObjectTypeParameters(listType, [numberType]);
+    const stringListType = deriveObjectType(listType, [stringType]);
+    const numberListType = deriveObjectType(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
     const parseResult = parseExpression("list.map() { it.length }", {
       scope,
@@ -82,8 +82,8 @@ describe("Literals", function () {
   });
 
   it("trailing lambda without parathesis", function () {
-    const stringListType = bindObjectTypeParameters(listType, [stringType]);
-    const numberListType = bindObjectTypeParameters(listType, [numberType]);
+    const stringListType = deriveObjectType(listType, [stringType]);
+    const numberListType = deriveObjectType(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
     const parseResult = parseExpression("list.map { it.length }", { scope });
     assertTybscriType(parseResult.tree.valueType, numberListType);
