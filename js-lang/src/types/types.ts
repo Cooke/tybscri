@@ -78,14 +78,15 @@ assign(stringType, {
 
 const listItemTypeParameter: GenericTypeParameter = {
   kind: "GenericParameter",
-  name: "T",
-};
-const listMapReturnTypeParameter: GenericTypeParameter = {
-  kind: "GenericParameter",
-  name: "T",
+  name: "TItem",
 };
 
-const listMapReturnType = {} as ObjectType;
+const resultTypeParameter: GenericTypeParameter = {
+  kind: "GenericParameter",
+  name: "TResult",
+};
+
+const listOfResultType = {} as ObjectType;
 
 assign(listType, {
   kind: "Object",
@@ -119,7 +120,7 @@ assign(listType, {
     {
       name: "map",
       isConst: true,
-      typeParameters: [listMapReturnTypeParameter],
+      typeParameters: [resultTypeParameter],
       type: {
         kind: "Func",
         parameters: [
@@ -128,20 +129,17 @@ assign(listType, {
             type: {
               kind: "Func",
               parameters: [{ name: "item", type: listItemTypeParameter }],
-              returnType: listMapReturnTypeParameter,
+              returnType: resultTypeParameter,
             },
           },
         ],
-        returnType: listMapReturnType,
+        returnType: listOfResultType,
       },
     },
   ],
 });
 
-assign(
-  listMapReturnType,
-  createGenericType(listType, [listMapReturnTypeParameter])
-);
+assign(listOfResultType, createGenericType(listType, [resultTypeParameter]));
 
 function assign<T>(type: T, value: T) {
   Object.assign(type, value);

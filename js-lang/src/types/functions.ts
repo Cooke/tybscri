@@ -72,14 +72,14 @@ export function getAllTypeMembers(type: Type): ObjectMember[] {
         for (const member of getAllTypeMembers(type.types[i])) {
           if (
             members[member.name] &&
-            member.type &&
-            members[member.name].type &&
-            (!isTypeAssignableToType(member.type, members[member.name].type!) ||
+            (!isTypeAssignableToType(member.type, members[member.name].type) ||
               members[member.name].isConst !== member.isConst)
           ) {
             delete members[member.name];
           }
         }
+
+        return Object.values(members);
       }
   }
 
@@ -97,7 +97,14 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
         case "Object": {
           let testType: ObjectType | null | undefined = from;
           while (testType != null) {
-            if (testType.name === to.name) {
+            if (
+              testType.name === to.name &&
+              testType.typeArguments?.length === to.typeArguments?.length &&
+              (testType.typeArguments?.every((t, index) =>
+                isTypeAssignableToType(t, to.typeArguments![index])
+              ) ??
+                true)
+            ) {
               return true;
             }
             testType = testType.base;

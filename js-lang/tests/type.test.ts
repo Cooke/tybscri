@@ -13,6 +13,7 @@ import {
   createLiteralType,
   createUnionType,
   getAllTypeMembers,
+  inferTypeArguments,
   isTypeAssignableToType,
   reduceUnionType,
 } from "../src/types/functions";
@@ -21,6 +22,7 @@ import {
   FuncType,
   GenericTypeParameter,
   inferTypes,
+  ObjectMember,
   ObjectType,
 } from "../src/types";
 import { join } from "path/posix";
@@ -215,6 +217,38 @@ describe("Types", function () {
       };
       const inferredTypes = inferTypes(toType, fromType);
       assert.deepEqual(inferredTypes, [
+        {
+          parameter: typeParameter,
+          assignment: stringType,
+        },
+      ]);
+    });
+
+    it("infer member return type", function () {
+      const typeParameter: GenericTypeParameter = {
+        kind: "GenericParameter",
+        name: "T",
+      };
+      const memberFuncType: FuncType = {
+        kind: "Func",
+        parameters: [
+          {
+            name: "arg",
+            type: typeParameter,
+          },
+        ],
+        returnType: typeParameter,
+      };
+      const member: ObjectMember = {
+        name: "member",
+        isConst: false,
+        typeParameters: [typeParameter],
+        type: memberFuncType,
+      };
+      const typeAssignments = inferTypeArguments(memberFuncType.parameters, [
+        stringType,
+      ]);
+      assert.deepEqual(typeAssignments, [
         {
           parameter: typeParameter,
           assignment: stringType,
