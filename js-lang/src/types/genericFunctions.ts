@@ -1,10 +1,9 @@
 import { FuncType } from ".";
 import {
-  TypeParameter,
+  GenericObjectType,
   ObjectType,
   Type,
-  GenericObjectType,
-  BoundGenericObjectType,
+  TypeParameter,
 } from "./TypescriptTypes";
 
 export interface TypeParameterAssignment {
@@ -48,7 +47,7 @@ function bindObjectFromAssignments(
   type: ObjectType,
   assignments: TypeParameterAssignment[]
 ) {
-  if (!isBoundGenericType(type)) {
+  if (!isGenericType(type)) {
     return type;
   }
 
@@ -65,13 +64,9 @@ function bindObjectFromAssignments(
 }
 
 export function bindObjectTypeParameters(
-  type: ObjectType,
+  type: GenericObjectType,
   typeArguments: Type[]
-): ObjectType {
-  if (!isGenericType(type) || isBoundGenericType(type)) {
-    throw new Error("Only unbound generic types can be bound");
-  }
-
+): GenericObjectType {
   if (type.typeParameters.length !== typeArguments.length) {
     throw new Error("Type argument mismatch when binding type");
   }
@@ -80,14 +75,6 @@ export function bindObjectTypeParameters(
     ...type,
     typeArguments,
   };
-}
-
-export function isBoundGenericType(
-  type: ObjectType
-): type is BoundGenericObjectType {
-  return (
-    isGenericType(type) && !!type.typeArguments && type.typeArguments.length > 0
-  );
 }
 
 export function isGenericType(type: ObjectType): type is GenericObjectType {

@@ -1,3 +1,4 @@
+import { GenericObjectType } from ".";
 import { bindObjectTypeParameters } from "./genericFunctions";
 import {
   TypeParameter,
@@ -10,7 +11,7 @@ import {
 export const objectType = {} as ObjectType;
 export const numberType = {} as ObjectType;
 export const stringType = {} as ObjectType;
-export const listType = {} as ObjectType;
+export const listType = {} as GenericObjectType;
 
 export const unknownType: UnknownType = {
   kind: "Unknown",
@@ -93,6 +94,7 @@ assign(listType, {
   kind: "Object",
   name: "List",
   base: objectType,
+  typeArguments: [itemType],
   typeParameters: [itemType],
   members: [
     {

@@ -49,9 +49,6 @@ export interface ObjectType {
 
 export type GenericObjectType = ObjectType & {
   readonly typeParameters: TypeParameter[];
-};
-
-export type BoundGenericObjectType = GenericObjectType & {
   readonly typeArguments: Type[];
 };
 

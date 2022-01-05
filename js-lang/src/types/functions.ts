@@ -1,7 +1,5 @@
-import { bindObjectTypeParameters, BoundGenericObjectType } from ".";
 import {
   TypeParameterAssignment,
-  isBoundGenericType,
   isGenericType,
   bindTypeFromAssignments,
 } from "./genericFunctions";
@@ -22,6 +20,7 @@ import {
   Type,
   UnionType,
   TypeParameterVariance,
+  GenericObjectType,
 } from "./TypescriptTypes";
 export * from "./genericFunctions";
 
@@ -56,7 +55,7 @@ export function getTypeDisplayName(type: Type): string {
   }
 }
 
-function getTypeAssignments(type: BoundGenericObjectType) {
+function getTypeAssignments(type: GenericObjectType) {
   return type.typeParameters.map((parameter, index) => ({
     parameter,
     assignment: type.typeArguments[index],
@@ -66,7 +65,7 @@ function getTypeAssignments(type: BoundGenericObjectType) {
 export function getAllTypeMembers(type: Type): ObjectMember[] {
   switch (type.kind) {
     case "Object":
-      if (isBoundGenericType(type)) {
+      if (isGenericType(type)) {
         const typeAssignments = getTypeAssignments(type);
         return type.members
           .map((member) => ({
@@ -155,11 +154,6 @@ function isObjectAssignableToObject(
     return true;
   }
 
-  if (!isBoundGenericType(from)) {
-    return false;
-  }
-
-  // Santiy checks that should always be fulfilled (otherwise a bug else where)
   assert(
     to.typeArguments &&
       to.typeArguments.length === from.typeArguments.length &&

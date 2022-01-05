@@ -1,6 +1,7 @@
 import assert from "assert";
 import {
   FuncType,
+  GenericObjectType,
   inferTypes,
   ObjectMember,
   ObjectType,
@@ -89,12 +90,18 @@ describe("Types", function () {
 
   describe("generics", function () {
     it("covariance", function () {
-      const myType: ObjectType = {
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
+        name: "T",
+        variance: "out",
+      };
+      const myType: GenericObjectType = {
         name: "MyType",
         base: null,
         kind: "Object",
         members: [],
-        typeParameters: [{ kind: "TypeParameter", name: "T", variance: "out" }],
+        typeArguments: [typeParameter],
+        typeParameters: [typeParameter],
       };
       const ofString = bindObjectTypeParameters(myType, [stringType]);
       const ofObject = bindObjectTypeParameters(myType, [objectType]);
@@ -103,12 +110,14 @@ describe("Types", function () {
     });
 
     it("invariance", function () {
-      const myType: ObjectType = {
+      const typeParameter: TypeParameter = { kind: "TypeParameter", name: "T" };
+      const myType: GenericObjectType = {
         name: "MyType",
         base: null,
         kind: "Object",
         members: [],
-        typeParameters: [{ kind: "TypeParameter", name: "T" }],
+        typeArguments: [typeParameter],
+        typeParameters: [typeParameter],
       };
       const ofString = bindObjectTypeParameters(myType, [stringType]);
       const ofObject = bindObjectTypeParameters(myType, [objectType]);
@@ -117,12 +126,18 @@ describe("Types", function () {
     });
 
     it("contravariance", function () {
-      const myType: ObjectType = {
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
+        name: "T",
+        variance: "in",
+      };
+      const myType: GenericObjectType = {
         name: "MyType",
         base: null,
         kind: "Object",
         members: [],
-        typeParameters: [{ kind: "TypeParameter", name: "T", variance: "in" }],
+        typeArguments: [typeParameter],
+        typeParameters: [typeParameter],
       };
       const ofString = bindObjectTypeParameters(myType, [stringType]);
       const ofObject = bindObjectTypeParameters(myType, [objectType]);
@@ -239,11 +254,12 @@ describe("Types", function () {
         kind: "TypeParameter",
         name: "T",
       };
-      const definition: ObjectType = {
+      const definition: GenericObjectType = {
         kind: "Object",
         base: null,
         name: "MyObject",
         members: [],
+        typeArguments: [typeParameter],
         typeParameters: [typeParameter],
       };
       const typeParameter2: TypeParameter = {
