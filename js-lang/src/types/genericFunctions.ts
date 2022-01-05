@@ -1,4 +1,10 @@
-import { TypeParameter, ObjectType, Type } from "./TypescriptTypes";
+import {
+  TypeParameter,
+  ObjectType,
+  Type,
+  GenericObjectType,
+  BoundGenericObjectType,
+} from "./TypescriptTypes";
 
 export interface TypeParameterAssignment {
   parameter: TypeParameter;
@@ -8,7 +14,8 @@ export interface TypeParameterAssignment {
 export function substituteTypeParameters(
   type: Type,
   substitutions: TypeParameterAssignment[],
-  boundTypes: [Type, Type][]
+  boundTypes: [Type, Type][],
+  
 ): Type {
   const boundType = boundTypes.find((x) => x[0] === type)?.[1];
   if (boundType) {
@@ -69,28 +76,39 @@ export function substituteTypeParameters(
   return type;
 }
 
-export function createGenericType(
-  openType: ObjectType,
-  args: Type[]
+export function bindObjectTypeParameters(
+  type: ObjectType,
+  typeArguments: Type[]
 ): ObjectType {
-  if (openType.typeArguments?.length !== args.length) {
-    throw new Error(
-      "Type argument mismatch when creating a closed generic type"
-    );
+  if (!isGenericType(type) || isBoundGenericType(type)) {
+    throw new Error("Only unbound generic types can be bound");
   }
 
-  if (openType.typeArguments.some((x) => x.kind !== "TypeParameter")) {
-    throw new Error("Cannot create generic type from closed generic type");
+  if (type.typeParameters.length !== typeArguments.length) {
+    throw new Error("Type argument mismatch when binding type");
   }
 
-  const typeAssignments = openType.typeArguments.map<TypeParameterAssignment>(
-    (arg, index) => ({
-      parameter: arg as TypeParameter,
-      assignment: args[index],
+  const typeAssignments = type.typeParameters.map<TypeParameterAssignment>(
+    (parameter, index) => ({
+      parameter: parameter,
+      assignment: typeArguments[index],
     })
   );
 
-  return substituteTypeParameters(openType, typeAssignments, []) as ObjectType;
+  return {
+    ...(substituteTypeParameters(type, typeAssignments, []) as ObjectType),
+    typeArguments,
+  };
+}
+
+export function isBoundGenericType(type: ObjectType): type is BoundGenericObjectType {
+  return (
+    isGenericType(type) && !!type.typeArguments && type.typeArguments.length > 0
+  );
+}
+
+export function isGenericType(type: ObjectType): type is GenericObjectType {
+  return !!type.typeParameters && type.typeParameters.length > 0;
 }
 
 function assign<T>(type: T, value: T) {

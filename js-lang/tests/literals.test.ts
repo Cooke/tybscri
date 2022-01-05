@@ -1,5 +1,5 @@
 import {
-  createGenericType,
+  bindObjectTypeParameters,
   createLiteralType,
   createUnionType,
   parseExpression,
@@ -46,16 +46,14 @@ describe("Literals", function () {
 
   it("collection", function () {
     const parseResult = parseExpression('[true, 123, "321"]');
-    assertTybscriType(
-      parseResult.tree.valueType,
-      createGenericType(listType, [
-        createUnionType(
-          trueType,
-          createLiteralType(123),
-          createLiteralType("321")
-        ),
-      ])
-    );
+    const expected = bindObjectTypeParameters(listType, [
+      createUnionType(
+        trueType,
+        createLiteralType(123),
+        createLiteralType("321")
+      ),
+    ]);
+    assertTybscriType(parseResult.tree.valueType, expected);
   });
 
   it("lambda", function () {
@@ -74,8 +72,8 @@ describe("Literals", function () {
   });
 
   it("trailing lambda with parathesis", function () {
-    const stringListType = createGenericType(listType, [stringType]);
-    const numberListType = createGenericType(listType, [numberType]);
+    const stringListType = bindObjectTypeParameters(listType, [stringType]);
+    const numberListType = bindObjectTypeParameters(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
     const parseResult = parseExpression("list.map() { it.length }", {
       scope,
@@ -84,8 +82,8 @@ describe("Literals", function () {
   });
 
   it("trailing lambda without parathesis", function () {
-    const stringListType = createGenericType(listType, [stringType]);
-    const numberListType = createGenericType(listType, [numberType]);
+    const stringListType = bindObjectTypeParameters(listType, [stringType]);
+    const numberListType = bindObjectTypeParameters(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
     const parseResult = parseExpression("list.map { it.length }", { scope });
     assertTybscriType(parseResult.tree.valueType, numberListType);

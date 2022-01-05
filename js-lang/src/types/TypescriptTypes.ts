@@ -30,6 +30,7 @@ export interface FuncType {
   readonly kind: "Func";
   readonly parameters: readonly FuncParameter[];
   readonly returnType: Type;
+  // readonly typeParameters?: TypeParameter[];
 }
 
 export interface FuncParameter {
@@ -43,25 +44,28 @@ export interface ObjectType {
   readonly members: Array<ObjectMember>;
   readonly name: string;
   readonly typeArguments?: Type[];
+  readonly typeParameters?: TypeParameter[];
 }
 
-export type ObjectMember = StandardObjectMember | GenericObjectMemberDefinition;
+export type GenericObjectType = ObjectType & {
+  readonly typeParameters: TypeParameter[];
+};
 
-export interface StandardObjectMember {
-  readonly isConst: boolean;
-  readonly name: string;
-  readonly type: Type;
-  readonly typeParameters: undefined;
-}
+export type BoundGenericObjectType = GenericObjectType & {
+  readonly typeArguments: Type[];
+};
 
-export interface GenericObjectMemberDefinition {
+export type ObjectMember = {
   readonly isConst: boolean;
   readonly name: string;
   readonly type: Type;
   readonly typeParameters?: TypeParameter[];
-}
+};
+
+export type TypeParameterVariance = "in" | "out" | undefined;
 
 export interface TypeParameter {
   readonly kind: "TypeParameter";
   readonly name: string;
+  readonly variance?: TypeParameterVariance;
 }

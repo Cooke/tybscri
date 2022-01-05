@@ -1,10 +1,11 @@
 import assert from "assert";
 import {
-  createGenericType,
+  bindObjectTypeParameters,
   createLiteralType,
   createUnionType,
   getAllTypeMembers,
   getTypeDisplayName,
+  objectTypeToString,
 } from "../src/types/functions";
 import { listType, numberType, stringType } from "../src/types/types";
 import { parseExpression, printTree } from "../src";
@@ -23,9 +24,10 @@ describe("Member", function () {
   describe("inferred return type", function () {
     it("from map", function () {
       const result = parseExpression(`[1, 2].map { it.toString() }`);
+      console.log(objectTypeToString(result.tree.valueType as any));
       assertTybscriType(
         result.tree.valueType,
-        createGenericType(listType, [stringType])
+        bindObjectTypeParameters(listType, [stringType])
       );
     });
 
@@ -33,9 +35,10 @@ describe("Member", function () {
       const result = parseExpression(
         `[1, 2].map { it.toString() }.map { it.length }`
       );
+      console.log(objectTypeToString(result.tree.valueType as any));
       assertTybscriType(
         result.tree.valueType,
-        createGenericType(listType, [numberType])
+        bindObjectTypeParameters(listType, [numberType])
       );
     });
   });

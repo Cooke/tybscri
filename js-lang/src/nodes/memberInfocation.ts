@@ -77,13 +77,11 @@ export class MemberInvocationNode extends ExpressionNode {
         args.map((x) => x.valueType)
       );
 
-      const closedFuncType = substituteTypeParameters(
-        member.type,
+      this.valueType = substituteTypeParameters(
+        member.type.returnType,
         typeAssignments,
         []
-      ) as FuncType;
-
-      this.valueType = closedFuncType.returnType;
+      );
       return;
     }
 

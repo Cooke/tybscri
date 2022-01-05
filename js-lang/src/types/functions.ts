@@ -1,4 +1,8 @@
-import { TypeParameterAssignment } from "./genericFunctions";
+import {
+  TypeParameterAssignment,
+  isBoundGenericType,
+  isGenericType,
+} from "./genericFunctions";
 import {
   booleanType,
   neverType,
@@ -15,6 +19,7 @@ import {
   ObjectType,
   Type,
   UnionType,
+  TypeParameterVariance,
 } from "./TypescriptTypes";
 export * from "./genericFunctions";
 
@@ -24,8 +29,9 @@ export function getTypeDisplayName(type: Type): string {
       return `${type.name}`;
 
     case "Object":
-      const suffix = type.typeArguments
-        ? `<${type.typeArguments.map((x) => getTypeDisplayName(x)).join(", ")}>`
+      const typeArgsOrParams = type.typeArguments ?? type.typeParameters;
+      const suffix = typeArgsOrParams
+        ? `<${typeArgsOrParams.map((x) => getTypeDisplayName(x)).join(", ")}>`
         : "";
       return `${type.name}${suffix}`;
 
@@ -90,28 +96,79 @@ export function areTypesEqual(from: Type, to: Type) {
   return isTypeAssignableToType(from, to) && isTypeAssignableToType(to, from);
 }
 
+// Exampele:
+// out: Generic<Parent> var1 = Generic<Child>()
+// in:  Generic<Child> var1 = Generic<Parent>()
+function isTypeArgumentAssignableToType(
+  variance: TypeParameterVariance,
+  from: Type,
+  to: Type
+) {
+  switch (variance) {
+    // Invariant
+    case undefined:
+    case null:
+      return areTypesEqual(from, to);
+
+    // Contravariant
+    case "in":
+      return isTypeAssignableToType(to, from);
+
+    // Convariant
+    case "out":
+      return isTypeAssignableToType(from, to);
+  }
+}
+
+function isObjectAssignableToObject(
+  from: ObjectType | null,
+  to: ObjectType
+): boolean {
+  if (!from) {
+    return false;
+  }
+
+  if (from.name !== to.name) {
+    return isObjectAssignableToObject(from.base, to);
+  }
+
+  if (!isGenericType(from)) {
+    return true;
+  }
+
+  if (!isBoundGenericType(from)) {
+    return false;
+  }
+
+  // Santiy checks that should always be fulfilled (otherwise a bug else where)
+  assert(
+    to.typeArguments &&
+      to.typeArguments.length === from.typeArguments.length &&
+      from.typeParameters === to.typeParameters &&
+      from.typeParameters.length === from.typeArguments.length,
+    `Invalid generic types: '${getTypeDisplayName(
+      to
+    )}' and '${getTypeDisplayName(from)}'`
+  );
+
+  for (let i = 0; i < from.typeArguments.length; i++) {
+    const fromArg = from.typeArguments[i];
+    const toArg = to.typeArguments[i];
+    const parameter = from.typeParameters[i];
+    if (!isTypeArgumentAssignableToType(parameter.variance, fromArg, toArg)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function isTypeAssignableToType(from: Type, to: Type): boolean {
   switch (to.kind) {
     case "Object":
       switch (from.kind) {
-        case "Object": {
-          let testType: ObjectType | null | undefined = from;
-          while (testType != null) {
-            if (
-              testType.name === to.name &&
-              testType.typeArguments?.length === to.typeArguments?.length &&
-              (testType.typeArguments?.every((t, index) =>
-                isTypeAssignableToType(t, to.typeArguments![index])
-              ) ??
-                true)
-            ) {
-              return true;
-            }
-            testType = testType.base;
-          }
-
-          return false;
-        }
+        case "Object":
+          return isObjectAssignableToObject(from, to);
 
         case "Union":
           return from.types.every((t) => isTypeAssignableToType(t, to));
@@ -242,7 +299,7 @@ export function createUnionType(...types: Type[]): UnionType {
 
 export function inferTypeArguments(
   parameters: readonly FuncParameter[],
-  argTypes: Type[]
+  argTypes: readonly Type[]
 ): TypeParameterAssignment[] {
   const results: TypeParameterAssignment[] = [];
   for (let i = 0; i < parameters.length; i++) {
@@ -294,4 +351,32 @@ export function inferTypes(to: Type, from: Type): TypeParameterAssignment[] {
   }
 
   return [];
+}
+
+function assert(condition: any, msg?: string): asserts condition {
+  if (!condition) {
+    throw new Error(msg);
+  }
+}
+
+export function objectTypeToString(type: ObjectType) {
+  return `${type.name}<${
+    type.typeParameters
+      ?.map(
+        (tp, tpi) =>
+          `${tp.variance ? tp.variance + " " : ""}${tp.name} ${
+            type.typeArguments?.[tpi]
+              ? `= ${getTypeDisplayName(type.typeArguments?.[tpi])}`
+              : ""
+          }`
+      )
+      .join(", ") ?? ""
+  }>\n    ${type.members
+    .map(
+      (m) =>
+        `${m.name}<${
+          m.typeParameters?.map((tp) => `${tp.name}`).join(",") ?? ""
+        }>: ${getTypeDisplayName(m.type)}`
+    )
+    .join("\n    ")}`;
 }

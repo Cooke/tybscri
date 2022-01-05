@@ -1,4 +1,4 @@
-import { createGenericType } from "./genericFunctions";
+import { bindObjectTypeParameters } from "./genericFunctions";
 import {
   TypeParameter,
   LiteralType,
@@ -76,23 +76,24 @@ assign(stringType, {
   members: [{ isConst: true, name: "length", type: numberType }],
 });
 
-const listItemTypeParameter: TypeParameter = {
+const itemType: TypeParameter = {
   kind: "TypeParameter",
   name: "TItem",
 };
 
-const resultTypeParameter: TypeParameter = {
+const resultType: TypeParameter = {
   kind: "TypeParameter",
   name: "TResult",
 };
 
 const listOfResultType = {} as ObjectType;
+const listOfItemType = {} as ObjectType;
 
 assign(listType, {
   kind: "Object",
   name: "List",
   base: objectType,
-  typeArguments: [listItemTypeParameter],
+  typeParameters: [itemType],
   members: [
     {
       name: "length",
@@ -109,18 +110,18 @@ assign(listType, {
             name: "predicate",
             type: {
               kind: "Func",
-              parameters: [{ name: "item", type: listItemTypeParameter }],
+              parameters: [{ name: "item", type: itemType }],
               returnType: booleanType,
             },
           },
         ],
-        returnType: listType,
+        returnType: listOfItemType,
       },
     },
     {
       name: "map",
       isConst: true,
-      typeParameters: [resultTypeParameter],
+      typeParameters: [resultType],
       type: {
         kind: "Func",
         parameters: [
@@ -128,8 +129,8 @@ assign(listType, {
             name: "mapper",
             type: {
               kind: "Func",
-              parameters: [{ name: "item", type: listItemTypeParameter }],
-              returnType: resultTypeParameter,
+              parameters: [{ name: "item", type: itemType }],
+              returnType: resultType,
             },
           },
         ],
@@ -139,7 +140,14 @@ assign(listType, {
   ],
 });
 
-assign(listOfResultType, createGenericType(listType, [resultTypeParameter]));
+assign(
+  listOfItemType,
+  bindObjectTypeParameters(listType, [itemType])
+);
+assign(
+  listOfResultType,
+  bindObjectTypeParameters(listType, [resultType])
+);
 
 function assign<T>(type: T, value: T) {
   Object.assign(type, value);

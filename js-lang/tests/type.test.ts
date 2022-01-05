@@ -7,7 +7,7 @@ import {
   TypeParameter,
 } from "../src/types";
 import {
-  createGenericType,
+  bindObjectTypeParameters,
   createLiteralType,
   createUnionType,
   getAllTypeMembers,
@@ -89,9 +89,45 @@ describe("Types", function () {
 
   describe("generics", function () {
     it("covariance", function () {
-      const stringList = createGenericType(listType, [stringType]);
-      const objectList = createGenericType(listType, [objectType]);
-      assert.ok(isTypeAssignableToType(stringList, objectList));
+      const myType: ObjectType = {
+        name: "MyType",
+        base: null,
+        kind: "Object",
+        members: [],
+        typeParameters: [{ kind: "TypeParameter", name: "T", variance: "out" }],
+      };
+      const ofString = bindObjectTypeParameters(myType, [stringType]);
+      const ofObject = bindObjectTypeParameters(myType, [objectType]);
+      assert.ok(isTypeAssignableToType(ofString, ofObject));
+      assert.ok(!isTypeAssignableToType(ofObject, ofString));
+    });
+
+    it("invariance", function () {
+      const myType: ObjectType = {
+        name: "MyType",
+        base: null,
+        kind: "Object",
+        members: [],
+        typeParameters: [{ kind: "TypeParameter", name: "T" }],
+      };
+      const ofString = bindObjectTypeParameters(myType, [stringType]);
+      const ofObject = bindObjectTypeParameters(myType, [objectType]);
+      assert.ok(!isTypeAssignableToType(ofString, ofObject));
+      assert.ok(!isTypeAssignableToType(ofObject, ofString));
+    });
+
+    it("contravariance", function () {
+      const myType: ObjectType = {
+        name: "MyType",
+        base: null,
+        kind: "Object",
+        members: [],
+        typeParameters: [{ kind: "TypeParameter", name: "T", variance: "in" }],
+      };
+      const ofString = bindObjectTypeParameters(myType, [stringType]);
+      const ofObject = bindObjectTypeParameters(myType, [objectType]);
+      assert.ok(!isTypeAssignableToType(ofString, ofObject));
+      assert.ok(isTypeAssignableToType(ofObject, ofString));
     });
 
     it("infer type parameter directly", function () {
@@ -203,21 +239,23 @@ describe("Types", function () {
         kind: "TypeParameter",
         name: "T",
       };
-      const toType: ObjectType = {
+      const definition: ObjectType = {
         kind: "Object",
         base: null,
         name: "MyObject",
         members: [],
-        typeArguments: [typeParameter],
+        typeParameters: [typeParameter],
       };
-      const fromType: ObjectType = {
-        ...toType,
-        typeArguments: [stringType],
+      const typeParameter2: TypeParameter = {
+        kind: "TypeParameter",
+        name: "T",
       };
+      const toType = bindObjectTypeParameters(definition, [typeParameter2]);
+      const fromType = bindObjectTypeParameters(definition, [stringType]);
       const inferredTypes = inferTypes(toType, fromType);
       assert.deepEqual(inferredTypes, [
         {
-          parameter: typeParameter,
+          parameter: typeParameter2,
           assignment: stringType,
         },
       ]);
@@ -255,8 +293,8 @@ describe("Types", function () {
       ]);
     });
 
-    it("substitute type parameters", function () {
-      const stringList = createGenericType(listType, [stringType]);
+    it("members of bound object should also be bound", function () {
+      const stringList = bindObjectTypeParameters(listType, [stringType]);
       const filterMember = getAllTypeMembers(stringList).find(
         (x) => x.name === "filter"
       );
