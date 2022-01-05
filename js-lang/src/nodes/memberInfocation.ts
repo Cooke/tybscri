@@ -1,11 +1,12 @@
 import { DiagnosticSeverity } from "../common";
 import {
+  bindTypeFromAssignments,
   FuncType,
   getAllTypeMembers,
   getTypeDisplayName,
   inferTypeArguments,
+  objectTypeToString,
 } from "../types";
-import { substituteTypeParameters } from "../types/genericFunctions";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
@@ -77,11 +78,18 @@ export class MemberInvocationNode extends ExpressionNode {
         args.map((x) => x.valueType)
       );
 
-      this.valueType = substituteTypeParameters(
+      const returnType = bindTypeFromAssignments(
         member.type.returnType,
-        typeAssignments,
-        []
+        typeAssignments
       );
+
+      console.log(
+        "Pre bound",
+        objectTypeToString(member.type.returnType as any)
+      );
+      console.log("Post bound", objectTypeToString(returnType as any));
+
+      this.valueType = returnType;
       return;
     }
 

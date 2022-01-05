@@ -1,7 +1,9 @@
+import { bindObjectTypeParameters, BoundGenericObjectType } from ".";
 import {
   TypeParameterAssignment,
   isBoundGenericType,
   isGenericType,
+  bindTypeFromAssignments,
 } from "./genericFunctions";
 import {
   booleanType,
@@ -54,9 +56,26 @@ export function getTypeDisplayName(type: Type): string {
   }
 }
 
+function getTypeAssignments(type: BoundGenericObjectType) {
+  return type.typeParameters.map((parameter, index) => ({
+    parameter,
+    assignment: type.typeArguments[index],
+  }));
+}
+
 export function getAllTypeMembers(type: Type): ObjectMember[] {
   switch (type.kind) {
     case "Object":
+      if (isBoundGenericType(type)) {
+        const typeAssignments = getTypeAssignments(type);
+        return type.members
+          .map((member) => ({
+            ...member,
+            type: bindTypeFromAssignments(member.type, typeAssignments),
+          }))
+          .concat(type.base ? getAllTypeMembers(type.base) : []);
+      }
+
       return type.members.concat(type.base ? getAllTypeMembers(type.base) : []);
 
     case "Literal":
