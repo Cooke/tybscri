@@ -5,7 +5,7 @@ export type Type =
   | ObjectType
   | UnknownType
   | NeverType
-  | GenericTypeParameter;
+  | TypeParameter;
 
 export interface UnknownType {
   readonly kind: "Unknown";
@@ -58,10 +58,10 @@ export interface GenericObjectMemberDefinition {
   readonly isConst: boolean;
   readonly name: string;
   readonly type: Type;
-  readonly typeParameters?: GenericTypeParameter[];
+  readonly typeParameters?: TypeParameter[];
 }
 
-export interface GenericTypeParameter {
-  readonly kind: "GenericParameter";
+export interface TypeParameter {
+  readonly kind: "TypeParameter";
   readonly name: string;
 }

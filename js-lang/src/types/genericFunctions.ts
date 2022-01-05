@@ -1,7 +1,7 @@
-import { GenericTypeParameter, ObjectType, Type } from "./TypescriptTypes";
+import { TypeParameter, ObjectType, Type } from "./TypescriptTypes";
 
 export interface TypeParameterAssignment {
-  parameter: GenericTypeParameter;
+  parameter: TypeParameter;
   assignment: Type;
 }
 
@@ -43,7 +43,7 @@ export function substituteTypeParameters(
       });
       return boundObjectType;
 
-    case "GenericParameter":
+    case "TypeParameter":
       return (
         substitutions.find((x) => x.parameter === type)?.assignment ?? type
       );
@@ -79,13 +79,13 @@ export function createGenericType(
     );
   }
 
-  if (openType.typeArguments.some((x) => x.kind !== "GenericParameter")) {
+  if (openType.typeArguments.some((x) => x.kind !== "TypeParameter")) {
     throw new Error("Cannot create generic type from closed generic type");
   }
 
   const typeAssignments = openType.typeArguments.map<TypeParameterAssignment>(
     (arg, index) => ({
-      parameter: arg as GenericTypeParameter,
+      parameter: arg as TypeParameter,
       assignment: args[index],
     })
   );

@@ -1,13 +1,11 @@
 import assert from "assert";
 import {
-  booleanType,
-  listType,
-  neverType,
-  nullType,
-  numberType,
-  objectType,
-  stringType,
-} from "../src/types/types";
+  FuncType,
+  inferTypes,
+  ObjectMember,
+  ObjectType,
+  TypeParameter,
+} from "../src/types";
 import {
   createGenericType,
   createLiteralType,
@@ -17,15 +15,16 @@ import {
   isTypeAssignableToType,
   reduceUnionType,
 } from "../src/types/functions";
-import { assertTybscriType } from "./utils";
 import {
-  FuncType,
-  GenericTypeParameter,
-  inferTypes,
-  ObjectMember,
-  ObjectType,
-} from "../src/types";
-import { join } from "path/posix";
+  booleanType,
+  listType,
+  neverType,
+  nullType,
+  numberType,
+  objectType,
+  stringType,
+} from "../src/types/types";
+import { assertTybscriType } from "./utils";
 
 describe("Types", function () {
   describe("reduce union", function () {
@@ -96,8 +95,8 @@ describe("Types", function () {
     });
 
     it("infer type parameter directly", function () {
-      const typeParameter: GenericTypeParameter = {
-        kind: "GenericParameter",
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
         name: "T",
       };
       const inferredTypes = inferTypes(typeParameter, stringType);
@@ -110,8 +109,8 @@ describe("Types", function () {
     });
 
     it("infer type parameter from func return type", function () {
-      const typeParameter: GenericTypeParameter = {
-        kind: "GenericParameter",
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
         name: "T",
       };
       const toType: FuncType = {
@@ -134,8 +133,8 @@ describe("Types", function () {
     });
 
     it("infer type parameter from func parameter", function () {
-      const typeParameter: GenericTypeParameter = {
-        kind: "GenericParameter",
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
         name: "T",
       };
       const toType: FuncType = {
@@ -158,8 +157,8 @@ describe("Types", function () {
     });
 
     it("infer type parameter from func of func parameter", function () {
-      const typeParameter: GenericTypeParameter = {
-        kind: "GenericParameter",
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
         name: "T",
       };
       const toType: FuncType = {
@@ -200,8 +199,8 @@ describe("Types", function () {
     });
 
     it("infer type parameter from object type parameter", function () {
-      const typeParameter: GenericTypeParameter = {
-        kind: "GenericParameter",
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
         name: "T",
       };
       const toType: ObjectType = {
@@ -225,8 +224,8 @@ describe("Types", function () {
     });
 
     it("infer member return type", function () {
-      const typeParameter: GenericTypeParameter = {
-        kind: "GenericParameter",
+      const typeParameter: TypeParameter = {
+        kind: "TypeParameter",
         name: "T",
       };
       const memberFuncType: FuncType = {

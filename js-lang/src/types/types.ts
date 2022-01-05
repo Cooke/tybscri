@@ -1,6 +1,6 @@
 import { createGenericType } from "./genericFunctions";
 import {
-  GenericTypeParameter,
+  TypeParameter,
   LiteralType,
   NeverType,
   ObjectType,
@@ -76,13 +76,13 @@ assign(stringType, {
   members: [{ isConst: true, name: "length", type: numberType }],
 });
 
-const listItemTypeParameter: GenericTypeParameter = {
-  kind: "GenericParameter",
+const listItemTypeParameter: TypeParameter = {
+  kind: "TypeParameter",
   name: "TItem",
 };
 
-const resultTypeParameter: GenericTypeParameter = {
-  kind: "GenericParameter",
+const resultTypeParameter: TypeParameter = {
+  kind: "TypeParameter",
   name: "TResult",
 };
 

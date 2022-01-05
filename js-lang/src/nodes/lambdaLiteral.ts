@@ -78,7 +78,7 @@ export class LambdaLiteralNode extends ExpressionNode {
     const returnType = reduceUnionType(unionType);
 
     if (
-      expectedType.returnType.kind !== "GenericParameter" &&
+      expectedType.returnType.kind !== "TypeParameter" &&
       !isTypeAssignableToType(returnType, expectedType.returnType)
     ) {
       context.onDiagnosticMessage?.({

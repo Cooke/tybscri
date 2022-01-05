@@ -9,7 +9,7 @@ import {
 } from "./types";
 import {
   FuncParameter,
-  GenericTypeParameter,
+  TypeParameter,
   LiteralType,
   ObjectMember,
   ObjectType,
@@ -20,7 +20,7 @@ export * from "./genericFunctions";
 
 export function getTypeDisplayName(type: Type): string {
   switch (type.kind) {
-    case "GenericParameter":
+    case "TypeParameter":
       return `${type.name}`;
 
     case "Object":
@@ -122,7 +122,7 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
         case "Literal":
           return isTypeAssignableToType(from.valueType, to);
 
-        case "GenericParameter":
+        case "TypeParameter":
         case "Never":
         case "Unknown":
           return false;
@@ -151,7 +151,7 @@ export function isTypeAssignableToType(from: Type, to: Type): boolean {
       return from.kind === "Literal" && from.value === to.value;
     }
 
-    case "GenericParameter":
+    case "TypeParameter":
     case "Never":
     case "Unknown":
       return false;
@@ -254,7 +254,7 @@ export function inferTypeArguments(
 
 export function inferTypes(to: Type, from: Type): TypeParameterAssignment[] {
   switch (to.kind) {
-    case "GenericParameter":
+    case "TypeParameter":
       return [{ assignment: from, parameter: to }];
 
     case "Object":
