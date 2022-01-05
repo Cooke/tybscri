@@ -2,7 +2,7 @@ import assert from "assert";
 import {
   getTypeDisplayName,
   isTypeAssignableToType,
-} from "../src/typeSystem/functions";
+} from "../src/typeSystem/core";
 import { Type } from "../src/typeSystem/common";
 
 export function assertEqual<T>(val: any, expected: T): asserts val is T {

@@ -1,6 +1,5 @@
 import { createUnionType, reduceUnionType } from "..";
-import { listType } from "../typeSystem";
-import { deriveObjectType } from "../typeSystem/genericFunctions";
+import { deriveObjectType, listType } from "../typeSystem";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";

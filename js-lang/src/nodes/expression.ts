@@ -1,5 +1,5 @@
 import { Symbol } from "../symbols";
-import { getTypeDisplayName } from "../typeSystem/functions";
+import { getTypeDisplayName } from "../typeSystem/core";
 import { Type } from "../typeSystem";
 import { unknownType } from "../typeSystem";
 import { Node } from "./base";

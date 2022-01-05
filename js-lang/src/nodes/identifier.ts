@@ -2,7 +2,7 @@ import { DiagnosticSeverity } from "../common";
 import { NarrowedSymbol, Symbol } from "../symbols";
 import { Scope } from "../scope";
 import { unknownType } from "../typeSystem";
-import { narrowTypeTruthy } from "../typeSystem/functions";
+import { narrowTypeTruthy } from "../typeSystem/core";
 import { AnalyzeContext } from "./base";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";

@@ -6,7 +6,7 @@ import { ParseContext, Parser } from "./parser";
 import { Scope } from "./scope";
 import { getTypeDisplayName, isTypeAssignableToType, Type } from "./typeSystem";
 
-export * from "./typeSystem/functions";
+export * from "./typeSystem/core";
 export { treeToString as printTree } from "./utils";
 export { DiagnosticMessage } from "./common";
 export * from "./nodes";

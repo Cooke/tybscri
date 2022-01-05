@@ -14,7 +14,7 @@ import {
   inferTypeArguments,
   isTypeAssignableToType,
   reduceUnionType,
-} from "../src/typeSystem/functions";
+} from "../src/typeSystem/core";
 import {
   booleanType,
   neverType,

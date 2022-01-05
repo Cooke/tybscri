@@ -65,3 +65,8 @@ export interface TypeParameter {
   readonly name: string;
   readonly variance?: TypeParameterVariance;
 }
+
+export interface TypeParameterBinding {
+  parameter: TypeParameter;
+  to: Type;
+}

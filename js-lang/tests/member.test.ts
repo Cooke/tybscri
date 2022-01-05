@@ -5,7 +5,7 @@ import {
   createUnionType,
   deriveObjectType,
   getAllTypeMembers,
-} from "../src/typeSystem/functions";
+} from "../src/typeSystem/core";
 import { numberType, stringType } from "../src/typeSystem/types";
 import { listType } from "../src/typeSystem/listType";
 import { assertTybscriType } from "./utils";

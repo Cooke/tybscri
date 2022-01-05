@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "../common";
 import { SourceSymbol } from "../symbols";
-import { reduceUnionType } from "../typeSystem/functions";
+import { reduceUnionType } from "../typeSystem/core";
 import { FuncType, Type, UnionType } from "../typeSystem/common";
 import { nullType } from "../typeSystem";
 import { unknownType } from "../typeSystem";

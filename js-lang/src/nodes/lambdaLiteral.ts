@@ -5,7 +5,7 @@ import {
   getTypeDisplayName,
   isTypeAssignableToType,
   reduceUnionType,
-} from "../typeSystem/functions";
+} from "../typeSystem/core";
 import { FuncType, Type, UnionType } from "../typeSystem/common";
 import { AnalyzeContext, Node } from "./base";
 import { ExpressionNode } from "./expression";

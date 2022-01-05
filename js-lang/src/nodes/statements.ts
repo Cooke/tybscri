@@ -1,4 +1,4 @@
-import { getTypeDisplayName } from "../typeSystem/functions";
+import { getTypeDisplayName } from "../typeSystem/core";
 import { unknownType, Type } from "../typeSystem";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";

@@ -1,8 +1,16 @@
+import { assert } from "../common";
 import {
-  bindType,
-  isGenericType,
+  FuncParameter,
+  FuncType,
+  GenericObjectType,
+  LiteralType,
+  ObjectMember,
+  ObjectType,
+  Type,
   TypeParameterBinding,
-} from "./genericFunctions";
+  TypeParameterVariance,
+  UnionType,
+} from "./common";
 import {
   booleanType,
   neverType,
@@ -11,17 +19,6 @@ import {
   trueType,
   unknownType,
 } from "./types";
-import {
-  FuncParameter,
-  GenericObjectType,
-  LiteralType,
-  ObjectMember,
-  ObjectType,
-  Type,
-  TypeParameterVariance,
-  UnionType,
-} from "./common";
-export * from "./genericFunctions";
 
 export function getTypeDisplayName(type: Type): string {
   switch (type.kind) {
@@ -365,8 +362,64 @@ export function inferTypes(to: Type, from: Type): TypeParameterBinding[] {
   return [];
 }
 
-function assert(condition: any, msg?: string): asserts condition {
-  if (!condition) {
-    throw new Error(msg);
+export function bindType(type: Type, bindings: TypeParameterBinding[]): Type {
+  switch (type.kind) {
+    case "Object":
+      return bindObjectType(type, bindings);
+
+    case "Func":
+      return bindFuncType(type, bindings);
+
+    case "TypeParameter":
+      return bindings.find((x) => x.parameter === type)?.to ?? type;
   }
+
+  return type;
+}
+
+function bindFuncType(
+  type: FuncType,
+  bindings: TypeParameterBinding[]
+): FuncType {
+  return {
+    ...type,
+    parameters: type.parameters.map((param) => ({
+      ...param,
+      type: bindType(param.type, bindings),
+    })),
+    returnType: bindType(type.returnType, bindings),
+  };
+}
+
+function bindObjectType(type: ObjectType, bindings: TypeParameterBinding[]) {
+  if (!isGenericType(type)) {
+    return type;
+  }
+
+  const typeArguments = type.typeArguments.map((param) => {
+    return bindings.find((ass) => ass.parameter === param)?.to ?? param;
+  });
+
+  return {
+    ...type,
+    typeArguments,
+  };
+}
+
+export function deriveObjectType(
+  type: GenericObjectType,
+  typeArguments: Type[]
+): GenericObjectType {
+  if (type.typeParameters.length !== typeArguments.length) {
+    throw new Error("Type argument mismatch when binding type");
+  }
+
+  return {
+    ...type,
+    typeArguments,
+  };
+}
+
+export function isGenericType(type: ObjectType): type is GenericObjectType {
+  return !!type.typeParameters && type.typeParameters.length > 0;
 }

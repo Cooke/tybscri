@@ -1,5 +1,5 @@
-import { deriveObjectType } from "./genericFunctions";
 import { GenericObjectType, ObjectType } from "./common";
+import { deriveObjectType } from "./core";
 import {
   assign,
   objectType,
