@@ -36,13 +36,12 @@ function App() {
         language="tybscri"
         onMount={(editor, monaco) => {
           editor.onDidChangeModelContent((ev) => {
-            const messages: DiagnosticMessage[] = [];
             const output = parseScript(editor.getValue(), {
-              onDiagnosticMessage: (msg) => messages.push(msg),
+              reportTimings: true,
             });
-            console.log("Parse output");
             console.log(printTree(output.tree));
-            const errors = messages.map((msg) => {
+            console.log("Diagnostics", output.diagnosticMessages);
+            const errors = output.diagnosticMessages.map((msg) => {
               const monacoMarker: monaco.editor.IMarkerData = {
                 severity: MarkerSeverity.Error,
                 message: msg.message,

@@ -36,7 +36,7 @@ export class FunctionNode extends StatementNode {
     this.scope = scope;
   }
 
-  public analyze(context: CompileContext) {
+  public resolveTypes(context: CompileContext) {
     if (this._analyzeState === "analyzed") {
       return;
     }
@@ -63,9 +63,9 @@ export class FunctionNode extends StatementNode {
 
     this._analyzeState = "analyzing";
     for (const par of this.parameters) {
-      par.analyze(context);
+      par.resolveTypes(context);
     }
-    this.body.analyze(context);
+    this.body.resolveTypes(context);
 
     if (this._analyzeState !== "analyzing") {
       // Analyzed already done in a circular analyze

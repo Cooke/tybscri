@@ -11,17 +11,17 @@ export class TybscriTokensProvider implements monaco.languages.TokensProvider {
     state: monaco.languages.IState
   ): monaco.languages.ILineTokens {
     // So far we ignore the state, which is not great for performance reasons
-    const myTokens: monaco.languages.IToken[] = [];
+    const tokens: monaco.languages.IToken[] = [];
 
     const lexer = createLexer(line);
     lexer.removeErrorListeners();
     lexer.addErrorListener({
       syntaxError: (
-        recognizer: any,
-        offendingSymbol: any,
-        line: number,
+        _recognizer: any,
+        _offendingSymbol: any,
+        _line: number,
         charPositionInLine: number
-      ) => myTokens.push({ scopes: "invalid", startIndex: charPositionInLine }),
+      ) => tokens.push({ scopes: "invalid", startIndex: charPositionInLine }),
     });
 
     let token = lexer.nextToken();
@@ -30,11 +30,11 @@ export class TybscriTokensProvider implements monaco.languages.TokensProvider {
         scopes: scopeMap[token.type] || "default",
         startIndex: token.charPositionInLine,
       };
-      myTokens.push(myToken);
+      tokens.push(myToken);
       token = lexer.nextToken();
     }
 
-    return { tokens: myTokens, endState: new TybscriState() };
+    return { tokens: tokens, endState: new TybscriState() };
   }
 }
 
@@ -75,5 +75,4 @@ const scopeMap: { [key: number]: string } = {
   ...mapToScope([L.Identifier], "identifier"),
   ...mapToScope([L.WS], "white"),
   ...mapToScope([L.LineStrText, L.QUOTE_OPEN, L.QUOTE_CLOSE], "string"),
-  // ...mapToScope([L.Invalid], "invalid"),
 };

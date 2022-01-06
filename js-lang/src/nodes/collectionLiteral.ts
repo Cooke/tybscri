@@ -5,9 +5,9 @@ import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class CollectionLiteralNode extends ExpressionNode {
-  public analyze(context: CompileContext): void {
+  public resolveTypes(context: CompileContext): void {
     for (const exp of this.expressions) {
-      exp.analyze(context);
+      exp.resolveTypes(context);
     }
 
     const union = createUnionType(...this.expressions.map((x) => x.valueType));

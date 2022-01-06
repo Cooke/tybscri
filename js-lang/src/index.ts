@@ -43,7 +43,7 @@ export function parseExpression(
   const exp = parser.parseExpression();
   exp.setupScopes(options?.scope ?? new Scope(), context);
   const expectedType = options?.expectedType;
-  exp.analyze(context, expectedType);
+  exp.resolveTypes(context, expectedType);
 
   if (expectedType && !isTypeAssignableToType(exp.valueType, expectedType)) {
     context?.onDiagnosticMessage?.({
@@ -63,20 +63,49 @@ export function parseExpression(
   };
 }
 
+export interface ScriptParseOptions {
+  reportTimings?: boolean;
+}
+
 export interface ScriptParseResult {
   tree: ScriptNode;
   diagnosticMessages: DiagnosticMessage[];
 }
 
-export function parseScript(expression: string): ScriptParseResult {
+export function parseScript(
+  expression: string,
+  options?: ScriptParseOptions
+): ScriptParseResult {
+  function time(label: string) {
+    if (options?.reportTimings) {
+      console.time(label);
+    }
+  }
+
+  function timeEnd(label: string) {
+    if (options?.reportTimings) {
+      console.timeEnd(label);
+    }
+  }
+
   const messages: DiagnosticMessage[] = [];
   const context: CompileContext = {
     onDiagnosticMessage: (msg) => messages.push(msg),
   };
+
+  time("parse");
   var parser = new Parser(expression, context);
   const exp = parser.parseScript();
+  timeEnd("parse");
+
+  time("setup scopes");
   exp.setupScopes(new Scope(), context);
-  exp.analyze(context);
+  timeEnd("setup scopes");
+
+  time("resolve types");
+  exp.resolveTypes(context);
+  timeEnd("resolve types");
+
   return {
     tree: exp,
     diagnosticMessages: messages,

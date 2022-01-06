@@ -33,9 +33,9 @@ export class TypeNode extends Node {
     this.scope = scope;
   }
 
-  public analyze(context: CompileContext) {
+  public resolveTypes(context: CompileContext) {
     if (this.typeSymbol) {
-      this.typeSymbol.analyze(context);
+      this.typeSymbol.resolveTypes(context);
       this._type = this.typeSymbol.valueType;
     }
   }

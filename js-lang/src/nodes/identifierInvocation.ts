@@ -5,11 +5,11 @@ import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class IdentifierInvocationNode extends ExpressionNode {
-  public analyze(context: CompileContext) {
+  public resolveTypes(context: CompileContext) {
     const potentialTargets = this.scope.resolveAll(this.name.text);
 
     for (const t of potentialTargets) {
-      t.analyze(context);
+      t.resolveTypes(context);
     }
 
     if (potentialTargets.length > 1) {
@@ -47,7 +47,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       const expectedType = target.valueType.parameters[i]?.type;
-      arg.analyze(context, expectedType);
+      arg.resolveTypes(context, expectedType);
     }
 
     this.valueType = target.valueType.returnType;

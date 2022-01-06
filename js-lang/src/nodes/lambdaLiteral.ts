@@ -41,7 +41,7 @@ export class LambdaLiteralNode extends ExpressionNode {
     this.scope = blockScope;
   }
 
-  public analyze(context: CompileContext, expectedType?: Type | null) {
+  public resolveTypes(context: CompileContext, expectedType?: Type | null) {
     if (!expectedType || expectedType.kind !== "Func") {
       context.onDiagnosticMessage?.({
         message:
@@ -62,7 +62,7 @@ export class LambdaLiteralNode extends ExpressionNode {
     this.itParameterType = expectedType.parameters[0]?.type ?? neverType;
 
     for (const stat of this.statements) {
-      stat.analyze(context);
+      stat.resolveTypes(context);
     }
 
     const allReturns = this.statements.reduce<ReturnNode[]>(
@@ -131,7 +131,7 @@ export class LambdaLiteralNode extends ExpressionNode {
 
     const valueTypeGetter = () => this.itParameterType;
     this.itParameterSymbol = new SourceSymbol("it", {
-      analyze: () => {},
+      resolveTypes: () => {},
       get valueType(): Type {
         return valueTypeGetter();
       },

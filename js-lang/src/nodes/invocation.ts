@@ -6,8 +6,8 @@ import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class InvocationNode extends ExpressionNode {
-  public analyze(context: CompileContext) {
-    this.target.analyze(context);
+  public resolveTypes(context: CompileContext) {
+    this.target.resolveTypes(context);
 
     if (this.target.valueType?.kind !== "Func") {
       context.onDiagnosticMessage?.({
@@ -26,7 +26,7 @@ export class InvocationNode extends ExpressionNode {
       const arg = args[i];
       const parameter = this.target.valueType.parameters[i];
       const expectedType = parameter?.type;
-      arg.analyze(context, expectedType);
+      arg.resolveTypes(context, expectedType);
 
       if (!isTypeAssignableToType(arg.valueType, expectedType)) {
         context.onDiagnosticMessage?.({

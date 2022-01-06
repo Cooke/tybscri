@@ -5,8 +5,8 @@ import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class MemberNode extends ExpressionNode {
-  public analyze(context: CompileContext) {
-    this.expression.analyze(context);
+  public resolveTypes(context: CompileContext) {
+    this.expression.resolveTypes(context);
 
     if (!this.expression.valueType) {
       // An error should be reported elsewhere

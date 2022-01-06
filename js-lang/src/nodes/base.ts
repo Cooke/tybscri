@@ -27,9 +27,9 @@ export abstract class Node {
     this._scope = scope;
   }
 
-  public analyze(context: CompileContext, expectedType?: Type | null) {
+  public resolveTypes(context: CompileContext, expectedType?: Type | null) {
     for (const child of this.children) {
-      child.analyze(context);
+      child.resolveTypes(context);
     }
   }
 

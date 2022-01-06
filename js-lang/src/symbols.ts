@@ -13,7 +13,7 @@ export abstract class Symbol {
 
   public abstract get valueType(): Type;
 
-  public abstract analyze(context: CompileContext): void;
+  public abstract resolveTypes(context: CompileContext): void;
 }
 
 export class NarrowedSymbol extends Symbol {
@@ -30,8 +30,8 @@ export class NarrowedSymbol extends Symbol {
 
   public valueType: Type = unknownType;
 
-  public analyze(context: CompileContext): void {
-    this.outerSymbol.analyze(context);
+  public resolveTypes(context: CompileContext): void {
+    this.outerSymbol.resolveTypes(context);
     this.valueType = this.narrower(context);
   }
 }
@@ -48,7 +48,7 @@ export class SourceSymbol extends Symbol {
   constructor(
     name: string,
     public readonly node: {
-      analyze(context: CompileContext): void;
+      resolveTypes(context: CompileContext): void;
       valueType: Type;
     }
   ) {
@@ -59,8 +59,8 @@ export class SourceSymbol extends Symbol {
     return this.node.valueType;
   }
 
-  public analyze(context: CompileContext): void {
-    this.node.analyze(context);
+  public resolveTypes(context: CompileContext): void {
+    this.node.resolveTypes(context);
   }
 }
 
@@ -74,5 +74,5 @@ export class ExternalSymbol extends Symbol {
     super(name);
   }
 
-  public analyze(context: CompileContext): void {}
+  public resolveTypes(context: CompileContext): void {}
 }

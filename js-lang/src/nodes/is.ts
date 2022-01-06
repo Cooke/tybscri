@@ -13,7 +13,7 @@ export class IsNode extends ExpressionNode {
     return this.exp instanceof IdentifierNode && this.exp.symbol!.isConst
       ? [
           new NarrowedSymbol(this.exp.symbol!, (context) => {
-            this.type.analyze(context);
+            this.type.resolveTypes(context);
             return this.type.type;
           }),
         ]

@@ -13,16 +13,17 @@ export class IfNode extends ExpressionNode {
     this.condition.setupScopes(scope, context);
     this.thenSymbols = this.condition.createTruthNarrowedSymbols();
     this.thenBlock.setupScopes(scope.withSymbols(this.thenSymbols), context);
+    this.elseBlock?.setupScopes(scope, context);
     this.scope = scope;
   }
 
-  public analyze(context: CompileContext) {
-    this.condition.analyze(context);
+  public resolveTypes(context: CompileContext) {
+    this.condition.resolveTypes(context);
     for (const sym of this.thenSymbols) {
-      sym.analyze(context);
+      sym.resolveTypes(context);
     }
-    this.thenBlock.analyze(context);
-    this.elseBlock?.analyze(context);
+    this.thenBlock.resolveTypes(context);
+    this.elseBlock?.resolveTypes(context);
     const unionType: UnionType = {
       kind: "Union",
       types: this.elseBlock

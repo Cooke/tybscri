@@ -27,7 +27,7 @@ export class IdentifierNode extends ExpressionNode {
     this.scope = scope;
   }
 
-  public analyze(context: CompileContext) {
+  public resolveTypes(context: CompileContext) {
     if (!this.symbol) {
       context.onDiagnosticMessage?.({
         message: `Cannot find name '${this.token.text}'`,
@@ -37,7 +37,7 @@ export class IdentifierNode extends ExpressionNode {
       return;
     }
 
-    this.symbol.analyze(context);
+    this.symbol.resolveTypes(context);
     this.valueType = this.symbol.valueType;
   }
 

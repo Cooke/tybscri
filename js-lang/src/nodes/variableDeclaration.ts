@@ -28,8 +28,8 @@ export class VariableDeclarationNode extends StatementNode {
     this.scope = scope;
   }
 
-  public analyze(context: CompileContext) {
-    this.value.analyze(context);
+  public resolveTypes(context: CompileContext) {
+    this.value.resolveTypes(context);
 
     if (!this.value.valueType) {
       return;
