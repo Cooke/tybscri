@@ -32,7 +32,13 @@ import {
   VariableDeclarationNode,
   VariableKind,
 } from "./nodes/variableDeclaration";
-import { booleanType, numberType, stringType } from "./typeSystem";
+import {
+  booleanType,
+  createLiteralType,
+  numberType,
+  stringType,
+  unknownType,
+} from "./typeSystem";
 import { LiteralType } from "./typeSystem/common";
 
 const L = TybscriLexer;
@@ -260,8 +266,7 @@ export class Parser {
         }
       }
 
-      case L.FALSE:
-      case L.TRUE:
+      case L.Boolean:
         return this.parseBooleanLiteral();
 
       case L.QUOTE_OPEN:
@@ -396,11 +401,17 @@ export class Parser {
   }
 
   private parseBooleanLiteral() {
-    if (this.peek() !== L.TRUE && this.peek() !== L.FALSE) {
-      throw new Error("Only parse boolean literals after look-ahead");
+    if (this.peek() !== L.Boolean) {
+      const missingToken = this.createMissingToken(this.peekToken(), L.Boolean);
+      this.reportDiagnostic({
+        message: `Invalid boolean '${this.peekToken().text}`,
+        span: missingToken.actualToken.span,
+        severity: DiagnosticSeverity.Error,
+      });
+      return new LiteralNode([missingToken], false, createLiteralType(false));
     }
 
-    const value = this.peek() === L.TRUE;
+    const value = this.peekToken().text === "true";
     return new LiteralNode([this.parseKnownToken()], value, {
       kind: "Literal",
       value,
@@ -546,23 +557,6 @@ export class Parser {
 
     return new MemberNode(expression, token);
   }
-
-  //   private parseSemi(): TokenSyntax {
-  //     switch (this.peek()) {
-  //       case L.EOF:
-  //         return this.createActualToken(this.peekToken());
-
-  //       case L.NL:
-  //       case L.SEMICOLON: {
-  //         const token = this.advanceToken();
-  //         this.advanceWhileNL();
-  //         return this.createActualToken(token);
-  //       }
-  //     }
-
-  //     const actualToken = this.peekToken();
-  //     return this.createMissingToken(actualToken, L.NL);
-  //   }
 
   private parseExpectedToken(tokenType: number): TokenNode {
     if (this.peek() === tokenType) {

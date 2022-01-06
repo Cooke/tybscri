@@ -106,3 +106,5 @@ dist
 lib/
 .antlr
 out/
+obj/
+bin/

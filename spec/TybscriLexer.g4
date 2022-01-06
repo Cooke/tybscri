@@ -61,9 +61,8 @@ IN: 'in';
 // Values
 FLOAT: Digits? '.' Digits;
 INT: Digit+;
-TRUE: 'true';
-FALSE: 'false';
 NULL: 'null';
+Boolean: 'true' | 'false';
 
 // Identifiers
 Identifier: (Letter | '_') (Letter | '_' | Digit)*;
