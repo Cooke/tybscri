@@ -1,16 +1,16 @@
 {
   "folders": [
     {
-      "path": "spec"
+      "path": "../spec"
     },
     {
-      "path": "js-lang"
+      "path": "lang"
     },
     {
       "path": "monaco-integration"
     },
     {
-      "path": "js-demo"
+      "path": "demo"
     }
   ],
   "settings": {
@@ -18,7 +18,8 @@
       "Tybscri"
     ],
     "files.watcherExclude": {
-      "**/lib/**": true
+      "**/lib/**": true,
+      "**/out/**": true
     }
   }
 }
