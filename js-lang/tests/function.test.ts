@@ -97,16 +97,12 @@ describe("Functions", function () {
   });
 
   it("function parameters", function () {
-    const msgs: any[] = [];
     const parseResult = parseScript(
       `
     fun foo(arg1: "1", arg2: 2) {
         arg1
     }
-    `,
-      {
-        onDiagnosticMessage: (msg) => msgs.push(msg),
-      }
+    `
     );
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
@@ -146,21 +142,18 @@ describe("Functions", function () {
   });
 
   it("circular reference error", function () {
-    const msgs: DiagnosticMessage[] = [];
-    parseScript(
+    const result = parseScript(
       `
     fun foo() {
         foo()
     }
-    `,
-      { onDiagnosticMessage: (msg) => msgs.push(msg) }
+    `
     );
-    assert.equal(msgs.length, 1);
+    assert.equal(result.diagnosticMessages.length, 1);
   });
 
   it("indirect circular reference error", function () {
-    const msgs: DiagnosticMessage[] = [];
-    parseScript(
+    const result = parseScript(
       `
     fun foo() {
         bar()
@@ -169,10 +162,9 @@ describe("Functions", function () {
     fun bar() {
       foo()
     }
-    `,
-      { onDiagnosticMessage: (msg) => msgs.push(msg) }
+    `
     );
-    assert.equal(msgs.length, 1);
+    assert.equal(result.diagnosticMessages.length, 1);
   });
 
   it("future function depending on earlier variable", function () {

@@ -3,7 +3,8 @@ import { Symbol } from "../symbols";
 import { unknownType } from "../typeSystem";
 import { numberType, stringType } from "../typeSystem/types";
 import { Type } from "../typeSystem/common";
-import { AnalyzeContext, Node } from "./base";
+import { Node } from "./base";
+import { CompileContext } from "../common";
 import { IdentifierNode } from "./identifier";
 import { LiteralNode } from "./literal";
 
@@ -16,7 +17,7 @@ export class TypeNode extends Node {
 
   private typeSymbol: Symbol | null = null;
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     if (this.node instanceof IdentifierNode) {
       this.typeSymbol = scope.resolveLast(this.node.token.text);
       // TODO report if not found
@@ -32,7 +33,7 @@ export class TypeNode extends Node {
     this.scope = scope;
   }
 
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     if (this.typeSymbol) {
       this.typeSymbol.analyze(context);
       this._type = this.typeSymbol.valueType;

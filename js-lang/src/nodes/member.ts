@@ -1,11 +1,11 @@
 import { DiagnosticSeverity } from "../common";
 import { getAllTypeMembers, getTypeDisplayName } from "../typeSystem/core";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class MemberNode extends ExpressionNode {
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     this.expression.analyze(context);
 
     if (!this.expression.valueType) {

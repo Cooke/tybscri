@@ -1,11 +1,7 @@
-import { DiagnosticMessage } from "..";
 import { SourceSpan } from "../common";
 import { Scope } from "../scope";
 import { Type } from "../typeSystem/common";
-
-export interface AnalyzeContext {
-  onDiagnosticMessage?: (msg: DiagnosticMessage) => void;
-}
+import { CompileContext } from "../common";
 
 export abstract class Node {
   private _scope: Scope = Scope.empty;
@@ -24,14 +20,14 @@ export abstract class Node {
 
   constructor(public readonly children: Node[]) {}
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     for (const child of this.children) {
       child.setupScopes(scope, context);
     }
     this._scope = scope;
   }
 
-  public analyze(context: AnalyzeContext, expectedType?: Type | null) {
+  public analyze(context: CompileContext, expectedType?: Type | null) {
     for (const child of this.children) {
       child.analyze(context);
     }

@@ -7,7 +7,8 @@ import {
   reduceUnionType,
 } from "../typeSystem/core";
 import { FuncType, Type, UnionType } from "../typeSystem/common";
-import { AnalyzeContext, Node } from "./base";
+import { Node } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { FunctionNode } from "./function";
 import { ReturnNode } from "./return";
@@ -20,7 +21,7 @@ export class LambdaLiteralNode extends ExpressionNode {
   private itParameterType: Type = unknownType;
   private itParameterSymbol: Symbol;
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     const hoistedScopeSymbols = this.statements
       .filter((x): x is FunctionNode => x instanceof FunctionNode)
       .reduce<Symbol[]>((p, c) => [...p, c.symbol], []);
@@ -40,7 +41,7 @@ export class LambdaLiteralNode extends ExpressionNode {
     this.scope = blockScope;
   }
 
-  public analyze(context: AnalyzeContext, expectedType?: Type | null) {
+  public analyze(context: CompileContext, expectedType?: Type | null) {
     if (!expectedType || expectedType.kind !== "Func") {
       context.onDiagnosticMessage?.({
         message:

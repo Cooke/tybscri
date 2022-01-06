@@ -67,7 +67,7 @@ describe("Literals", function () {
       ],
       returnType: numberType,
     };
-    const parseResult = parseExpression("{ it.length }", {}, expectedType);
+    const parseResult = parseExpression("{ it.length }", { expectedType });
     assertTybscriType(parseResult.tree.valueType, expectedType);
   });
 

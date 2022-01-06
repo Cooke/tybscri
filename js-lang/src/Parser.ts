@@ -1,7 +1,13 @@
 import { CharStreams, CommonTokenStream, Token } from "antlr4ts";
-import { DiagnosticMessage, DiagnosticSeverity, SourceSpan } from "./common";
+import {
+  CompileContext,
+  DiagnosticMessage,
+  DiagnosticSeverity,
+  SourceSpan,
+} from "./common";
 import { TybscriLexer } from "./generated/TybscriLexer";
 import { BlockNode } from "./nodes/block";
+import { CollectionLiteralNode } from "./nodes/collectionLiteral";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
 import { FunctionNode, ParameterNode } from "./nodes/function";
 import { IdentifierNode } from "./nodes/identifier";
@@ -9,8 +15,10 @@ import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
 import { IfNode } from "./nodes/if";
 import { InvocationNode } from "./nodes/invocation";
 import { IsNode } from "./nodes/is";
+import { LambdaLiteralNode } from "./nodes/lambdaLiteral";
 import { LiteralNode } from "./nodes/literal";
 import { MemberNode } from "./nodes/member";
+import { MemberInvocationNode } from "./nodes/memberInvocation";
 import { ReturnNode } from "./nodes/return";
 import { ScriptNode } from "./nodes/script";
 import {
@@ -26,23 +34,14 @@ import {
 } from "./nodes/variableDeclaration";
 import { booleanType, numberType, stringType } from "./typeSystem";
 import { LiteralType } from "./typeSystem/common";
-import { CollectionLiteralNode } from "./nodes/collectionLiteral";
-import { LambdaLiteralNode } from "./nodes/lambdaLiteral";
-import { MemberInvocationNode } from "./nodes/memberInvocation";
-import { Scope } from "./scope";
 
 const L = TybscriLexer;
-
-export interface ParseContext {
-  scope?: Scope;
-  onDiagnosticMessage?: (event: DiagnosticMessage) => void;
-}
 
 export class Parser {
   private tokenStream: CommonTokenStream;
   private onDiagnosticMessage: ((event: DiagnosticMessage) => void) | undefined;
 
-  public constructor(source: string, context: ParseContext) {
+  public constructor(source: string, context: CompileContext) {
     this.tokenStream = new CommonTokenStream(
       new TybscriLexer(CharStreams.fromString(source))
     );

@@ -2,7 +2,7 @@ import { Symbol } from "../symbols";
 import { Scope } from "../scope";
 import { unknownType } from "../typeSystem";
 import { Type } from "../typeSystem/common";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { FunctionNode } from "./function";
 import { StatementNode } from "./statements";
@@ -16,7 +16,7 @@ export class BlockNode extends ExpressionNode {
     );
   }
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     const hoistedScopeSymbols = this.statements
       .filter((x): x is FunctionNode => x instanceof FunctionNode)
       .reduce<Symbol[]>((p, c) => [...p, c.symbol], []);

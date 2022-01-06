@@ -3,7 +3,7 @@ import { NarrowedSymbol, Symbol } from "../symbols";
 import { Scope } from "../scope";
 import { unknownType } from "../typeSystem";
 import { narrowTypeTruthy } from "../typeSystem/core";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
@@ -22,12 +22,12 @@ export class IdentifierNode extends ExpressionNode {
       : [];
   }
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     this.symbol = scope.resolveLast(this.token.text);
     this.scope = scope;
   }
 
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     if (!this.symbol) {
       context.onDiagnosticMessage?.({
         message: `Cannot find name '${this.token.text}'`,

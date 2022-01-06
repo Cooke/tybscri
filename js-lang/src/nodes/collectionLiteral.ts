@@ -1,11 +1,11 @@
 import { createUnionType, reduceUnionType } from "..";
 import { deriveObjectType, listType } from "../typeSystem";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class CollectionLiteralNode extends ExpressionNode {
-  public analyze(context: AnalyzeContext): void {
+  public analyze(context: CompileContext): void {
     for (const exp of this.expressions) {
       exp.analyze(context);
     }

@@ -2,21 +2,21 @@ import { Symbol } from "../symbols";
 import { Scope } from "../scope";
 import { nullType, unknownType } from "../typeSystem";
 import { UnionType } from "../typeSystem/common";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class IfNode extends ExpressionNode {
   private thenSymbols: Symbol[] = [];
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     this.condition.setupScopes(scope, context);
     this.thenSymbols = this.condition.createTruthNarrowedSymbols();
     this.thenBlock.setupScopes(scope.withSymbols(this.thenSymbols), context);
     this.scope = scope;
   }
 
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     this.condition.analyze(context);
     for (const sym of this.thenSymbols) {
       sym.analyze(context);

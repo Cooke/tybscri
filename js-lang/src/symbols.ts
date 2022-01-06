@@ -1,4 +1,4 @@
-import { AnalyzeContext } from "./nodes/base";
+import { CompileContext } from "./common";
 import { FunctionNode } from "./nodes/function";
 import {
   VariableDeclarationNode,
@@ -13,7 +13,7 @@ export abstract class Symbol {
 
   public abstract get valueType(): Type;
 
-  public abstract analyze(context: AnalyzeContext): void;
+  public abstract analyze(context: CompileContext): void;
 }
 
 export class NarrowedSymbol extends Symbol {
@@ -23,14 +23,14 @@ export class NarrowedSymbol extends Symbol {
 
   constructor(
     public readonly outerSymbol: Symbol,
-    private readonly narrower: (context: AnalyzeContext) => Type
+    private readonly narrower: (context: CompileContext) => Type
   ) {
     super(outerSymbol.name);
   }
 
   public valueType: Type = unknownType;
 
-  public analyze(context: AnalyzeContext): void {
+  public analyze(context: CompileContext): void {
     this.outerSymbol.analyze(context);
     this.valueType = this.narrower(context);
   }
@@ -48,7 +48,7 @@ export class SourceSymbol extends Symbol {
   constructor(
     name: string,
     public readonly node: {
-      analyze(context: AnalyzeContext): void;
+      analyze(context: CompileContext): void;
       valueType: Type;
     }
   ) {
@@ -59,7 +59,7 @@ export class SourceSymbol extends Symbol {
     return this.node.valueType;
   }
 
-  public analyze(context: AnalyzeContext): void {
+  public analyze(context: CompileContext): void {
     this.node.analyze(context);
   }
 }
@@ -74,5 +74,5 @@ export class ExternalSymbol extends Symbol {
     super(name);
   }
 
-  public analyze(context: AnalyzeContext): void {}
+  public analyze(context: CompileContext): void {}
 }

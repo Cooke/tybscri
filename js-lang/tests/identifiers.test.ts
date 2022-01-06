@@ -8,13 +8,13 @@ import { assertTybscriType } from "./utils";
 
 describe("Identifiers", function () {
   it("undetermined identifier type", function () {
-    const msgs: DiagnosticMessage[] = [];
-    const parseResult = parseExpression("data", {
-      onDiagnosticMessage: (msg) => msgs.push(msg),
-    });
+    const parseResult = parseExpression("data");
     assert.equal(parseResult.tree.valueType, unknownType);
-    assert.equal(msgs.length, 1);
-    assert.equal(msgs[0].severity, DiagnosticSeverity.Error);
+    assert.equal(parseResult.diagnosticMessages.length, 1);
+    assert.equal(
+      parseResult.diagnosticMessages[0].severity,
+      DiagnosticSeverity.Error
+    );
   });
 
   it("identifier type", function () {

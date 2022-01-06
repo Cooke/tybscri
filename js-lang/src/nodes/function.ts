@@ -4,7 +4,8 @@ import { reduceUnionType } from "../typeSystem/core";
 import { FuncType, Type, UnionType } from "../typeSystem/common";
 import { nullType } from "../typeSystem";
 import { unknownType } from "../typeSystem";
-import { AnalyzeContext, Node } from "./base";
+import { Node } from "./base";
+import { CompileContext } from "../common";
 import { BlockNode } from "./block";
 import { ReturnNode } from "./return";
 import { StatementNode } from "./statements";
@@ -19,7 +20,7 @@ export class FunctionNode extends StatementNode {
 
   public symbol: SourceSymbol;
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     for (const par of this.parameters) {
       par.setupScopes(scope, context);
     }
@@ -35,7 +36,7 @@ export class FunctionNode extends StatementNode {
     this.scope = scope;
   }
 
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     if (this._analyzeState === "analyzed") {
       return;
     }

@@ -1,11 +1,11 @@
 import { DiagnosticSeverity } from "../common";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class IdentifierInvocationNode extends ExpressionNode {
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     const potentialTargets = this.scope.resolveAll(this.name.text);
 
     for (const t of potentialTargets) {

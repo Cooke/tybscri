@@ -1,10 +1,11 @@
 import { Lexer, SourceSpan } from "../common";
 import { Type } from "../typeSystem/common";
-import { AnalyzeContext, Node } from "./base";
+import { Node } from "./base";
+import { CompileContext } from "../common";
 
 // TODO: should the tokens be nodes in the tree? Or could they be trivia in the nodes?
 export abstract class TokenNode extends Node {
-  protected analyzeInternal(context: AnalyzeContext): Type | null {
+  protected analyzeInternal(context: CompileContext): Type | null {
     return null;
   }
 

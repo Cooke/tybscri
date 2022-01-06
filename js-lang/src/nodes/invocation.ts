@@ -1,12 +1,12 @@
 import { getTypeDisplayName, isTypeAssignableToType } from "..";
 import { DiagnosticSeverity } from "../common";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class InvocationNode extends ExpressionNode {
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     this.target.analyze(context);
 
     if (this.target.valueType?.kind !== "Func") {

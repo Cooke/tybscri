@@ -1,7 +1,8 @@
 import { Symbol } from "../symbols";
 import { SourceSpan } from "../common";
 import { Type, unknownType } from "../typeSystem";
-import { AnalyzeContext, Node } from "./base";
+import { Node } from "./base";
+import { CompileContext } from "../common";
 import { FunctionNode } from "./function";
 import { StatementNode } from "./statements";
 import { VariableDeclarationNode } from "./variableDeclaration";
@@ -14,7 +15,7 @@ export class ScriptNode extends Node {
     );
   }
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     const hoistedScopeSymbols = this.statements
       .filter((x): x is FunctionNode => x instanceof FunctionNode)
       .reduce<Symbol[]>((p, c) => [...p, c.symbol], []);

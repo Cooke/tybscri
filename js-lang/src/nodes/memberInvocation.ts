@@ -5,13 +5,13 @@ import {
   getTypeDisplayName,
   inferTypeArguments,
 } from "../typeSystem";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class MemberInvocationNode extends ExpressionNode {
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     this.expression.analyze(context);
 
     if (!this.expression.valueType) {

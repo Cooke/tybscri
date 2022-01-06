@@ -2,7 +2,7 @@ import { DiagnosticSeverity } from "../common";
 import { Scope } from "../scope";
 import { SourceSymbol } from "../symbols";
 import { widenType } from "../typeSystem/core";
-import { AnalyzeContext } from "./base";
+import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
@@ -15,7 +15,7 @@ export enum VariableKind {
 export class VariableDeclarationNode extends StatementNode {
   public symbol: SourceSymbol;
 
-  public setupScopes(scope: Scope, context: AnalyzeContext) {
+  public setupScopes(scope: Scope, context: CompileContext) {
     if (scope.resolveLast(this.name.text) != null) {
       context.onDiagnosticMessage?.({
         message: `Cannot redeclare variable '${this.name.text}'`,
@@ -28,7 +28,7 @@ export class VariableDeclarationNode extends StatementNode {
     this.scope = scope;
   }
 
-  public analyze(context: AnalyzeContext) {
+  public analyze(context: CompileContext) {
     this.value.analyze(context);
 
     if (!this.value.valueType) {
