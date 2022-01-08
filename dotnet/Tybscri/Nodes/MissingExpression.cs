@@ -2,9 +2,9 @@
 
 namespace Tybscri.Nodes;
 
-internal class MissingExpression : ExpressionNode
+public class MissingExpression : ExpressionNode
 {
-    public override void Analyze(AnalyzeContext context)
+    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
     }
 

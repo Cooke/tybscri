@@ -11,8 +11,9 @@ internal class IdentifierNode : ExpressionNode
         Name = name;
     }
 
-    public override void Analyze(AnalyzeContext context)
+    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
+        
     }
 
     public override Expression ToClrExpression()

@@ -1,14 +1,8 @@
 ﻿namespace Tybscri;
 
-public class AnalyzeContext
+public class CompileContext
 {
-    public Scope Scope { get; }
-
-    public Type? ExpectedType { get; }
-
-    public AnalyzeContext(Scope scope, Type? expectedType)
+    public CompileContext()
     {
-        Scope = scope;
-        ExpectedType = expectedType;
     }
 }

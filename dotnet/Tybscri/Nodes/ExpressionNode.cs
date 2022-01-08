@@ -2,9 +2,17 @@
 
 namespace Tybscri.Nodes;
 
-internal abstract class ExpressionNode
+public abstract class ExpressionNode
 {
-    public abstract void Analyze(AnalyzeContext context);
+    public virtual Scope SetupScopes(Scope scope)
+    {
+        this.Scope = scope;
+        return scope;
+    }
+
+    public Scope Scope { get; protected set; } = Scope.Empty;
+
+    public abstract void ResolveTypes(CompileContext context, TybscriType? expectedType);
 
     public abstract Expression ToClrExpression();
 }

@@ -13,7 +13,12 @@ internal class IfNode : ExpressionNode
         ThenBlock = thenBlock;
     }
 
-    public override void Analyze(AnalyzeContext context)
+    public override Scope SetupScopes(Scope scope)
+    {
+        return base.SetupScopes(scope);
+    }
+
+    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
     }
 

@@ -4,7 +4,12 @@ namespace Tybscri.Nodes;
 
 internal class MissingStatement : StatementNode
 {
-    public override void Analyze(AnalyzeContext context)
+    public override Scope SetupScopes(Scope scope)
+    {
+        return scope;
+    }
+
+    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
     }
 

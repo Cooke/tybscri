@@ -39,7 +39,7 @@ public class TybscriParser
         return new ExpressionStatement(exp);
     }
 
-    private ExpressionNode ParseExpression()
+    public ExpressionNode ParseExpression()
     {
         return ParsePostfixUnaryExpression();
     }
@@ -51,8 +51,28 @@ public class TybscriParser
             L.IF => ParseIf(),
             L.Boolean => ParseBooleanLiteral(),
             L.Identifier => ParseIdentifier(),
+            L.NULL => ParseNull(),
+            L.QUOTE_OPEN => ParseLineStrText(),
             _ => new MissingExpression()
         };
+    }
+
+    private ExpressionNode ParseLineStrText()
+    {
+        var openQuote = ParseToken(L.QUOTE_OPEN);
+        var textToken = ParseToken(L.LineStrText);
+        var closeQuote = ParseToken(L.QUOTE_CLOSE);
+
+        if (textToken is ConcreteToken concreteToken) {
+            return new ConstExpression(concreteToken.Text, new ClrWrapperType(typeof(string)));
+        }
+
+        return new ConstExpression(null, UnknownType.Instance);
+    }
+
+    private ExpressionNode ParseNull()
+    {
+        return new ConstExpression(null, new ClrWrapperType(typeof(object)));
     }
 
     private ExpressionNode ParseIdentifier()
@@ -63,10 +83,8 @@ public class TybscriParser
     private ExpressionNode ParseBooleanLiteral()
     {
         var token = PeekToken();
-
-
         Advance();
-        return new ConstExpression(token.Text == "true");
+        return new ConstExpression(token.Text == "true", new ClrWrapperType(typeof(bool)));
     }
 
     private IfNode ParseIf()
@@ -107,8 +125,9 @@ public class TybscriParser
             return new MissingToken();
         }
 
+        var token = PeekToken();
         Advance();
-        return new ConcreteToken();
+        return new ConcreteToken(token);
     }
 
     private int Peek(int offset = 1)

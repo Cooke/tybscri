@@ -11,12 +11,20 @@ public class ScriptNode
         Statements = statements;
     }
 
-    public void Analyze(AnalyzeContext context)
+    public void SetupScopes(Scope scope)
     {
-        Statements.ForEach(x => x.Analyze(context));
+        foreach (var x in Statements) {
+            scope = x.SetupScopes(scope);
+        }
     }
 
-    public Expression<Func<TContext, TResult>> ToClrExpression<TContext, TResult>() =>
-        Expression.Lambda<Func<TContext, TResult>>(Expression.Block(Statements.Select(x => x.ToClrExpression())),
-            Expression.Parameter(typeof(TContext)));
+    public void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
+    {
+        foreach (var statement in Statements) {
+            statement.ResolveTypes(context, expectedType);
+        }
+    }
+
+    public Expression<Func<TResult>> ToClrExpression<TResult>() =>
+        Expression.Lambda<Func<TResult>>(Expression.Block(Statements.Select(x => x.ToClrExpression())));
 }

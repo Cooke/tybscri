@@ -1,5 +1,8 @@
-﻿namespace Tybscri;
+﻿using System.Xml;
 
-public class Scope
+namespace Tybscri;
+
+public record Scope
 {
+    public static readonly Scope Empty = new Scope();
 }

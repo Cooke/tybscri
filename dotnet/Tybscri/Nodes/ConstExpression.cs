@@ -5,19 +5,21 @@ namespace Tybscri.Nodes;
 internal class ConstExpression : ExpressionNode
 {
     public object? Value { get; }
+    
+    public TybscriType Type { get; }
 
-    public ConstExpression(object? value)
+    public ConstExpression(object? value, TybscriType type)
     {
         Value = value;
+        Type = type;
     }
 
-    public override void Analyze(AnalyzeContext context)
+    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
     }
 
     public override Expression ToClrExpression()
     {
-        // TODO type
-        return Expression.Constant(Value, Value.GetType());
+        return Expression.Constant(Value, Type.GetClrType());
     }
 }

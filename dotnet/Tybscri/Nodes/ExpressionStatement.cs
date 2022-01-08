@@ -11,9 +11,14 @@ internal class ExpressionStatement : StatementNode
         Exp = exp;
     }
 
-    public override void Analyze(AnalyzeContext context)
+    public override Scope SetupScopes(Scope scope)
     {
-        Exp.Analyze(context);
+        return Exp.SetupScopes(scope);
+    }
+
+    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
+    {
+        Exp.ResolveTypes(context, expectedType);
     }
 
     public override Expression ToClrExpression()
