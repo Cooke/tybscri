@@ -20,10 +20,40 @@ public class TybscriParser
 
         var children = new List<StatementNode>();
         while (Peek() != L.Eof) {
-            children.Add(ParseStatement());
+            var statement = ParseStatement();
+            children.Add(statement);
+
+            if (statement is MissingStatement) {
+                Advance();
+            }
         }
 
         return new ScriptNode(children);
+    }
+    
+    private Token parseStatementEnd() {
+        var token = Peek();
+        if (token == L.Eof) {
+            return ParseToken(L.Eof);
+        }
+
+        var firstIteration = true;
+        while (true) {
+            switch (token) {
+                case L.NL:
+                case L.SEMICOLON:
+                    Advance();
+                    break;
+
+                default:
+                    return firstIteration
+                        ? this.createMissingToken(this.peekToken(), L.NL)
+                        : this.createActualToken(this.peekToken(-1));
+            }
+
+            token = this.peek();
+            firstIteration = false;
+        }
     }
 
 
@@ -32,7 +62,6 @@ public class TybscriParser
         var exp = ParseExpression();
 
         if (exp is MissingExpression) {
-            Advance();
             return new MissingStatement();
         }
 
@@ -109,7 +138,12 @@ public class TybscriParser
 
         var statements = new List<StatementNode>();
         while (Peek() != TybscriLexer.RCURL && Peek() != TybscriLexer.Eof) {
-            statements.Add(ParseStatement());
+            var statement = ParseStatement();
+            statements.Add(statement);
+            if (statement is MissingStatement) {
+                Advance();
+            }
+            
             AdvanceWhileNL();
         }
 
