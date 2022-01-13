@@ -2,17 +2,14 @@
 
 namespace Tybscri.Nodes;
 
-internal class Block
+public class Block : Node
 {
-    public List<StatementNode> Statements { get; }
-
-    public Block(Token lcurl, List<StatementNode> statements, Token rcurl)
+    public Block(Token lcurl, Node[] statements, Token rcurl) : base(statements)
     {
-        Statements = statements;
     }
 
-    public Expression ToClrExpression()
+    public override Expression ToClrExpression()
     {
-        return Expression.Block(Statements.Select(x => x.ToClrExpression()));
+        return Expression.Block(Children.Select(x => x.ToClrExpression()));
     }
 }

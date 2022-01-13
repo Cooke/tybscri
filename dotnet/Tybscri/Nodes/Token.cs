@@ -1,5 +1,6 @@
 ﻿namespace Tybscri;
 
-internal abstract class Token
+public abstract class Token
 {
+    public abstract string Text { get; }
 }

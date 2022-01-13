@@ -2,22 +2,27 @@
 
 namespace Tybscri.Nodes;
 
-internal class IdentifierNode : ExpressionNode
+internal class IdentifierNode : Node
 {
+    private Symbol? _symbol;
     public string Name { get; }
 
-    public IdentifierNode(string name)
+    public IdentifierNode(Token token)
     {
-        Name = name;
+        Name = token.Text;
     }
 
     public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
-        
+        _symbol = Scope.GetLast(Name);
     }
 
     public override Expression ToClrExpression()
     {
-        throw new NotImplementedException();
+        if (_symbol == null) {
+            throw new InvalidOperationException("Unknown identifier");
+        }
+
+        return _symbol.ClrExpression;
     }
 }

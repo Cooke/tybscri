@@ -1,21 +1,25 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 using Antlr4.Runtime;
 
 namespace Tybscri;
 
 public class TybscriCompiler
 {
-    public Func<TContext, TResult> CompileExpression<TContext, TResult>(string expression,
-        TybscriType? expectedResultType = null) where TContext : class
+    public Func<TEnvironment, TResult> CompileExpression<TEnvironment, TResult>(string expression,
+        TybscriType? expectedResultType = null) where TEnvironment : class
     {
         var parser = new TybscriParser(expression);
-        var scriptNode = parser.ParseExpression();
-        scriptNode.SetupScopes(new Scope());
-        scriptNode.ResolveTypes(new CompileContext(), expectedResultType);
-        var clrExpression = scriptNode.ToClrExpression();
-        var lambda = Expression.Lambda<Func<TResult>>(clrExpression);
-        var func = lambda.Compile();
-        return _ => func();
+        var expressionNode = parser.ParseExpression();
+
+        var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
+        var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
+        expressionNode.SetupScopes(scope);
+        expressionNode.ResolveTypes(new CompileContext(), expectedResultType);
+
+        var clrExpression = expressionNode.ToClrExpression();
+        var lambda = Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression);
+        return lambda.Compile();
     }
 
     public Func<TResult> CompileExpression<TResult>(string script)
@@ -30,20 +34,22 @@ public class TybscriCompiler
         return func();
     }
 
-    public TResult EvaluateExpression<TContext, TResult>(string script, TContext context) where TContext : class
+    public TResult EvaluateExpression<TEnvironment, TResult>(string script, TEnvironment context)
+        where TEnvironment : class
     {
-        var func = CompileExpression<TContext, TResult>(script);
+        var func = CompileExpression<TEnvironment, TResult>(script);
         return func(context);
     }
 
-    public Func<TContext, TResult> CompileScript<TContext, TResult>(string script) where TContext : class
+    public Func<TEnvironment, TResult> CompileScript<TEnvironment, TResult>(string script) where TEnvironment : class
     {
         var parser = new TybscriParser(script);
         var scriptNode = parser.ParseScript();
         scriptNode.SetupScopes(new Scope());
-        scriptNode.ResolveTypes(new CompileContext());
-        var clrExpression = scriptNode.ToClrExpression<TResult>();
-        var compileScript = clrExpression.Compile();
+        scriptNode.ResolveTypes(new CompileContext(), null);
+        var clrExpression = scriptNode.ToClrExpression();
+        var lambda = Expression.Lambda<Func<TResult>>(clrExpression);
+        var compileScript = lambda.Compile();
         return _ => compileScript();
     }
 
@@ -59,9 +65,23 @@ public class TybscriCompiler
         return func();
     }
 
-    public TResult EvaluateScript<TContext, TResult>(string script, TContext context) where TContext : class
+    public TResult EvaluateScript<TEnvironment, TResult>(string script, TEnvironment context) where TEnvironment : class
     {
-        var func = CompileScript<TContext, TResult>(script);
+        var func = CompileScript<TEnvironment, TResult>(script);
         return func(context);
+    }
+
+    private static IEnumerable<ExternalSymbol> GetEnvironmentSymbols<TEnvironment>(ParameterExpression envExpression)
+        where TEnvironment : class
+    {
+        foreach (var prop in typeof(TEnvironment).GetProperties(BindingFlags.Instance | BindingFlags.Public)) {
+            var getter = Expression.Property(envExpression, prop);
+            yield return new ExternalSymbol(getter, ResolveTybscriType(prop.PropertyType), prop.Name);
+        }
+    }
+
+    private static TybscriType ResolveTybscriType(Type clrType)
+    {
+        return new ClrWrapperType(clrType);
     }
 }

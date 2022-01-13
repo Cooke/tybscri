@@ -1,5 +1,15 @@
-﻿namespace Tybscri.Nodes;
+﻿using Antlr4.Runtime;
 
-internal class MissingToken : Token
+namespace Tybscri.Nodes;
+
+public class MissingToken : Token
 {
+    public IToken ActualToken { get; }
+
+    public MissingToken(IToken actualToken, int missingToken)
+    {
+        ActualToken = actualToken;
+    }
+
+    public override string Text => ActualToken.Text;
 }

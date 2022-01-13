@@ -11,5 +11,5 @@ internal class ConcreteToken : Token
         _token = token;
     }
 
-    public string Text => _token.Text;
+    public override string Text => _token.Text;
 }

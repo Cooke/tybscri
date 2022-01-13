@@ -2,12 +2,8 @@
 
 namespace Tybscri.Nodes;
 
-public class MissingExpression : ExpressionNode
+public class MissingExpression : Node
 {
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
-    {
-    }
-
     public override Expression ToClrExpression()
     {
         throw new NotImplementedException();

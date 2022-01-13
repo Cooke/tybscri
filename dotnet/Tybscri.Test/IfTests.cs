@@ -24,7 +24,7 @@ public class IfTests
     {
         var input = new InputData { input = false };
         var output = _compiler.EvaluateExpression<InputData, double>("if (input) 1 else 0", input);
-        Assert.Equal(1, output);
+        Assert.Equal(0, output);
     }
 
     public class InputData

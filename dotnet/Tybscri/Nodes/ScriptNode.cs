@@ -1,30 +1,13 @@
 ﻿using System.Linq.Expressions;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace Tybscri.Nodes;
 
-public class ScriptNode
+public class ScriptNode : Node
 {
-    public List<StatementNode> Statements { get; }
-
-    public ScriptNode(List<StatementNode> statements)
+    public ScriptNode(Node[] statements) : base(statements)
     {
-        Statements = statements;
     }
 
-    public void SetupScopes(Scope scope)
-    {
-        foreach (var x in Statements) {
-            scope = x.SetupScopes(scope);
-        }
-    }
-
-    public void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
-    {
-        foreach (var statement in Statements) {
-            statement.ResolveTypes(context, expectedType);
-        }
-    }
-
-    public Expression<Func<TResult>> ToClrExpression<TResult>() =>
-        Expression.Lambda<Func<TResult>>(Expression.Block(Statements.Select(x => x.ToClrExpression())));
+    public override BlockExpression ToClrExpression() => Expression.Block(Children.Select(x => x.ToClrExpression()));
 }

@@ -2,7 +2,7 @@
 
 namespace Tybscri.Nodes;
 
-internal class ConstExpression : ExpressionNode
+internal class ConstExpression : Node
 {
     public object? Value { get; }
     
@@ -12,10 +12,6 @@ internal class ConstExpression : ExpressionNode
     {
         Value = value;
         Type = type;
-    }
-
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
-    {
     }
 
     public override Expression ToClrExpression()

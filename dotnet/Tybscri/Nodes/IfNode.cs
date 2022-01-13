@@ -1,29 +1,28 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Utils;
 
 namespace Tybscri.Nodes;
 
-internal class IfNode : ExpressionNode
+internal class IfNode : Node
 {
-    public ExpressionNode Exp { get; }
-    public Block ThenBlock { get; }
+    public Node Exp { get; }
 
-    public IfNode(Token ifToken, Token lparen, ExpressionNode exp, Token rparen, Block thenBlock)
+    public Node Then { get; }
+
+    public Node? ElseNode { get; }
+
+    public IfNode(Token ifToken, Token lparen, Node exp, Token rparen, Node then, Node? elseNode) : base(exp, then)
     {
         Exp = exp;
-        ThenBlock = thenBlock;
-    }
-
-    public override Scope SetupScopes(Scope scope)
-    {
-        return base.SetupScopes(scope);
-    }
-
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
-    {
+        Then = then;
+        ElseNode = elseNode;
     }
 
     public override Expression ToClrExpression()
     {
-        return Expression.IfThen(Exp.ToClrExpression(), ThenBlock.ToClrExpression());
+        var elseExp = ElseNode?.ToClrExpression() ?? Expression.Constant(null, typeof(object));
+        var thenExp = Then.ToClrExpression();
+        return Expression.Condition(Exp.ToClrExpression(), thenExp, elseExp,
+            ClrTypeUtils.FindCommonType(thenExp.Type, elseExp.Type));
     }
 }
