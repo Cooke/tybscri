@@ -86,11 +86,25 @@ public class TybscriParser
             _ => new MissingExpression()
         };
     }
+    
+    // private Node ParseMemberSuffix(Node expression, Node exp) {
+    //     AdvanceWhileNL();
+    //     ParseToken(L.DOT);
+    //     AdvanceWhileNL();
+    //     var memberName = ParseToken(L.Identifier);
+    //
+    //     // if (Peek() == L.LPAREN || this.peek() === L.LCURL) {
+    //     //     const callArgs = this.parseValueArguments();
+    //     //     return new MemberInvocationNode(expression, token, ...callArgs);
+    //     // }
+    //
+    //     return new MemberNode(expression, memberName);
+    // }
 
     private Node ParseNumber()
     {
         var token = ParseToken(L.INT);
-        return new ConstExpression(double.Parse(token.Text), new ClrWrapperType(typeof(double)));
+        return new ConstExpression(double.Parse(token.Text), StandardTypes.Number);
     }
 
     private Node ParseLineStrText()
@@ -100,7 +114,7 @@ public class TybscriParser
         var closeQuote = ParseToken(L.QUOTE_CLOSE);
 
         if (textToken is ConcreteToken concreteToken) {
-            return new ConstExpression(concreteToken.Text, new ClrWrapperType(typeof(string)));
+            return new ConstExpression(concreteToken.Text, StandardTypes.String);
         }
 
         return new ConstExpression(null, UnknownType.Instance);
@@ -108,7 +122,7 @@ public class TybscriParser
 
     private Node ParseNull()
     {
-        return new ConstExpression(null, new ClrWrapperType(typeof(object)));
+        return new ConstExpression(null, StandardTypes.Null);
     }
 
     private Node ParseIdentifier()
@@ -120,7 +134,8 @@ public class TybscriParser
     private Node ParseBooleanLiteral()
     {
         var token = ParseToken(L.Boolean);
-        return new ConstExpression(token.Text == "true", new ClrWrapperType(typeof(bool)));
+        var value = token.Text == "true";
+        return new ConstExpression(value, new BooleanLiteralType(value));
     }
 
     private IfNode ParseIf()

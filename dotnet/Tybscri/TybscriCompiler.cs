@@ -1,11 +1,21 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using Antlr4.Runtime;
+using Tybscri.TypeMapping;
 
 namespace Tybscri;
 
 public class TybscriCompiler
 {
+    private readonly TypeMapper _typeMapper = new TypeMapper();
+
+    public TybscriCompiler()
+    {
+        _typeMapper.Add(typeof(double), StandardTypes.Number);
+        _typeMapper.Add(typeof(bool), StandardTypes.Boolean);
+        _typeMapper.Add(typeof(string), StandardTypes.String);
+    }
+
     public Func<TEnvironment, TResult> CompileExpression<TEnvironment, TResult>(string expression,
         TybscriType? expectedResultType = null) where TEnvironment : class
     {
@@ -71,17 +81,12 @@ public class TybscriCompiler
         return func(context);
     }
 
-    private static IEnumerable<ExternalSymbol> GetEnvironmentSymbols<TEnvironment>(ParameterExpression envExpression)
+    private IEnumerable<ExternalSymbol> GetEnvironmentSymbols<TEnvironment>(ParameterExpression envExpression)
         where TEnvironment : class
     {
         foreach (var prop in typeof(TEnvironment).GetProperties(BindingFlags.Instance | BindingFlags.Public)) {
             var getter = Expression.Property(envExpression, prop);
-            yield return new ExternalSymbol(getter, ResolveTybscriType(prop.PropertyType), prop.Name);
+            yield return new ExternalSymbol(getter, _typeMapper.Map(prop.PropertyType), prop.Name);
         }
-    }
-
-    private static TybscriType ResolveTybscriType(Type clrType)
-    {
-        return new ClrWrapperType(clrType);
     }
 }

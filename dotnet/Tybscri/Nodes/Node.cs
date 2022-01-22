@@ -8,6 +8,8 @@ public abstract class Node
 
     public Scope Scope { get; protected set; } = Scope.Empty;
 
+    public TybscriType? ValueType { get; protected set; }
+
     protected Node(params Node[] children)
     {
         Children = children;
@@ -23,7 +25,7 @@ public abstract class Node
         return scope;
     }
 
-    public virtual void ResolveTypes(CompileContext context, TybscriType? expectedType)
+    public virtual void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
     {
         foreach (var child in Children) {
             child.ResolveTypes(context, expectedType);

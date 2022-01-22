@@ -16,6 +16,6 @@ internal class ConstExpression : Node
 
     public override Expression ToClrExpression()
     {
-        return Expression.Constant(Value, Type.GetClrType());
+        return Expression.Constant(Value, Type.ClrType);
     }
 }
