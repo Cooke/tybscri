@@ -22,7 +22,8 @@ namespace CookeRpc.AspNetCore.Model
                 ? type.Name.Substring(1)
                 : type.Name);
 
-        public BindingFlags MemberBindingFilter { get; init; } = BindingFlags.Public | BindingFlags.Instance;
+        public BindingFlags MemberBindingFilter { get; init; } =
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         public Func<MemberInfo, bool> MemberFilter { get; init; } = info =>
         {
@@ -31,6 +32,7 @@ namespace CookeRpc.AspNetCore.Model
                 _ when info.GetCustomAttribute<IgnoreDataMemberAttribute>() != null => false,
                 FieldInfo fi => !IsReflectionType(fi.FieldType),
                 PropertyInfo pi => !IsReflectionType(pi.PropertyType),
+                MethodInfo mi => !IsReflectionType(mi.ReturnType),
                 _ => false
             };
         };

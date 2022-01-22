@@ -1,32 +1,36 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
-public class MemberNode : Node
+public class MemberInvocation : Node
 {
     private TybscriMember? _member;
 
-    public Node Expression { get; }
+    public Node Instance { get; }
 
     public Token MemberName { get; }
 
-    public MemberNode(Node expression, Token memberName) : base(expression)
+    public IReadOnlyCollection<Node> Arguments { get; }
+
+    public MemberInvocation(Node instance, Token memberName, List<Node> arguments) : base(instance)
     {
-        Expression = expression;
+        Instance = instance;
         MemberName = memberName;
+        Arguments = arguments;
     }
 
     public override void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
     {
-        Expression.ResolveTypes(context);
+        Instance.ResolveTypes(context);
 
-        if (Expression.ValueType is null) {
+        if (Instance.ValueType is null) {
             // An error should be reported elsewhere
             return;
         }
 
-        var matchingMembers = Expression.ValueType.FindMembersByName(MemberName.Text);
+        var matchingMembers = Instance.ValueType.FindMembersByName(MemberName.Text);
         if (matchingMembers.Count == 0) {
             return;
         }
@@ -45,13 +49,7 @@ public class MemberNode : Node
             throw new InvalidOperationException("Unknown member");
         }
 
-        var memberExpression = System.Linq.Expressions.Expression.Property(Expression.ToClrExpression(),
-            (PropertyInfo)_member.MemberInfo);
-
-        // if (memberExpression.Type.IsAssignableTo(_member.Type.ClrType)) {
-        //     return memberExpression;
-        // }
-        
-        return System.Linq.Expressions.Expression.Convert(memberExpression, _member.Type.ClrType);
+        return Expression.Call(Instance.ToClrExpression(), (MethodInfo)_member.MemberInfo,
+            Arguments.Select(x => x.ToClrExpression()));
     }
 }

@@ -1,4 +1,5 @@
-﻿using Antlr4.Runtime;
+﻿using System.Linq.Expressions;
+using Antlr4.Runtime;
 using Tybscri.Nodes;
 
 namespace Tybscri;
@@ -70,10 +71,38 @@ public class TybscriParser
 
     public Node ParseExpression()
     {
-        return ParsePostfixUnaryExpression();
+        return ParsePostfixExpression();
     }
 
-    private Node ParsePostfixUnaryExpression()
+    private Node ParsePostfixExpression()
+    {
+        var primaryExpression = ParsePrimaryExpression();
+        
+        var exp = primaryExpression;
+        while (true) {
+            // if (Peek() == L.LPAREN || Peek() == L.LCURL) {
+            //     exp = this.parseCallSuffix(exp);
+            //     continue;
+            // }
+
+            // Predict memberSuffix
+            var i = 1;
+            while (Peek(i) == L.NL) {
+                i++;
+            }
+
+            if (Peek(i) == L.DOT) {
+                exp = ParseMemberSuffix(exp);
+                continue;
+            }
+
+            break;
+        }
+        
+        return exp;
+    }
+
+    private Node ParsePrimaryExpression()
     {
         return Peek() switch
         {
@@ -86,20 +115,56 @@ public class TybscriParser
             _ => new MissingExpression()
         };
     }
+
+    private Node ParseMemberSuffix(Node expression) {
+        AdvanceWhileNL();
+        ParseToken(L.DOT);
+        AdvanceWhileNL();
+        var memberName = ParseToken(L.Identifier);
     
-    // private Node ParseMemberSuffix(Node expression, Node exp) {
-    //     AdvanceWhileNL();
-    //     ParseToken(L.DOT);
-    //     AdvanceWhileNL();
-    //     var memberName = ParseToken(L.Identifier);
-    //
-    //     // if (Peek() == L.LPAREN || this.peek() === L.LCURL) {
-    //     //     const callArgs = this.parseValueArguments();
-    //     //     return new MemberInvocationNode(expression, token, ...callArgs);
-    //     // }
-    //
-    //     return new MemberNode(expression, memberName);
-    // }
+        if (Peek() == L.LPAREN) {
+            var callArgs = ParseValueArguments();
+            return new MemberInvocation(expression, memberName, callArgs);
+        }
+    
+        return new MemberNode(expression, memberName);
+    }
+    
+    private List<Node> ParseValueArguments() {
+        // if (Peek() == L.LCURL) {
+        //     const lambdaLiteral = this.parseLambdaLiteral();
+        //     return [null, [], null, lambdaLiteral];
+        // }
+
+        var lparen = ParseToken(L.LPAREN);
+        AdvanceWhileNL();
+
+        var args = new List<Node>();
+
+        while (Peek() != L.RPAREN && Peek() != L.Eof) {
+            var expression = ParseExpression();
+            args.Add(expression);
+            if (expression is MissingExpression) {
+                Advance();
+            }
+
+            AdvanceWhileNL();
+
+            if (Peek() == L.COMMA) {
+                Advance();
+                AdvanceWhileNL();
+            }
+        }
+
+        var rparen = ParseToken(L.RPAREN);
+
+        // if (Peek() == L.LCURL) {
+        //     var lambdaLiteral = ParseLambdaLiteral();
+        //     return [lparen, args, rparen, lambdaLiteral];
+        // }
+
+        return args;
+    }
 
     private Node ParseNumber()
     {

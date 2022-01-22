@@ -15,6 +15,8 @@ internal class IdentifierNode : Node
     public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
         _symbol = Scope.GetLast(Name);
+        _symbol?.ResolveTypes(context);
+        ValueType = _symbol?.ValueType ?? StandardTypes.Unknown;
     }
 
     public override Expression ToClrExpression()
