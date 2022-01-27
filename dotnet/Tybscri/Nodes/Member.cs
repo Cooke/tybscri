@@ -19,7 +19,7 @@ public class MemberNode : Node
 
     public override void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
     {
-        Expression.ResolveTypes(context);
+        Expression.ResolveTypes(context, null);
 
         if (Expression.ValueType is null) {
             // An error should be reported elsewhere

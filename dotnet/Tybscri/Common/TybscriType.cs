@@ -9,6 +9,8 @@ public abstract class TybscriType
     public abstract Type ClrType { get; }
 
     public abstract IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName);
+    
+    public abstract bool IsAssignableFrom(TybscriType source);
 }
 
 public class FuncType : TybscriType
@@ -17,7 +19,7 @@ public class FuncType : TybscriType
 
     public override Type ClrType { get; }
 
-    public IReadOnlyCollection<FuncParameter> Parameters { get; }
+    public IReadOnlyList<FuncParameter> Parameters { get; }
 
     public FuncType(TybscriType returnType, IEnumerable<FuncParameter> parameters)
     {
@@ -30,6 +32,11 @@ public class FuncType : TybscriType
     public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
     {
         return ArraySegment<TybscriMember>.Empty;
+    }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return false;
     }
 }
 
@@ -76,6 +83,11 @@ public class UnknownType : TybscriType
     {
         return ArraySegment<TybscriMember>.Empty;
     }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return false;
+    }
 }
 
 public class ObjectType : TybscriType
@@ -94,6 +106,56 @@ public class ObjectType : TybscriType
     {
         return _lazyMembers.Value.Where(x => x.Name == memberName).ToArray();
     }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return ClrType.IsAssignableFrom(source.ClrType);
+    }
+}
+
+public class StringLiteralType : TybscriType
+{
+    public string Value { get; }
+    
+    public override Type ClrType => typeof(string);
+
+    public StringLiteralType(string value)
+    {
+        Value = value;
+    }
+
+    public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
+    {
+        return StandardTypes.String.FindMembersByName(memberName);
+    }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return source is StringLiteralType slt && slt.Value == Value;
+    }
+}
+
+public class NumberLiteralType : TybscriType
+{
+    public double Value { get; }
+    
+    public override Type ClrType => typeof(double);
+
+    public NumberLiteralType(double value)
+    {
+        Value = value;
+    }
+
+    public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
+    {
+        return StandardTypes.Number.FindMembersByName(memberName);
+    }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        return source is NumberLiteralType nlt && nlt.Value == Value;
+    }
 }
 
 public class BooleanLiteralType : TybscriType
@@ -110,5 +172,10 @@ public class BooleanLiteralType : TybscriType
     public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
     {
         throw new NotImplementedException();
+    }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return source is BooleanLiteralType blt && blt.Value == Value;
     }
 }

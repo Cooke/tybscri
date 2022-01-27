@@ -23,7 +23,7 @@ public class MemberInvocation : Node
 
     public override void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
     {
-        Instance.ResolveTypes(context);
+        Instance.ResolveTypes(context, null);
 
         if (Instance.ValueType is null) {
             // An error should be reported elsewhere

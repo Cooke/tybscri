@@ -2,7 +2,7 @@
 
 namespace Tybscri.Nodes;
 
-internal class IdentifierNode : Node
+public class IdentifierNode : Node
 {
     private Symbol? _symbol;
     public string Name { get; }
@@ -14,7 +14,7 @@ internal class IdentifierNode : Node
 
     public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
-        _symbol = Scope.GetLast(Name);
+        _symbol = Scope.ResolveLast(Name);
         _symbol?.ResolveTypes(context);
         ValueType = _symbol?.ValueType ?? StandardTypes.Unknown;
     }

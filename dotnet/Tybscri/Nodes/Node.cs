@@ -25,7 +25,7 @@ public abstract class Node
         return scope;
     }
 
-    public virtual void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
+    public virtual void ResolveTypes(CompileContext context, TybscriType? expectedType)
     {
         foreach (var child in Children) {
             child.ResolveTypes(context, expectedType);

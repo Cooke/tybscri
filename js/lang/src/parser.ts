@@ -113,7 +113,8 @@ export class Parser {
   }
 
   private parseVariableDeclaration() {
-    const varOrVal = this.parseKnownToken();
+    const varOrVal =
+      this.peek() === L.VAL ? this.parseToken(L.VAL) : this.parseToken(L.VAR);
     const def = this.parseVariableDefinition();
 
     const kind =
@@ -123,16 +124,16 @@ export class Parser {
   }
 
   private parseVariableDefinition() {
-    const name = this.parseExpectedToken(L.Identifier);
+    const name = this.parseToken(L.Identifier);
     this.advanceWhileNL();
-    const assign = this.parseExpectedToken(L.ASSIGNMENT);
+    const assign = this.parseToken(L.ASSIGNMENT);
     this.advanceWhileNL();
     const value = this.parseExpression();
     return { name, assign, value } as const;
   }
 
   private parseBlock() {
-    const lcurl = this.parseExpectedToken(L.LCURL);
+    const lcurl = this.parseToken(L.LCURL);
     this.advanceWhileNL();
     const statements: StatementNode[] = [];
     while (this.peek() !== L.RCURL && this.peek() !== L.EOF) {
@@ -144,14 +145,14 @@ export class Parser {
 
       this.advanceWhileNL();
     }
-    const rcurl = this.parseExpectedToken(L.RCURL);
+    const rcurl = this.parseToken(L.RCURL);
 
     return new BlockNode(lcurl, statements, rcurl);
   }
 
   private parseFunctionDeclaration() {
-    this.parseExpectedToken(L.FUN);
-    const identifier = this.parseExpectedToken(L.Identifier);
+    this.parseToken(L.FUN);
+    const identifier = this.parseToken(L.Identifier);
     this.advanceWhileNL();
     const params = this.parseFunctionParameters();
     this.advanceWhileNL();
@@ -169,7 +170,7 @@ export class Parser {
   }
 
   private parseFunctionParameters() {
-    this.parseExpectedToken(L.LPAREN);
+    this.parseToken(L.LPAREN);
     this.advanceWhileNL();
 
     const valueParams: ParameterNode[] = [];
@@ -184,7 +185,7 @@ export class Parser {
       }
     }
 
-    this.parseExpectedToken(L.RPAREN);
+    this.parseToken(L.RPAREN);
 
     return valueParams;
   }
@@ -194,9 +195,9 @@ export class Parser {
   }
 
   private parseParameter() {
-    const ident = this.parseExpectedToken(L.Identifier);
+    const ident = this.parseToken(L.Identifier);
     this.advanceWhileNL();
-    const colon = this.parseExpectedToken(L.COLON);
+    const colon = this.parseToken(L.COLON);
     this.advanceWhileNL();
     const type = this.parseType();
     return new ParameterNode(ident, colon, type);
@@ -236,7 +237,7 @@ export class Parser {
     let leftExp = this.parsePostfixExpression();
 
     while (this.peek() === L.IS) {
-      const isToken = this.parseKnownToken();
+      const isToken = this.parseToken(L.IS);
       this.advanceWhileNL();
       const typeNode = this.parseType();
       leftExp = new IsNode(leftExp, typeNode);
@@ -286,7 +287,7 @@ export class Parser {
   }
 
   private parseLambdaLiteral() {
-    const lcurl = this.parseExpectedToken(L.LCURL);
+    const lcurl = this.parseToken(L.LCURL);
     this.advanceWhileNL();
 
     const statements: StatementNode[] = [];
@@ -300,20 +301,20 @@ export class Parser {
       this.advanceWhileNL();
     }
 
-    const rcurl = this.parseExpectedToken(L.RCURL);
+    const rcurl = this.parseToken(L.RCURL);
 
     return new LambdaLiteralNode(lcurl, statements, rcurl);
   }
 
   private parseCollectionLiteral() {
-    const lbracket = this.parseExpectedToken(L.LBRACKET);
+    const lbracket = this.parseToken(L.LBRACKET);
     this.advanceWhileNL();
 
     const expressions: ExpressionNode[] = [];
     let first = true;
     while (this.peek() !== L.RBRACKET && this.peek() !== L.EOF) {
       if (!first) {
-        const comma = this.parseExpectedToken(L.COMMA);
+        const comma = this.parseToken(L.COMMA);
         if (comma instanceof MissingTokenNode) {
           this.reportDiagnostic({
             message: "Missing commna",
@@ -334,12 +335,12 @@ export class Parser {
       this.advanceWhileNL();
     }
 
-    const rbracket = this.parseExpectedToken(L.RBRACKET);
+    const rbracket = this.parseToken(L.RBRACKET);
     return new CollectionLiteralNode(lbracket, expressions, rbracket);
   }
 
   private parseReturnExpression() {
-    const returnToken = this.parseExpectedToken(L.RETURN);
+    const returnToken = this.parseToken(L.RETURN);
     if (this.peek() !== L.NL) {
       const exp = this.parseExpression();
 
@@ -350,13 +351,13 @@ export class Parser {
   }
 
   private parseIfExpression() {
-    const ifkeyword = this.parseExpectedToken(L.IF);
+    const ifkeyword = this.parseToken(L.IF);
     this.advanceWhileNL();
-    const lparen = this.parseExpectedToken(L.LPAREN);
+    const lparen = this.parseToken(L.LPAREN);
     this.advanceWhileNL();
     const expression = this.parseExpression();
     this.advanceWhileNL();
-    const rparen = this.parseExpectedToken(L.RPAREN);
+    const rparen = this.parseToken(L.RPAREN);
     if (rparen instanceof MissingTokenNode) {
       this.reportDiagnostic({
         message: "Expected ')'",
@@ -412,7 +413,7 @@ export class Parser {
     }
 
     const value = this.peekToken().text === "true";
-    return new LiteralNode([this.parseKnownToken()], value, {
+    return new LiteralNode([this.parseToken(L.Boolean)], value, {
       kind: "Literal",
       value,
       valueType: booleanType,
@@ -424,7 +425,7 @@ export class Parser {
   }
 
   private parseNumberLiteral() {
-    const syntaxToken = this.parseKnownToken();
+    const syntaxToken = this.parseToken(L.INT);
     const value = parseInt(syntaxToken.text);
     const literalType: LiteralType = {
       kind: "Literal",
@@ -435,9 +436,9 @@ export class Parser {
   }
 
   private parseLineStringLiteral() {
-    const openQuote = this.parseExpectedToken(L.QUOTE_OPEN);
-    const textToken = this.parseExpectedToken(L.LineStrText);
-    const closeQuote = this.parseExpectedToken(L.QUOTE_CLOSE);
+    const openQuote = this.parseToken(L.QUOTE_OPEN);
+    const textToken = this.parseToken(L.LineString);
+    const closeQuote = this.parseToken(L.QUOTE_CLOSE);
 
     if (closeQuote instanceof MissingTokenNode) {
       this.reportDiagnostic({
@@ -461,12 +462,12 @@ export class Parser {
   }
 
   private parseIdentifier() {
-    const token = this.parseExpectedToken(L.Identifier);
+    const token = this.parseToken(L.Identifier);
     return new IdentifierNode(token);
   }
 
   private parseIdentifierInvocation() {
-    const token = this.parseExpectedToken(L.Identifier);
+    const token = this.parseToken(L.Identifier);
     const callArgs = this.parseValueArguments();
     return new IdentifierInvocationNode(token, ...callArgs);
   }
@@ -514,7 +515,7 @@ export class Parser {
       return [null, [], null, lambdaLiteral];
     }
 
-    const lparen = this.parseExpectedToken(L.LPAREN);
+    const lparen = this.parseToken(L.LPAREN);
     this.advanceWhileNL();
 
     const args: ExpressionNode[] = [];
@@ -534,7 +535,7 @@ export class Parser {
       }
     }
 
-    const rparen = this.parseExpectedToken(L.RPAREN);
+    const rparen = this.parseToken(L.RPAREN);
 
     if (this.peek() === L.LCURL) {
       const lambdaLiteral = this.parseLambdaLiteral();
@@ -546,9 +547,9 @@ export class Parser {
 
   private parseMemberSuffix(expression: ExpressionNode): MemberNode {
     this.advanceWhileNL();
-    this.parseExpectedToken(L.DOT);
+    this.parseToken(L.DOT);
     this.advanceWhileNL();
-    const token = this.parseExpectedToken(L.Identifier);
+    const token = this.parseToken(L.Identifier);
 
     if (this.peek() === L.LPAREN || this.peek() === L.LCURL) {
       const callArgs = this.parseValueArguments();
@@ -558,19 +559,15 @@ export class Parser {
     return new MemberNode(expression, token);
   }
 
-  private parseExpectedToken(tokenType: number): TokenNode {
+  private parseToken(tokenType: number): TokenNode {
     if (this.peek() === tokenType) {
-      return this.parseKnownToken();
+      const token = this.createActualToken(this.peekToken());
+      this.advance();
+      return token;
     }
 
     const token = this.peekToken();
     return this.createMissingToken(token, tokenType);
-  }
-
-  private parseKnownToken() {
-    const token = this.createActualToken(this.peekToken());
-    this.advance();
-    return token;
   }
 
   private createMissingToken(actualToken: Token, missingTokenType: number) {

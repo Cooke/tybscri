@@ -80,10 +80,10 @@ fragment Letter:
 	| UNICODE_CLASS_NL;
 
 // Strings
-QUOTE_OPEN: '"' -> pushMode(String);
+QUOTE_OPEN: '"' -> pushMode(LineStringMode);
 
-mode String;
+mode LineStringMode;
 
 QUOTE_CLOSE: '"' -> popMode;
 
-LineStrText: ~('\\' | '"')+;
+LineString: ~('"')+;

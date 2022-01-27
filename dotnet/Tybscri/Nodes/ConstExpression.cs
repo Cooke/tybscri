@@ -2,7 +2,7 @@
 
 namespace Tybscri.Nodes;
 
-internal class ConstExpression : Node
+public class ConstExpression : Node
 {
     public object? Value { get; }
     

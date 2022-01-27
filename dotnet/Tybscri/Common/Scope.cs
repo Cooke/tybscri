@@ -7,19 +7,35 @@ public record Scope
 {
     public static readonly Scope Empty = new Scope();
 
+    private readonly Scope? _parent = null;
     private readonly ImmutableList<Symbol> _symbols = ImmutableList<Symbol>.Empty;
 
     public Scope()
     {
     }
 
-    public Scope(IEnumerable<ExternalSymbol> symbols)
+    public Scope(IEnumerable<ExternalSymbol> symbols) : this(null, symbols)
     {
-        _symbols = symbols.Cast<Symbol>().ToImmutableList();
     }
 
-    public Symbol? GetLast(string name)
+    private Scope(Scope? parent, IEnumerable<Symbol> symbols)
     {
-        return _symbols.Find(x => x.Name == name);
+        _parent = parent;
+        _symbols = symbols.ToImmutableList();
+    }
+
+    public Symbol? ResolveLast(string name)
+    {
+        return _symbols.Find(x => x.Name == name) ?? _parent?.ResolveLast(name);
+    }
+
+    public Scope CreateChildScope(IEnumerable<Symbol> symbols)
+    {
+        return new Scope(this, symbols);
+    }
+
+    public Scope WithSymbol(SourceSymbol sourceSymbol)
+    {
+        return new Scope(_parent, _symbols.Add(sourceSymbol));
     }
 }

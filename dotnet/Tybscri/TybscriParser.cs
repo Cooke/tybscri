@@ -60,6 +60,11 @@ public class TybscriParser
 
     private Node ParseStatement()
     {
+        switch (Peek()) {
+            case L.FUN:
+                return ParseFunctionDeclaration();
+        }
+
         var exp = ParseExpression();
 
         if (exp is MissingExpression) {
@@ -67,6 +72,85 @@ public class TybscriParser
         }
 
         return exp;
+    }
+
+    private Node ParseFunctionDeclaration()
+    {
+        ParseToken(L.FUN);
+        var identifier = ParseToken(L.Identifier);
+        AdvanceWhileNL();
+        var parameters = ParseFunctionParameters();
+        AdvanceWhileNL();
+
+        // let type: TypeSyntax | null = null;
+        // if (this.peek() === L.COLON) {
+        //   this.advance();
+        //   type = this.parseType();
+        // }
+
+        AdvanceWhileNL();
+        var body = ParseBlock();
+        var functionNode = new Function(identifier, parameters, body);
+        return functionNode;
+    }
+
+    private IReadOnlyCollection<ParameterNode> ParseFunctionParameters()
+    {
+        ParseToken(L.LPAREN);
+        AdvanceWhileNL();
+
+        var valueParams = new List<ParameterNode>();
+        while (Peek() != L.RPAREN && Peek() != L.Eof) {
+            valueParams.Add(this.ParseParameter());
+            AdvanceWhileNL();
+            if (Peek() == L.COMMA) {
+                Advance();
+                AdvanceWhileNL();
+            }
+            else {
+                break;
+            }
+        }
+
+        ParseToken(L.RPAREN);
+
+        return valueParams;
+    }
+
+    private ParameterNode ParseParameter()
+    {
+        var ident = this.ParseToken(L.Identifier);
+        AdvanceWhileNL();
+        ParseToken(L.COLON);
+        AdvanceWhileNL();
+        var type = this.ParseType();
+        return new ParameterNode(ident, type);
+    }
+
+    private TypeNode ParseType()
+    {
+        return this.ParseSimpleType();
+    }
+
+    private TypeNode ParseSimpleType()
+    {
+        switch (Peek()) {
+            case L.QUOTE_OPEN:
+                var textToken = this.ParseLineString();
+                var type = new StringLiteralType(textToken.Text);
+                return new LiteralTypeNode(type);
+
+            case L.INT:
+                var token = ParseToken(L.INT);
+                var value = double.Parse(token.Text);
+                return new LiteralTypeNode(new NumberLiteralType(value));
+
+            case L.Identifier:
+                return new IdentifierTypeNode(ParseIdentifier());
+
+            default:
+                return new IdentifierTypeNode(new IdentifierNode(new MissingToken(PeekToken(), L.Identifier)));
+        }
     }
 
     public Node ParseExpression()
@@ -77,13 +161,13 @@ public class TybscriParser
     private Node ParsePostfixExpression()
     {
         var primaryExpression = ParsePrimaryExpression();
-        
+
         var exp = primaryExpression;
         while (true) {
-            // if (Peek() == L.LPAREN || Peek() == L.LCURL) {
-            //     exp = this.parseCallSuffix(exp);
-            //     continue;
-            // }
+            if (Peek() == L.LPAREN || Peek() == L.LCURL) {
+                exp = ParseCallSuffix(exp);
+                continue;
+            }
 
             // Predict memberSuffix
             var i = 1;
@@ -98,39 +182,56 @@ public class TybscriParser
 
             break;
         }
-        
+
         return exp;
+    }
+
+    private Invocation ParseCallSuffix(Node expression)
+    {
+        var args = ParseValueArguments();
+        return new Invocation(expression, args);
     }
 
     private Node ParsePrimaryExpression()
     {
-        return Peek() switch
-        {
-            L.IF => ParseIf(),
-            L.Boolean => ParseBooleanLiteral(),
-            L.Identifier => ParseIdentifier(),
-            L.NULL => ParseNull(),
-            L.QUOTE_OPEN => ParseLineStrText(),
-            L.INT => ParseNumber(),
-            _ => new MissingExpression()
-        };
+        switch (Peek()) {
+            case L.IF:
+                return ParseIf();
+            case L.Boolean:
+                return ParseBooleanLiteral();
+            case L.Identifier:
+                return ParseIdentifier();
+            case L.NULL:
+                return ParseNull();
+            case L.QUOTE_OPEN:
+                var textToken = ParseLineString();
+                return new ConstExpression(textToken.Text, new StringLiteralType(textToken.Text));
+            case L.INT:
+                var token = ParseToken(L.INT);
+                var value = double.Parse(token.Text);
+                return new ConstExpression(value, new NumberLiteralType(value));
+            default:
+                return new MissingExpression();
+        }
     }
 
-    private Node ParseMemberSuffix(Node expression) {
+    private Node ParseMemberSuffix(Node expression)
+    {
         AdvanceWhileNL();
         ParseToken(L.DOT);
         AdvanceWhileNL();
         var memberName = ParseToken(L.Identifier);
-    
+
         if (Peek() == L.LPAREN) {
             var callArgs = ParseValueArguments();
             return new MemberInvocation(expression, memberName, callArgs);
         }
-    
+
         return new MemberNode(expression, memberName);
     }
-    
-    private List<Node> ParseValueArguments() {
+
+    private List<Node> ParseValueArguments()
+    {
         // if (Peek() == L.LCURL) {
         //     const lambdaLiteral = this.parseLambdaLiteral();
         //     return [null, [], null, lambdaLiteral];
@@ -166,23 +267,12 @@ public class TybscriParser
         return args;
     }
 
-    private Node ParseNumber()
-    {
-        var token = ParseToken(L.INT);
-        return new ConstExpression(double.Parse(token.Text), StandardTypes.Number);
-    }
-
-    private Node ParseLineStrText()
+    private Token ParseLineString()
     {
         var openQuote = ParseToken(L.QUOTE_OPEN);
-        var textToken = ParseToken(L.LineStrText);
+        var textToken = ParseToken(L.LineString);
         var closeQuote = ParseToken(L.QUOTE_CLOSE);
-
-        if (textToken is ConcreteToken concreteToken) {
-            return new ConstExpression(concreteToken.Text, StandardTypes.String);
-        }
-
-        return new ConstExpression(null, UnknownType.Instance);
+        return textToken;
     }
 
     private Node ParseNull()
@@ -190,10 +280,9 @@ public class TybscriParser
         return new ConstExpression(null, StandardTypes.Null);
     }
 
-    private Node ParseIdentifier()
+    private IdentifierNode ParseIdentifier()
     {
-        var token = ParseToken(L.Identifier);
-        return new IdentifierNode(token);
+        return new IdentifierNode(ParseToken(L.Identifier));
     }
 
     private Node ParseBooleanLiteral()
@@ -257,8 +346,6 @@ public class TybscriParser
         }
 
         var rcurl = ParseToken(TybscriLexer.RCURL);
-        AdvanceWhileNL();
-
         return new Block(lcurl, statements.ToArray(), rcurl);
     }
 
