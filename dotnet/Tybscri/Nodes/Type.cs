@@ -6,7 +6,7 @@ public abstract class TypeNode : Node
 {
     public abstract TybscriType Type { get; }
     
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
         throw new NotSupportedException("A type node cannot be converted to an LINQ expression");
     }
@@ -33,7 +33,7 @@ public class IdentifierTypeNode : TypeNode
         Identifier = identifier;
     }
 
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
         _symbol = Scope.ResolveLast(Identifier.Name);
         _symbol?.ResolveTypes(context);

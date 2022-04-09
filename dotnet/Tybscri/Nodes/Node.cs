@@ -8,7 +8,7 @@ public abstract class Node
 
     public Scope Scope { get; protected set; } = Scope.Empty;
 
-    public TybscriType? ValueType { get; protected set; }
+    public TybscriType ValueType { get; protected set; } = StandardTypes.Unknown;
 
     protected Node(params Node[] children)
     {
@@ -25,12 +25,12 @@ public abstract class Node
         return scope;
     }
 
-    public virtual void ResolveTypes(CompileContext context, TybscriType? expectedType)
+    public virtual void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
         foreach (var child in Children) {
-            child.ResolveTypes(context, expectedType);
+            child.ResolveTypes(context, analyzeContext);
         }
     }
 
-    public abstract Expression ToClrExpression();
+    public abstract Expression ToClrExpression(GenerateContext generateContext);
 }

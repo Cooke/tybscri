@@ -12,17 +12,17 @@ public class IdentifierNode : Node
         Name = token.Text;
     }
 
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
         _symbol = Scope.ResolveLast(Name);
         _symbol?.ResolveTypes(context);
         ValueType = _symbol?.ValueType ?? StandardTypes.Unknown;
     }
 
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_symbol == null) {
-            throw new InvalidOperationException("Unknown identifier");
+            throw new CompileException($"Unknown identifier: {Name}");
         }
 
         return _symbol.ClrExpression;

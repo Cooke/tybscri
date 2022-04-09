@@ -44,6 +44,6 @@ namespace CookeRpc.AspNetCore.Model
 
     public class TybscriTypeAttribute : Attribute
     {
-        public string Name { get; }
+        public string? Name { get; }
     }
 }

@@ -210,6 +210,10 @@ public class TybscriParser
                 var token = ParseToken(L.INT);
                 var value = double.Parse(token.Text);
                 return new ConstExpression(value, new NumberLiteralType(value));
+            case L.RETURN:
+                Advance();
+                var expression = (Peek() != L.NL) ? ParseExpression() : null;
+                return new ReturnExpression(expression);
             default:
                 return new MissingExpression();
         }

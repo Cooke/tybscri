@@ -11,6 +11,7 @@ public class TybscriCompiler
 
     public TybscriCompiler()
     {
+        _typeMapper.Add(typeof(int), StandardTypes.Number);
         _typeMapper.Add(typeof(double), StandardTypes.Number);
         _typeMapper.Add(typeof(bool), StandardTypes.Boolean);
         _typeMapper.Add(typeof(string), StandardTypes.String);
@@ -25,9 +26,9 @@ public class TybscriCompiler
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
         var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
         expressionNode.SetupScopes(scope);
-        expressionNode.ResolveTypes(new CompileContext(), expectedResultType);
+        expressionNode.ResolveTypes(new CompileContext(), new AnalyzeContext(expectedResultType));
 
-        var clrExpression = expressionNode.ToClrExpression();
+        var clrExpression = expressionNode.ToClrExpression(new GenerateContext(Expression.Label()));
         var lambda = Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression);
         return lambda.Compile();
     }
@@ -56,8 +57,8 @@ public class TybscriCompiler
         var parser = new TybscriParser(script);
         var scriptNode = parser.ParseScript();
         scriptNode.SetupScopes(new Scope());
-        scriptNode.ResolveTypes(new CompileContext(), null);
-        var clrExpression = scriptNode.ToClrExpression();
+        scriptNode.ResolveTypes(new CompileContext(), new AnalyzeContext(_typeMapper.Map(typeof(TResult))));
+        var clrExpression = scriptNode.ToClrExpression(new GenerateContext(Expression.Label()));
         var lambda = Expression.Lambda<Func<TResult>>(clrExpression);
         var compileScript = lambda.Compile();
         return _ => compileScript();

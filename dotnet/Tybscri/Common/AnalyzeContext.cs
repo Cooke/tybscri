@@ -1,8 +1,3 @@
 ﻿namespace Tybscri;
 
-public class CompileContext
-{
-    public CompileContext()
-    {
-    }
-}
+public record AnalyzeContext(TybscriType? ExpectedType);

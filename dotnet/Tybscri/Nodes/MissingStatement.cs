@@ -4,8 +4,8 @@ namespace Tybscri.Nodes;
 
 internal class MissingStatement : Node
 {
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
-        throw new NotImplementedException();
+        throw new CompileException("Missing statement");
     }
 }

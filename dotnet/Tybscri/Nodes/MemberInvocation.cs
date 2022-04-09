@@ -21,9 +21,9 @@ public class MemberInvocation : Node
         Arguments = arguments;
     }
 
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
-        Instance.ResolveTypes(context, null);
+        Instance.ResolveTypes(context, analyzeContext);
 
         if (Instance.ValueType is null) {
             // An error should be reported elsewhere
@@ -43,13 +43,13 @@ public class MemberInvocation : Node
         ValueType = _member.Type;
     }
 
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_member is null) {
             throw new InvalidOperationException("Unknown member");
         }
 
-        return Expression.Call(Instance.ToClrExpression(), (MethodInfo)_member.MemberInfo,
-            Arguments.Select(x => x.ToClrExpression()));
+        return Expression.Call(Instance.ToClrExpression(generateContext), (MethodInfo)_member.MemberInfo,
+            Arguments.Select(x => x.ToClrExpression(generateContext)));
     }
 }

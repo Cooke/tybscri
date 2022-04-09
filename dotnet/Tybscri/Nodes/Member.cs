@@ -17,9 +17,9 @@ public class MemberNode : Node
         MemberName = memberName;
     }
 
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
-        Expression.ResolveTypes(context, null);
+        Expression.ResolveTypes(context, analyzeContext);
 
         if (Expression.ValueType is null) {
             // An error should be reported elsewhere
@@ -39,13 +39,13 @@ public class MemberNode : Node
         ValueType = _member.Type;
     }
 
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_member is null) {
             throw new InvalidOperationException("Unknown member");
         }
 
-        var memberExpression = System.Linq.Expressions.Expression.Property(Expression.ToClrExpression(),
+        var memberExpression = System.Linq.Expressions.Expression.Property(Expression.ToClrExpression(generateContext),
             (PropertyInfo)_member.MemberInfo);
 
         // if (memberExpression.Type.IsAssignableTo(_member.Type.ClrType)) {

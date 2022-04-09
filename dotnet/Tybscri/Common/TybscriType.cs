@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.Immutable;
+using System.Linq.Expressions;
 using System.Reflection;
 using Tybscri.Utils;
 
@@ -9,8 +10,60 @@ public abstract class TybscriType
     public abstract Type ClrType { get; }
 
     public abstract IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName);
-    
+
     public abstract bool IsAssignableFrom(TybscriType source);
+}
+
+public class UnionType : TybscriType
+{
+    private readonly IImmutableSet<TybscriType> _types;
+
+    public static TybscriType Create(params TybscriType[] types)
+    {
+        if (types.Length == 0) {
+            return NeverType.Instance;
+        }
+
+        if (types.Length == 1) {
+            return types[0];
+        }
+
+        var resultTypes = new HashSet<TybscriType>(types.Length);
+        foreach (var type in types.Where(x => !x.Equals(StandardTypes.Never))) {
+            if (!resultTypes.Any(x => x.IsAssignableFrom(type))) {
+                resultTypes.RemoveWhere(type.IsAssignableFrom);
+                resultTypes.Add(type);
+            }
+        }
+
+        if (resultTypes.Count == 0) {
+            return StandardTypes.Never;
+        }
+
+        if (resultTypes.Count == 1) {
+            return resultTypes.First();
+        }
+
+        return new UnionType(resultTypes.ToImmutableHashSet());
+    }
+
+
+    private UnionType(IImmutableSet<TybscriType> types)
+    {
+        _types = types;
+    }
+
+    public override Type ClrType => typeof(object);
+
+    public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return _types.Any(x => x.IsAssignableFrom(source));
+    }
 }
 
 public class FuncType : TybscriType
@@ -68,6 +121,49 @@ public class TybscriMember
     public string Name { get; }
 }
 
+public class VoidType : TybscriType
+{
+    public static readonly VoidType Instance = new VoidType();
+
+    private VoidType()
+    {
+    }
+
+    public override Type ClrType => typeof(void);
+
+    public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
+    {
+        return ArraySegment<TybscriMember>.Empty;
+    }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return source.Equals(this);
+    }
+}
+
+public class NeverType : TybscriType
+{
+    public static readonly NeverType Instance = new NeverType();
+
+    private NeverType()
+    {
+    }
+
+    public override Type ClrType =>
+        throw new InvalidOperationException("A CLR type cannot be obtained from the never type");
+
+    public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
+    {
+        return ArraySegment<TybscriMember>.Empty;
+    }
+
+    public override bool IsAssignableFrom(TybscriType source)
+    {
+        return source.Equals(this);
+    }
+}
+
 public class UnknownType : TybscriType
 {
     public static readonly UnknownType Instance = new UnknownType();
@@ -116,7 +212,7 @@ public class ObjectType : TybscriType
 public class StringLiteralType : TybscriType
 {
     public string Value { get; }
-    
+
     public override Type ClrType => typeof(string);
 
     public StringLiteralType(string value)
@@ -138,7 +234,7 @@ public class StringLiteralType : TybscriType
 public class NumberLiteralType : TybscriType
 {
     public double Value { get; }
-    
+
     public override Type ClrType => typeof(double);
 
     public NumberLiteralType(double value)

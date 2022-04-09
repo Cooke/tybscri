@@ -18,11 +18,11 @@ internal class IfNode : Node
         ElseNode = elseNode;
     }
 
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
-        var elseExp = ElseNode?.ToClrExpression() ?? Expression.Constant(null, typeof(object));
-        var thenExp = Then.ToClrExpression();
-        return Expression.Condition(Exp.ToClrExpression(), thenExp, elseExp,
+        var elseExp = ElseNode?.ToClrExpression(generateContext) ?? Expression.Constant(null, typeof(object));
+        var thenExp = Then.ToClrExpression(generateContext);
+        return Expression.Condition(Exp.ToClrExpression(generateContext), thenExp, elseExp,
             ClrTypeUtils.FindCommonType(thenExp.Type, elseExp.Type));
     }
 }

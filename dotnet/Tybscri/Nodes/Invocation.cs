@@ -16,9 +16,9 @@ public class Invocation : Node
         Arguments = arguments;
     }
 
-    public override void ResolveTypes(CompileContext context, TybscriType? outerExpectedType = null)
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
-        Target.ResolveTypes(context, null);
+        Target.ResolveTypes(context, analyzeContext);
 
         if (Target.ValueType is not FuncType funcType) {
             // context.onDiagnosticMessage?.({
@@ -40,7 +40,7 @@ public class Invocation : Node
             var arg = args[i];
             var parameter = funcType.Parameters.ElementAtOrDefault(i);
             var expectedType = parameter?.Type;
-            arg.ResolveTypes(context, expectedType);
+            arg.ResolveTypes(context, analyzeContext with { ExpectedType = expectedType });
 
             if (expectedType is null || arg.ValueType is null) {
                 throw new NotImplementedException("Should report error");
@@ -66,8 +66,8 @@ public class Invocation : Node
         ValueType = funcType.ReturnType;
     }
 
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
-        return Expression.Invoke(Target.ToClrExpression(), Arguments.Select(x => x.ToClrExpression()));
+        return Expression.Invoke(Target.ToClrExpression(generateContext), Arguments.Select(x => x.ToClrExpression(generateContext)));
     }
 }

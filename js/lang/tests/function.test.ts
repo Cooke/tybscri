@@ -184,3 +184,9 @@ describe("Functions", function () {
     });
   });
 });
+
+var future = foo();
+const bar = 123;
+function foo() {
+  return bar;
+}

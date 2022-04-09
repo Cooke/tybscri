@@ -6,16 +6,14 @@ public class ConstExpression : Node
 {
     public object? Value { get; }
     
-    public TybscriType Type { get; }
-
     public ConstExpression(object? value, TybscriType type)
     {
         Value = value;
-        Type = type;
+        ValueType = type;
     }
 
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
-        return Expression.Constant(Value, Type.ClrType);
+        return Expression.Constant(Value, ValueType.ClrType);
     }
 }

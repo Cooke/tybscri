@@ -5,7 +5,7 @@ namespace Tybscri.Nodes;
 
 public class ScriptNode : Node
 {
-    private List<SourceSymbol> _scopeSymbols;
+    private List<SourceSymbol>? _scopeSymbols;
 
     public ScriptNode(Node[] statements) : base(statements)
     {
@@ -28,7 +28,23 @@ public class ScriptNode : Node
         return scope;
     }
 
-    public override BlockExpression ToClrExpression() =>
-        Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(),
-            Children.Select(x => x.ToClrExpression()));
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    {
+        base.ResolveTypes(context, analyzeContext);
+        ValueType = Children.Last().ValueType;
+    }
+
+    public override Expression ToClrExpression(GenerateContext generateContext)
+    {
+        if (_scopeSymbols == null) {
+            throw new InvalidOperationException("Scopes have not been setup");
+        }
+
+        var scriptExitLabel = Expression.Label(ValueType.ClrType, "LastScriptStatement");
+        var innerGenerateContext = generateContext with { ReturnLabel = scriptExitLabel };
+
+        return Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(),
+            Children.Select(x => x.ToClrExpression(innerGenerateContext)).Select((exp, index) =>
+                index < Children.Length - 1 ? exp : Expression.Label(scriptExitLabel, exp)));
+    }
 }

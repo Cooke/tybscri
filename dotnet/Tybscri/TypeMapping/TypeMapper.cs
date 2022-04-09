@@ -109,7 +109,7 @@ public class TypeMapper
                 {
                     var returnType = Map(methodInfo.ReturnType);
                     var parameters = methodInfo.GetParameters()
-                        .Select(p => new FuncParameter(p.Name, Map(p.ParameterType)));
+                        .Select((p, i) => new FuncParameter(p.Name ?? $"arg{i}", Map(p.ParameterType)));
                     props.Add(new TybscriMember(methodInfo.Name, new FuncType(returnType, parameters), memberInfo));
                     break;
                 }

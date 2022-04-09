@@ -16,7 +16,7 @@ public class Function : Node, ISymbolNode
     public Token Name { get; }
     public IReadOnlyCollection<ParameterNode> Parameters { get; }
     public Block Body { get; }
-    
+
     private AnalyzeState _analyzeState;
     private ParameterExpression? _parameterExpression;
 
@@ -39,7 +39,7 @@ public class Function : Node, ISymbolNode
         return scope;
     }
 
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType)
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
         if (_analyzeState == AnalyzeState.Analyzed) {
             return;
@@ -64,33 +64,57 @@ public class Function : Node, ISymbolNode
             par.ResolveTypes(context);
         }
 
-        Body.ResolveTypes(context, null);
+        Body.ResolveTypes(context, new AnalyzeContext(null));
 
         if (_analyzeState != AnalyzeState.Analyzing) {
             // Analyzed already done in a circular analyze
             return;
         }
 
-        // var allReturns = this.FindReturns(Body);
-        // const unionType: UnionType = {
-        //   kind: "Union",
-        //   types: allReturns
-        //     .map((x) => x.expression?.valueType ?? nullType)
-        //     .concat([this.body.valueType]),
-        // };
-        //
-        // const returnType = reduceUnionType(unionType);
-        var returnType = StandardTypes.String;
+        var allReturns = FindReturns(Body).Concat(new[] { Body.ValueType });
+        var returnType = UnionType.Create(allReturns.ToArray());
 
         _analyzeState = AnalyzeState.Analyzed;
         ValueType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.Type.Type)));
         _parameterExpression = Expression.Parameter(ValueType.ClrType, Name.Text);
     }
 
-    public override Expression ToClrExpression()
+    private IEnumerable<TybscriType> FindReturns(Node node)
     {
-        var lambdaExpression = Expression.Lambda(Body.ToClrExpression(),
-            (IEnumerable<ParameterExpression>?)Parameters.Select(x => x.LinqExpression));
+        if (node is Function) {
+            yield break;
+        }
+
+        if (node is ReturnExpression nodeExpression) {
+            yield return nodeExpression.ReturnValue?.ValueType ?? UnknownType.Instance;
+        }
+
+        foreach (var child in node.Children) {
+            foreach (var innerReturn in FindReturns(child)) {
+                yield return innerReturn;
+            }
+        }
+    }
+
+    public override Expression ToClrExpression(GenerateContext generateContext)
+    {
+        if (_parameterExpression == null) {
+            throw new InvalidOperationException("Invalid function state");
+        }
+
+        if (ValueType is not FuncType funcType) {
+            throw new InvalidOperationException("Cannot compile function");
+        }
+
+        var clrReturnType = funcType.ReturnType.ClrType;
+        var returnLabel = Expression.Label(clrReturnType, "LastFuncStatement");
+        var innerGenerateContext = generateContext with { ReturnLabel = returnLabel };
+        Expression funcBlock = Body.ValueType == NeverType.Instance
+            ? Expression.Block(Body.ToClrExpression(innerGenerateContext),
+                Expression.Label(returnLabel,
+                    Expression.Throw(Expression.New(typeof(InvalidOperationException)), clrReturnType)))
+            : Expression.Label(returnLabel, Body.ToClrExpression(innerGenerateContext));
+        var lambdaExpression = Expression.Lambda(funcBlock, Parameters.Select(x => x.LinqExpression));
         return Expression.Assign(_parameterExpression, lambdaExpression);
     }
     //
@@ -110,10 +134,10 @@ public class Function : Node, ISymbolNode
     //
     //   return returns;
     // }
-    
+
     public void ResolveTypes(CompileContext context)
     {
-        ResolveTypes(context, null);
+        ResolveTypes(context, new AnalyzeContext(null));
     }
 }
 
@@ -131,21 +155,21 @@ public class ParameterNode : Node, ISymbolNode
         Type = type;
     }
 
-    public override void ResolveTypes(CompileContext context, TybscriType? expectedType = null)
+    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
     {
-        Type.ResolveTypes(context, expectedType);
+        Type.ResolveTypes(context, analyzeContext);
         _linqExpression = Expression.Parameter(Type.Type.ClrType, Name.Text);
     }
 
-    public override Expression ToClrExpression()
+    public override Expression ToClrExpression(GenerateContext generateContext)
     {
         return _linqExpression ?? throw new InvalidOperationException();
     }
 
     public ParameterExpression LinqExpression => _linqExpression ?? throw new InvalidOperationException();
-    
+
     public void ResolveTypes(CompileContext context)
     {
-        ResolveTypes(context, null);
+        ResolveTypes(context, new AnalyzeContext(null));
     }
 }
