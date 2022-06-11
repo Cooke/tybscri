@@ -101,7 +101,7 @@ public class TybscriParser
 
         var valueParams = new List<ParameterNode>();
         while (Peek() != L.RPAREN && Peek() != L.Eof) {
-            valueParams.Add(this.ParseParameter());
+            valueParams.Add(ParseParameter());
             AdvanceWhileNL();
             if (Peek() == L.COMMA) {
                 Advance();
@@ -119,24 +119,24 @@ public class TybscriParser
 
     private ParameterNode ParseParameter()
     {
-        var ident = this.ParseToken(L.Identifier);
+        var ident = ParseToken(L.Identifier);
         AdvanceWhileNL();
         ParseToken(L.COLON);
         AdvanceWhileNL();
-        var type = this.ParseType();
+        var type = ParseType();
         return new ParameterNode(ident, type);
     }
 
     private TypeNode ParseType()
     {
-        return this.ParseSimpleType();
+        return ParseSimpleType();
     }
 
     private TypeNode ParseSimpleType()
     {
         switch (Peek()) {
             case L.QUOTE_OPEN:
-                var textToken = this.ParseLineString();
+                var textToken = ParseLineString();
                 var type = new StringLiteralType(textToken.Text);
                 return new LiteralTypeNode(type);
 
@@ -214,9 +214,69 @@ public class TybscriParser
                 Advance();
                 var expression = (Peek() != L.NL) ? ParseExpression() : null;
                 return new ReturnExpression(expression);
+            case L.LBRACKET:
+                return ParseCollectionLiteral();
+            case L.LCURL:
+                return ParseLambdaLiteral();
             default:
                 return new MissingExpression();
         }
+    }
+
+    private Node ParseLambdaLiteral()
+    {
+        var lcurl = this.ParseToken(L.LCURL);
+        this.AdvanceWhileNL();
+
+        var statements =  new List<Node>();
+        while (this.Peek() != L.RCURL && this.Peek() != L.Eof) {
+            var statement = this.ParseStatement();
+            statements.Add(statement);
+            if (statement is MissingStatement) {
+                this.Advance();
+            }
+
+            this.AdvanceWhileNL();
+        }
+
+        var rcurl = this.ParseToken(L.RCURL);
+        return new LambdaLiteralNode(lcurl, statements, rcurl);
+    }
+
+    private Node ParseCollectionLiteral()
+    {
+        var lbracket = ParseToken(L.LBRACKET);
+        AdvanceWhileNL();
+
+        List<Node> expressions = new List<Node>();
+        var first = true;
+        while (Peek() != L.RBRACKET && Peek() != L.Eof) {
+            if (!first) {
+                var comma = ParseToken(L.COMMA);
+                if (comma is MissingToken) {
+                    // this.reportDiagnostic({
+                    //     message: "Missing commna",
+                    //     severity: DiagnosticSeverity.Error,
+                    //     span: comma.span,
+                    // });
+                }
+                AdvanceWhileNL();
+            }
+
+            first = false;
+            var exp = ParseExpression();
+            expressions.Add(exp);
+            if (exp is MissingExpression) {
+                Advance();
+            }
+
+            AdvanceWhileNL();
+        }
+
+        var rbracket = ParseToken(L.RBRACKET);
+        return new CollectionLiteral(expressions);
+        // new Invocation(new LiteralTypeNode(StandardTypes.List))
+        // return new Invocation( new IdentifierTypeNode(new IdentifierNode("List")))
     }
 
     private Node ParseMemberSuffix(Node expression)

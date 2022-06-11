@@ -8,5 +8,5 @@ public interface ISymbolNode
     
     TybscriType ValueType { get; }
     
-    void ResolveTypes(CompileContext context);
+    void ResolveTypes(AnalyzeContext context);
 }

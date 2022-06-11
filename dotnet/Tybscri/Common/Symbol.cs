@@ -5,7 +5,7 @@ namespace Tybscri;
 
 public abstract class Symbol
 {
-    public abstract void ResolveTypes(CompileContext context);
+    public abstract void ResolveTypes(AnalyzeContext context);
 
     public abstract TybscriType ValueType { get; }
     
@@ -26,7 +26,7 @@ public class ExternalSymbol : Symbol
         ValueType = valueType;
     }
 
-    public override void ResolveTypes(CompileContext context)
+    public override void ResolveTypes(AnalyzeContext context)
     {
     }
 
@@ -39,13 +39,20 @@ public class ExternalSymbol : Symbol
 
 public class SourceSymbol : Symbol
 {
+    private readonly Func<ISymbolNode> _laterSymbol;
+
     public SourceSymbol(string name, ISymbolNode node)
     {
         Name = name;
         Node = node;
     }
 
-    public override void ResolveTypes(CompileContext context)
+    public SourceSymbol(string name, Func<ISymbolNode> laterSymbol)
+    {
+        _laterSymbol = laterSymbol;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
     {
         Node.ResolveTypes(context);
     }
@@ -53,8 +60,8 @@ public class SourceSymbol : Symbol
     public override TybscriType ValueType => Node.ValueType;
     
     public override string Name { get; }
-    
-    public ISymbolNode Node { get; }
+
+    public ISymbolNode Node => _laterSymbol();
 
     public override Expression ClrExpression => Node.LinqExpression;
 }

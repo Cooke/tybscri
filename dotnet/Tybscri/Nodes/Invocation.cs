@@ -15,10 +15,19 @@ public class Invocation : Node
         Target = target;
         Arguments = arguments;
     }
-
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    
+    public override void SetupScopes(Scope scope)
     {
-        Target.ResolveTypes(context, analyzeContext);
+        foreach (var child in Children) {
+            child.SetupScopes(scope);
+        }
+
+        Scope = scope;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+        Target.ResolveTypes(context);
 
         if (Target.ValueType is not FuncType funcType) {
             // context.onDiagnosticMessage?.({
@@ -40,7 +49,7 @@ public class Invocation : Node
             var arg = args[i];
             var parameter = funcType.Parameters.ElementAtOrDefault(i);
             var expectedType = parameter?.Type;
-            arg.ResolveTypes(context, analyzeContext with { ExpectedType = expectedType });
+            arg.ResolveTypes(context with { ExpectedType = expectedType });
 
             if (expectedType is null || arg.ValueType is null) {
                 throw new NotImplementedException("Should report error");

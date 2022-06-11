@@ -16,15 +16,19 @@ public class MemberNode : Node
         Expression = expression;
         MemberName = memberName;
     }
-
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    
+    public override void SetupScopes(Scope scope)
     {
-        Expression.ResolveTypes(context, analyzeContext);
-
-        if (Expression.ValueType is null) {
-            // An error should be reported elsewhere
-            return;
+        foreach (var child in Children) {
+            child.SetupScopes(scope);
         }
+
+        Scope = scope;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+        Expression.ResolveTypes(context);
 
         var matchingMembers = Expression.ValueType.FindMembersByName(MemberName.Text);
         if (matchingMembers.Count == 0) {

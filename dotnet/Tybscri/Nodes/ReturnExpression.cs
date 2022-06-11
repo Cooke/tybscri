@@ -9,12 +9,23 @@ public class ReturnExpression : Node
     public ReturnExpression(Node? returnValue) : base(returnValue != null ? new[] { returnValue } : Array.Empty<Node>())
     {
         ReturnValue = returnValue;
+        ValueType = NeverType.Instance;
+    }
+    
+    public override void SetupScopes(Scope scope)
+    {
+        foreach (var child in Children) {
+            child.SetupScopes(scope);
+        }
+
+        Scope = scope;
     }
 
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    public override void ResolveTypes(AnalyzeContext context)
     {
-        base.ResolveTypes(context, analyzeContext);
-        ValueType = NeverType.Instance;
+        foreach (var child in Children) {
+            child.ResolveTypes(context);
+        }
     }
 
     public override Expression ToClrExpression(GenerateContext generateContext)

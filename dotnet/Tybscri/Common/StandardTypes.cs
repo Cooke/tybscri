@@ -4,6 +4,12 @@ namespace Tybscri;
 
 public static class StandardTypes
 {
+    private static readonly TypeParameter ItemTypeParameter =
+        new TypeParameter("T", typeof(List<>).GetGenericArguments()[0]);
+
+    public static readonly GenericObjectType List = new GenericObjectType(typeof(List<>), new[] { ItemTypeParameter },
+        new[] { ItemTypeParameter }, new Lazy<IReadOnlyCollection<TybscriMember>>(Array.Empty<TybscriMember>()));
+
     public static readonly TybscriType Number = new ObjectType(typeof(double),
         new Lazy<IReadOnlyCollection<TybscriMember>>(Array.Empty<TybscriMember>));
 
@@ -26,7 +32,7 @@ public static class StandardTypes
     // If function never returns, a value will never be calculated etc.
     // Basically the empty set of values
     public static readonly TybscriType Never = NeverType.Instance;
-    
+
     // A function that does not return anything useful returns void.
     // A variable may not be assigned to void.
     public static readonly TybscriType Void = VoidType.Instance;

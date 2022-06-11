@@ -10,26 +10,27 @@ public class Block : Node
     {
     }
 
-    public override Scope SetupScopes(Scope scope)
+    public override void SetupScopes(Scope scope)
     {
+        Scope = scope;
+        
         _scopeSymbols = new List<SourceSymbol>();
         foreach (var child in Children.OfType<Function>()) {
             _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
         }
 
         var childScope = scope.CreateChildScope(_scopeSymbols);
-        Scope = childScope;
-
         foreach (var child in Children) {
             child.SetupScopes(childScope);
+            childScope = child.Scope;
         }
-
-        return scope;
     }
 
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    public override void ResolveTypes(AnalyzeContext context)
     {
-        base.ResolveTypes(context, analyzeContext);
+        foreach (var child in Children) {
+            child.ResolveTypes(context);
+        }
         
         ValueType = Children.LastOrDefault()?.ValueType ?? UnknownType.Instance;
     }

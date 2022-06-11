@@ -20,15 +20,19 @@ public class MemberInvocation : Node
         MemberName = memberName;
         Arguments = arguments;
     }
-
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    
+    public override void SetupScopes(Scope scope)
     {
-        Instance.ResolveTypes(context, analyzeContext);
-
-        if (Instance.ValueType is null) {
-            // An error should be reported elsewhere
-            return;
+        foreach (var child in Children) {
+            child.SetupScopes(scope);
         }
+
+        Scope = scope;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+        Instance.ResolveTypes(context);
 
         var matchingMembers = Instance.ValueType.FindMembersByName(MemberName.Text);
         if (matchingMembers.Count == 0) {

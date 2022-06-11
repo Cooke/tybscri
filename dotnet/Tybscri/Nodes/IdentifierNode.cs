@@ -7,12 +7,22 @@ public class IdentifierNode : Node
     private Symbol? _symbol;
     public string Name { get; }
 
+    public IdentifierNode(String name)
+    {
+        Name = name;
+    }
+    
     public IdentifierNode(Token token)
     {
         Name = token.Text;
     }
+    
+    public override void SetupScopes(Scope scope)
+    {
+        Scope = scope;
+    }
 
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    public override void ResolveTypes(AnalyzeContext context)
     {
         _symbol = Scope.ResolveLast(Name);
         _symbol?.ResolveTypes(context);

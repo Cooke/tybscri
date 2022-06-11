@@ -28,7 +28,7 @@ public class Function : Node, ISymbolNode
         Body = body;
     }
 
-    public override Scope SetupScopes(Scope scope)
+    public override void SetupScopes(Scope scope)
     {
         foreach (var par in Parameters) {
             par.SetupScopes(scope);
@@ -36,10 +36,9 @@ public class Function : Node, ISymbolNode
 
         Body.SetupScopes(scope.CreateChildScope(Parameters.Select(x => new SourceSymbol(x.Name.Text, x))));
         Scope = scope;
-        return scope;
     }
 
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    public override void ResolveTypes(AnalyzeContext context)
     {
         if (_analyzeState == AnalyzeState.Analyzed) {
             return;
@@ -64,7 +63,7 @@ public class Function : Node, ISymbolNode
             par.ResolveTypes(context);
         }
 
-        Body.ResolveTypes(context, new AnalyzeContext(null));
+        Body.ResolveTypes(new AnalyzeContext(null));
 
         if (_analyzeState != AnalyzeState.Analyzing) {
             // Analyzed already done in a circular analyze
@@ -137,7 +136,7 @@ public class Function : Node, ISymbolNode
 
     public void ResolveTypes(CompileContext context)
     {
-        ResolveTypes(context, new AnalyzeContext(null));
+        ResolveTypes(new AnalyzeContext(null));
     }
 }
 
@@ -155,9 +154,14 @@ public class ParameterNode : Node, ISymbolNode
         Type = type;
     }
 
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Type.ResolveTypes(context, analyzeContext);
+        Scope = scope;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+        Type.ResolveTypes(context);
         _linqExpression = Expression.Parameter(Type.Type.ClrType, Name.Text);
     }
 
@@ -167,9 +171,4 @@ public class ParameterNode : Node, ISymbolNode
     }
 
     public ParameterExpression LinqExpression => _linqExpression ?? throw new InvalidOperationException();
-
-    public void ResolveTypes(CompileContext context)
-    {
-        ResolveTypes(context, new AnalyzeContext(null));
-    }
 }

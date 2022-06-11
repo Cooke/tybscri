@@ -17,6 +17,21 @@ internal class IfNode : Node
         Then = then;
         ElseNode = elseNode;
     }
+    
+    public override void SetupScopes(Scope scope)
+    {
+        Exp.SetupScopes(scope);
+        Then.SetupScopes(scope);
+        ElseNode?.SetupScopes(scope);
+        Scope = scope;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+        foreach (var child in Children) {
+            child.ResolveTypes(context);
+        }
+    }
 
     public override Expression ToClrExpression(GenerateContext generateContext)
     {

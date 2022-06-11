@@ -5,7 +5,12 @@ namespace Tybscri.Nodes;
 public abstract class TypeNode : Node
 {
     public abstract TybscriType Type { get; }
-    
+
+    public override void SetupScopes(Scope scope)
+    {
+        Scope = scope;
+    }
+
     public override Expression ToClrExpression(GenerateContext generateContext)
     {
         throw new NotSupportedException("A type node cannot be converted to an LINQ expression");
@@ -19,13 +24,17 @@ public class LiteralTypeNode : TypeNode
         Type = type;
     }
 
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+    }
+
     public override TybscriType Type { get; }
 }
 
 public class IdentifierTypeNode : TypeNode
 {
     private Symbol? _symbol;
-    
+
     public IdentifierNode Identifier { get; }
 
     public IdentifierTypeNode(IdentifierNode identifier)
@@ -33,7 +42,7 @@ public class IdentifierTypeNode : TypeNode
         Identifier = identifier;
     }
 
-    public override void ResolveTypes(CompileContext context, AnalyzeContext analyzeContext)
+    public override void ResolveTypes(AnalyzeContext context)
     {
         _symbol = Scope.ResolveLast(Identifier.Name);
         _symbol?.ResolveTypes(context);

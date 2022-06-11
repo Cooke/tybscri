@@ -12,6 +12,15 @@ public class ConstExpression : Node
         ValueType = type;
     }
 
+    public override void SetupScopes(Scope scope)
+    {
+        Scope = scope;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+    }
+
     public override Expression ToClrExpression(GenerateContext generateContext)
     {
         return Expression.Constant(Value, ValueType.ClrType);
