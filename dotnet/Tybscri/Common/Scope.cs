@@ -14,7 +14,7 @@ public record Scope
     {
     }
 
-    public Scope(IEnumerable<ExternalSymbol> symbols) : this(null, symbols)
+    public Scope(IEnumerable<Symbol> symbols) : this(null, symbols)
     {
     }
 

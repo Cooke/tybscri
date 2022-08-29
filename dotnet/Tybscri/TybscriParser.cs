@@ -240,7 +240,7 @@ public class TybscriParser
         }
 
         var rcurl = this.ParseToken(L.RCURL);
-        return new LambdaLiteralNode(lcurl, statements, rcurl);
+        return new LambdaLiteralNode(statements);
     }
 
     private Node ParseCollectionLiteral()

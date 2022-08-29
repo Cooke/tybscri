@@ -35,10 +35,16 @@ public class TybscriCompiler
 
     public Func<TResult> CompileExpression<TResult>(string script)
     {
-        var compile = CompileExpression<StandardContext, TResult>(script);
-        return () => compile(StandardContext.Instance);
+        var expression = CompileExpression<StandardContext, TResult>(script, _typeMapper.Map(typeof(TResult)));
+        return () => expression(StandardContext.Instance);
     }
 
+    public TResult EvaluateExpression<TResult>(string script, TybscriType? expectedResultType = null)
+    {
+        var func = CompileExpression<StandardContext, TResult>(script, expectedResultType);
+        return func(StandardContext.Instance);
+    }
+    
     public TResult EvaluateExpression<TResult>(string script)
     {
         var func = CompileExpression<TResult>(script);

@@ -19,6 +19,10 @@ public class TypeMapper
             return knownType;
         }
 
+        if (clrType == typeof(void)) {
+            return StandardTypes.Void;
+        }
+
         if (clrType.IsClass) {
             var objectType = DefineObject(clrType);
             Add(clrType, objectType);
