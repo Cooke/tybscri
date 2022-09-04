@@ -59,7 +59,7 @@ public class LiteralConstantsTests
     [Fact]
     public void Lambda()
     {
-        var moreThanOne = _compiler.EvaluateExpression<Func<double, bool>>("{ it > 1 }", new FuncType(StandardTypes.Boolean, new[] { new FuncParameter("x", StandardTypes.Number) }));
+        var moreThanOne = _compiler.EvaluateExpression<Func<double, bool>>("{ it > 1 }");
         Assert.True(moreThanOne(2));
         Assert.False(moreThanOne(1));
     }

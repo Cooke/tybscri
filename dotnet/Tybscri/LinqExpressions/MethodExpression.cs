@@ -1,37 +1,44 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Tybscri.LinqExpressions;
 
-public class MethodExpression : Expression
+public class TybscriMemberExpression : Expression
 {
+    private readonly Lazy<Expression> _reduced;
+    
     public Expression Instance { get; }
 
-    public TybscriMember MemberInfo { get; }
+    public MemberInfo MemberInfo { get; }
 
-    public MethodExpression(Expression instance, TybscriMember memberInfo)
+    public TybscriMemberExpression(Expression instance, MemberInfo memberInfo)
     {
         Instance = instance;
         MemberInfo = memberInfo;
+        _reduced = new Lazy<Expression>(CreateReduced);
     }
 
     public override ExpressionType NodeType => ExpressionType.Extension;
 
-    public override Type Type => MemberInfo.Type.ClrType;
+    public override Type Type => _reduced.Value.Type;
 
-    // public override Expression Reduce()
-    // {
-    //     if (MemberInfo.Type is TybscriFuncType funcType)
-    //     {
-    //         var paras = funcType.Parameters.Select(p => Parameter(p.Type.ClrType, p.Name)).ToArray();
-    //
-    //         MemberInfo.
-    //         var callMethodExpression = Call(Instance, (MethodInfo)MemberInfo.ClrMember, paras);
-    //         return Lambda(
-    //             funcType.ReturnType.ClrType == typeof(void)
-    //                 ? Block(callMethodExpression, Constant(null, typeof(object)))
-    //                 : (Expression) callMethodExpression, paras);
-    //     }
-    //
-    //     return MakeMemberAccess(Instance, MemberInfo.ClrMemberInfo);
-    // }
+    public override Expression Reduce()
+    {
+        return _reduced.Value;
+    }
+
+    private Expression CreateReduced()
+    {
+        switch (MemberInfo) {
+            case PropertyInfo propertyInfo:
+                return Property(Instance, propertyInfo);
+
+            case FieldInfo fieldInfo:
+                return Field(Instance, fieldInfo);
+
+            default:
+                throw new CompileException($"Cannot reduce {MemberInfo} to a CLR expression");
+        }
+    }
 }

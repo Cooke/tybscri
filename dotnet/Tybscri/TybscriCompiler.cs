@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using Antlr4.Runtime;
+using Tybscri.LinqExpressions;
 using Tybscri.TypeMapping;
 
 namespace Tybscri;
@@ -22,6 +23,9 @@ public class TybscriCompiler
     {
         var parser = new TybscriParser(expression);
         var expressionNode = parser.ParseExpression();
+        if (!parser.EndOfScript) {
+            throw new CompileException("Could not parse full text as one expression");
+        }
 
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
         var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
@@ -44,7 +48,7 @@ public class TybscriCompiler
         var func = CompileExpression<StandardContext, TResult>(script, expectedResultType);
         return func(StandardContext.Instance);
     }
-    
+
     public TResult EvaluateExpression<TResult>(string script)
     {
         var func = CompileExpression<TResult>(script);
@@ -62,12 +66,13 @@ public class TybscriCompiler
     {
         var parser = new TybscriParser(script);
         var scriptNode = parser.ParseScript();
-        scriptNode.SetupScopes(new Scope());
+
+        var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
+        var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
+        scriptNode.SetupScopes(scope);
         scriptNode.ResolveTypes(new AnalyzeContext(_typeMapper.Map(typeof(TResult))));
         var clrExpression = scriptNode.ToClrExpression(new GenerateContext(Expression.Label()));
-        var lambda = Expression.Lambda<Func<TResult>>(clrExpression);
-        var compileScript = lambda.Compile();
-        return _ => compileScript();
+        return Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression).Compile();
     }
 
     public Func<TResult> CompileScript<TResult>(string script)
@@ -76,10 +81,22 @@ public class TybscriCompiler
         return () => compile(StandardContext.Instance);
     }
 
+    public void EvaluateScript(string script)
+    {
+        var func = CompileScript<object>(script);
+        func();
+    }
+
     public TResult EvaluateScript<TResult>(string script)
     {
         var func = CompileScript<TResult>(script);
         return func();
+    }
+
+    public void EvaluateScript<TEnvironment>(string script, TEnvironment context) where TEnvironment : class
+    {
+        var func = CompileScript<TEnvironment, object>(script);
+        func(context);
     }
 
     public TResult EvaluateScript<TEnvironment, TResult>(string script, TEnvironment context) where TEnvironment : class
@@ -91,9 +108,23 @@ public class TybscriCompiler
     private IEnumerable<ExternalSymbol> GetEnvironmentSymbols<TEnvironment>(ParameterExpression envExpression)
         where TEnvironment : class
     {
-        foreach (var prop in typeof(TEnvironment).GetProperties(BindingFlags.Instance | BindingFlags.Public)) {
-            var getter = Expression.Property(envExpression, prop);
-            yield return new ExternalSymbol(getter, _typeMapper.Map(prop.PropertyType), prop.Name);
+        foreach (var prop in typeof(TEnvironment).GetMembers(BindingFlags.Instance | BindingFlags.Public |
+                                                             BindingFlags.DeclaredOnly)) {
+            switch (prop) {
+                case MethodInfo methodInfo:
+                {
+                    var getter = new TybscriMemberExpression(envExpression, methodInfo);
+                    yield return new ExternalSymbol(getter, _typeMapper.MapMethodInfo(methodInfo), prop.Name);
+                    break;
+                }
+
+                case PropertyInfo propertyInfo:
+                {
+                    var getter = Expression.Property(envExpression, propertyInfo);
+                    yield return new ExternalSymbol(getter, _typeMapper.Map(propertyInfo.PropertyType), prop.Name);
+                    break;
+                }
+            }
         }
     }
 }

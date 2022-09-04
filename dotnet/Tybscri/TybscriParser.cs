@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using Antlr4.Runtime;
 using Tybscri.Nodes;
 
@@ -14,6 +15,8 @@ public class TybscriParser
     {
         _tokenStream = new CommonTokenStream(new TybscriLexer(new AntlrInputStream(script)));
     }
+
+    public bool EndOfScript => Peek() == L.Eof;
 
     public ScriptNode ParseScript()
     {
@@ -33,11 +36,11 @@ public class TybscriParser
         return new ScriptNode(children.ToArray());
     }
 
-    private Token ParseStatementEnd()
+    private Token? ParseStatementEnd()
     {
         var token = Peek();
         if (token == L.Eof) {
-            return ParseToken(L.Eof);
+            return null;
         }
 
         var firstIteration = true;
@@ -155,7 +158,23 @@ public class TybscriParser
 
     public Node ParseExpression()
     {
-        return ParsePostfixExpression();
+        return ParseComparisonExpression();
+    }
+
+    public Node ParseComparisonExpression()
+    {
+        var left = ParsePostfixExpression();
+
+        var peek = Peek();
+        if (peek == L.LT || peek == L.GT) {
+            var comparisonToken = ParseAnyToken();
+            AdvanceWhileNL();
+
+            var right = ParsePostfixExpression();
+            return new BinaryExpressionNode(left, comparisonToken, right);
+        }
+
+        return left;
     }
 
     private Node ParsePostfixExpression()
@@ -228,7 +247,7 @@ public class TybscriParser
         var lcurl = this.ParseToken(L.LCURL);
         this.AdvanceWhileNL();
 
-        var statements =  new List<Node>();
+        var statements = new List<Node>();
         while (this.Peek() != L.RCURL && this.Peek() != L.Eof) {
             var statement = this.ParseStatement();
             statements.Add(statement);
@@ -260,6 +279,7 @@ public class TybscriParser
                     //     span: comma.span,
                     // });
                 }
+
                 AdvanceWhileNL();
             }
 
@@ -341,6 +361,7 @@ public class TybscriParser
 
     private Node ParseNull()
     {
+        ParseToken(L.NULL);
         return new ConstExpression(null, StandardTypes.Null);
     }
 
@@ -413,6 +434,13 @@ public class TybscriParser
         return new Block(lcurl, statements.ToArray(), rcurl);
     }
 
+    private Token ParseAnyToken()
+    {
+        var token = PeekToken();
+        Advance();
+        return new ConcreteToken(token);
+    }
+
     private Token ParseToken(int tokenType)
     {
         if (Peek() != tokenType) {
@@ -446,5 +474,42 @@ public class TybscriParser
         while (Peek() == L.NL) {
             Advance();
         }
+    }
+}
+
+public class BinaryExpressionNode : Node
+{
+    private readonly Node _left;
+    private readonly Token _comparisonToken;
+    private readonly Node _right;
+
+    public BinaryExpressionNode(Node left, Token comparisonToken, Node right)
+    {
+        _left = left;
+        _comparisonToken = comparisonToken;
+        _right = right;
+    }
+
+    public override void SetupScopes(Scope scope)
+    {
+        _left.SetupScopes(scope);
+        _right.SetupScopes(_left.Scope);
+        Scope = scope;
+    }
+
+    public override void ResolveTypes(AnalyzeContext context)
+    {
+        ValueType = StandardTypes.Boolean;
+        _left.ResolveTypes(context);
+        _right.ResolveTypes(context with { ExpectedType = _left.ValueType });
+    }
+
+    public override Expression ToClrExpression(GenerateContext generateContext)
+    {
+        return Expression.MakeBinary(_comparisonToken.Text switch
+        {
+            "<" => ExpressionType.LessThan, ">" => ExpressionType.GreaterThan,
+            _ => throw new CompileException("Unknown binary operator")
+        }, _left.ToClrExpression(generateContext), _right.ToClrExpression(generateContext));
     }
 }

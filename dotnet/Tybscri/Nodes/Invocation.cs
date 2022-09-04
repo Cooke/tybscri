@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
@@ -15,7 +16,7 @@ public class Invocation : Node
         Target = target;
         Arguments = arguments;
     }
-    
+
     public override void SetupScopes(Scope scope)
     {
         foreach (var child in Children) {
@@ -77,6 +78,7 @@ public class Invocation : Node
 
     public override Expression ToClrExpression(GenerateContext generateContext)
     {
-        return Expression.Invoke(Target.ToClrExpression(generateContext), Arguments.Select(x => x.ToClrExpression(generateContext)));
+        return new TybscriInvokeExpression(Target.ToClrExpression(generateContext),
+            Arguments.Select(x => x.ToClrExpression(generateContext)));
     }
 }

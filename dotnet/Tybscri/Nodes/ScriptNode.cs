@@ -14,7 +14,7 @@ public class ScriptNode : Node
     public override void SetupScopes(Scope scope)
     {
         Scope = scope;
-        
+
         _scopeSymbols = new List<SourceSymbol>();
         foreach (var child in Children.OfType<Function>()) {
             _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
@@ -32,7 +32,7 @@ public class ScriptNode : Node
         foreach (var child in Children) {
             child.ResolveTypes(context);
         }
-        
+
         ValueType = Children.Last().ValueType;
     }
 
@@ -45,8 +45,8 @@ public class ScriptNode : Node
         var scriptExitLabel = Expression.Label(ValueType.ClrType, "LastScriptStatement");
         var innerGenerateContext = generateContext with { ReturnLabel = scriptExitLabel };
 
-        return Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(),
-            Children.Select(x => x.ToClrExpression(innerGenerateContext)).Select((exp, index) =>
-                index < Children.Count - 1 ? exp : Expression.Label(scriptExitLabel, exp)));
+        var body = Children.Select(x => x.ToClrExpression(innerGenerateContext)).Select((exp, index) =>
+            index < Children.Count - 1 ? exp : Expression.Label(scriptExitLabel, exp));
+        return Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(), body);
     }
 }

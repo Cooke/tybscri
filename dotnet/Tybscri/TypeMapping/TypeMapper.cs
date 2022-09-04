@@ -23,6 +23,12 @@ public class TypeMapper
             return StandardTypes.Void;
         }
 
+        if (clrType.IsAssignableTo(typeof(Delegate))) {
+            var funcType = DefineFuncType(clrType);
+            Add(clrType, funcType);
+            return funcType;
+        }
+
         if (clrType.IsClass) {
             var objectType = DefineObject(clrType);
             Add(clrType, objectType);
@@ -30,6 +36,13 @@ public class TypeMapper
         }
 
         throw new InvalidOperationException($"The CLR type {clrType} cannot automatically be mapped to a tybscri type");
+    }
+
+    private FuncType DefineFuncType(Type clrType)
+    {
+        return MapMethodInfo(clrType.GetMethod("Invoke") ??
+                              throw new InvalidOperationException(
+                                  $"CLR type {clrType} cannot be mapped to a tybscri func type"));
     }
 
     public void Add(Type clrType, TybscriType tybscriType)
@@ -47,12 +60,10 @@ public class TypeMapper
 
     private TybscriType DefineObject(Type type)
     {
-        var props = new List<TybscriMember>();
         var typeName = _options.TypeNameFormatter(type);
-        TybscriType tybscriType = new ObjectType(type, new Lazy<IReadOnlyCollection<TybscriMember>>(() => props));
-
-        props.AddRange(CreateMemberDefinitions(type).OrderBy(x => x.Name));
-        return tybscriType;
+        return new ObjectType(type,
+            new Lazy<IReadOnlyCollection<TybscriMember>>(() =>
+                CreateMemberDefinitions(type).OrderBy(x => x.Name).ToList()));
     }
 
     // private RpcType DefineUnion(Type type)
@@ -111,15 +122,21 @@ public class TypeMapper
 
                 case MethodInfo methodInfo:
                 {
-                    var returnType = Map(methodInfo.ReturnType);
-                    var parameters = methodInfo.GetParameters()
-                        .Select((p, i) => new FuncParameter(p.Name ?? $"arg{i}", Map(p.ParameterType)));
-                    props.Add(new TybscriMember(methodInfo.Name, new FuncType(returnType, parameters), memberInfo));
+                    props.Add(new TybscriMember(methodInfo.Name, MapMethodInfo(methodInfo), memberInfo));
                     break;
                 }
             }
         }
 
         return props;
+    }
+
+    public FuncType MapMethodInfo(MethodInfo methodInfo)
+    {
+        var returnType = Map(methodInfo.ReturnType);
+        var parameters = methodInfo.GetParameters()
+            .Select((p, i) => new FuncParameter(p.Name ?? $"arg{i}", Map(p.ParameterType)));
+        var funcType = new FuncType(returnType, parameters);
+        return funcType;
     }
 }

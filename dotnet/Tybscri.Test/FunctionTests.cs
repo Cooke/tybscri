@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace Tybscri.Test;
@@ -39,8 +40,8 @@ public class FunctionTests
             ");
         Assert.Equal("hello", output);
     }
-    
-    
+
+
     [Fact]
     public void Hoisting()
     {
@@ -57,7 +58,7 @@ public class FunctionTests
             ");
         Assert.Equal("hello", output);
     }
-    
+
     [Fact]
     public void Return()
     {
@@ -69,5 +70,26 @@ public class FunctionTests
             foo()
             ");
         Assert.Equal(123, output);
+    }
+
+    [Fact]
+    public void TrailingLambda()
+    {
+        var env = new TestEnvironment();
+        _compiler.EvaluateScript(@"
+            eval { true }
+            ", env);
+        Assert.True(env.didEval);
+    }
+
+    private class TestEnvironment
+    {
+        public bool didEval;
+
+        public void eval(Func<bool> func)
+        {
+            didEval = true;
+            func();
+        }
     }
 }

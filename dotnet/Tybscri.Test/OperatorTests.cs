@@ -14,7 +14,14 @@ public class OperatorTests
     [Fact]
     public void LessThan()
     {
-        var output = _compiler.EvaluateExpression<bool>("0 < 1");
-        Assert.True(output);
+        Assert.True(_compiler.EvaluateExpression<bool>("0 < 1"));
+        Assert.False(_compiler.EvaluateExpression<bool>("1 < 0"));
+    }
+    
+    [Fact]
+    public void GreaterThan()
+    {
+        Assert.True(_compiler.EvaluateExpression<bool>("1 > 0"));
+        Assert.False(_compiler.EvaluateExpression<bool>("0 > 1"));
     }
 }
