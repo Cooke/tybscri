@@ -15,7 +15,7 @@ public class IfTests
     public void True()
     {
         var input = new TestEnv { input = false };
-        var output = _compiler.EvaluateExpression<TestEnv, double>("if (input) 1 else 0", input);
+        var output = _compiler.EvaluateExpression<double, TestEnv>("if (input) 1 else 0", input);
         Assert.Equal(0, output);
     }
 
@@ -23,7 +23,7 @@ public class IfTests
     public void False()
     {
         var input = new TestEnv { input = false };
-        var output = _compiler.EvaluateExpression<TestEnv, double>("if (input) 1 else 0", input);
+        var output = _compiler.EvaluateExpression<double, TestEnv>("if (input) 1 else 0", input);
         Assert.Equal(0, output);
     }
 

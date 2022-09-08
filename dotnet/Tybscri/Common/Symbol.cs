@@ -39,22 +39,22 @@ public class ExternalSymbol : Symbol
         _valueType = _valueTypeResolver();
     }
 
-    public override TybscriType ValueType => _valueType ?? throw new CompileException("Unresolved value type");
+    public override TybscriType ValueType => _valueType ?? throw new TybscriException("Unresolved value type");
 
     public override string Name => _name;
 
-    public override Expression ClrExpression => _clrExpression ?? throw new CompileException("Unresolved value type");
+    public override Expression ClrExpression => _clrExpression ?? throw new TybscriException("Unresolved value type");
 }
 
 public class SourceSymbol : Symbol
 {
-    private readonly Func<ISymbolNode> _laterSymbol;
+    private readonly Func<ISymbolDefinitionNode> _laterSymbol;
 
-    public SourceSymbol(string name, ISymbolNode node) : this(name, () => node)
+    public SourceSymbol(string name, ISymbolDefinitionNode node) : this(name, () => node)
     {
     }
 
-    public SourceSymbol(string name, Func<ISymbolNode> laterSymbol)
+    public SourceSymbol(string name, Func<ISymbolDefinitionNode> laterSymbol)
     {
         Name = name;
         _laterSymbol = laterSymbol;
@@ -69,7 +69,7 @@ public class SourceSymbol : Symbol
 
     public override string Name { get; }
 
-    public ISymbolNode Node => _laterSymbol();
+    public ISymbolDefinitionNode Node => _laterSymbol();
 
     public override Expression ClrExpression => Node.LinqExpression;
 }

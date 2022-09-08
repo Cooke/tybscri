@@ -16,7 +16,7 @@ public class ScriptNode : Node
         Scope = scope;
 
         _scopeSymbols = new List<SourceSymbol>();
-        foreach (var child in Children.OfType<Function>()) {
+        foreach (var child in Children.OfType<FunctionNode>()) {
             _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
         }
 

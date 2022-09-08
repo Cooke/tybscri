@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Tybscri.Nodes;
 
-public class CollectionLiteral : Node
+public class CollectionLiteralNode : Node
 {
     public TybscriType? ItemType { get; private set; }
 
@@ -11,7 +11,7 @@ public class CollectionLiteral : Node
 
     public IReadOnlyCollection<Node> Expressions { get; }
 
-    public CollectionLiteral(IReadOnlyCollection<Node> expressions) : base(expressions)
+    public CollectionLiteralNode(IReadOnlyCollection<Node> expressions) : base(expressions)
     {
         Expressions = expressions;
     }

@@ -4,11 +4,11 @@ using Xunit;
 
 namespace Tybscri.Test;
 
-public class LiteralConstantsTests
+public class LiteralTests
 {
     private readonly TybscriCompiler _compiler;
 
-    public LiteralConstantsTests()
+    public LiteralTests()
     {
         _compiler = new TybscriCompiler();
     }

@@ -2,11 +2,11 @@
 
 namespace Tybscri.Nodes;
 
-public class ReturnExpression : Node
+public class ReturnNode : Node
 {
     public Node? ReturnValue { get; }
 
-    public ReturnExpression(Node? returnValue) : base(returnValue != null ? new[] { returnValue } : Array.Empty<Node>())
+    public ReturnNode(Node? returnValue) : base(returnValue != null ? new[] { returnValue } : Array.Empty<Node>())
     {
         ReturnValue = returnValue;
         ValueType = NeverType.Instance;

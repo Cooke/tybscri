@@ -28,6 +28,8 @@ public class TybscriMemberExpression : Expression
         return _reduced.Value;
     }
 
+    public override bool CanReduce => true;
+
     private Expression CreateReduced()
     {
         switch (MemberInfo) {
@@ -38,7 +40,7 @@ public class TybscriMemberExpression : Expression
                 return Field(Instance, fieldInfo);
 
             default:
-                throw new CompileException($"Cannot reduce {MemberInfo} to a CLR expression");
+                throw new TybscriException($"Cannot reduce {MemberInfo} to a CLR expression");
         }
     }
 }

@@ -20,32 +20,33 @@ public class ScenarioTests
             onEvent { it.reportHandled() }
         ", env);
         var eventData = new EventData();
-        env.triggerEvent(eventData);
-        Assert.True(eventData.handled);
+        env.TriggerEvent(eventData);
+        Assert.True(eventData.Handled);
     }
 
     private class TestEnvironment
     {
-        private Action<EventData> handler;
+        private Action<EventData>? _handler;
 
-        public void onEvent(Action<EventData> handler)
+        // ReSharper disable once UnusedMember.Local
+        public void OnEvent(Action<EventData> newHandler)
         {
-            this.handler = handler;
+            _handler = newHandler;
         }
 
-        public void triggerEvent(EventData eventData)
+        public void TriggerEvent(EventData eventData)
         {
-            handler(eventData);
+            _handler?.Invoke(eventData);
         }
     }
 
     private class EventData
     {
-        public bool handled;
+        public bool Handled;
 
-        public void reportHandled()
+        public void ReportHandled()
         {
-            handled = true;
+            Handled = true;
         }
     }
 }

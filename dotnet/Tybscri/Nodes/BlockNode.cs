@@ -2,11 +2,11 @@
 
 namespace Tybscri.Nodes;
 
-public class Block : Node
+public class BlockNode : Node
 {
     private List<SourceSymbol>? _scopeSymbols;
 
-    public Block(Token lcurl, Node[] statements, Token rcurl) : base(statements)
+    public BlockNode(Node[] statements) : base(statements)
     {
     }
 
@@ -15,7 +15,7 @@ public class Block : Node
         Scope = scope;
         
         _scopeSymbols = new List<SourceSymbol>();
-        foreach (var child in Children.OfType<Function>()) {
+        foreach (var child in Children.OfType<FunctionNode>()) {
             _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
         }
 

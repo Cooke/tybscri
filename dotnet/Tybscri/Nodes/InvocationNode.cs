@@ -3,12 +3,12 @@ using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
-public class Invocation : Node
+public class InvocationNode : Node
 {
     public Node Target { get; }
     public IReadOnlyList<Node> Arguments { get; }
 
-    public Invocation(Node target,
+    public InvocationNode(Node target,
         IReadOnlyList<Node> arguments
         // LambdaLiteralNode? trailingLambda = null
     ) : base(new[] { target }.Concat(arguments).ToArray())

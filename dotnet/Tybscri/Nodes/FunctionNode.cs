@@ -9,18 +9,18 @@ enum AnalyzeState
     Analyzed
 }
 
-public class Function : Node, ISymbolNode
+public class FunctionNode : Node, ISymbolDefinitionNode
 {
     public ParameterExpression LinqExpression => _parameterExpression ?? throw new InvalidOperationException();
 
     public Token Name { get; }
     public IReadOnlyCollection<ParameterNode> Parameters { get; }
-    public Block Body { get; }
+    public BlockNode Body { get; }
 
     private AnalyzeState _analyzeState;
     private ParameterExpression? _parameterExpression;
 
-    public Function(Token name, IReadOnlyCollection<ParameterNode> parameters, Block body) : base(parameters
+    public FunctionNode(Token name, IReadOnlyCollection<ParameterNode> parameters, BlockNode body) : base(parameters
         .Cast<Node>().Concat(new[] { body }).ToArray())
     {
         Name = name;
@@ -80,11 +80,11 @@ public class Function : Node, ISymbolNode
 
     private IEnumerable<TybscriType> FindReturns(Node node)
     {
-        if (node is Function) {
+        if (node is FunctionNode) {
             yield break;
         }
 
-        if (node is ReturnExpression nodeExpression) {
+        if (node is ReturnNode nodeExpression) {
             yield return nodeExpression.ReturnValue?.ValueType ?? UnknownType.Instance;
         }
 
@@ -140,7 +140,7 @@ public class Function : Node, ISymbolNode
     }
 }
 
-public class ParameterNode : Node, ISymbolNode
+public class ParameterNode : Node, ISymbolDefinitionNode
 {
     private ParameterExpression? _linqExpression;
 

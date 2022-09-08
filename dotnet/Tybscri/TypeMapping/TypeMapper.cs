@@ -6,7 +6,7 @@ using CookeRpc.AspNetCore.Utils;
 
 namespace Tybscri.TypeMapping;
 
-public class TypeMapper
+public class TypeMapper : ITypeMapper
 {
     private readonly List<TybscriType> types = new List<TybscriType>();
     private readonly Dictionary<Type, TybscriType> _typeMap = new Dictionary<Type, TybscriType>();
@@ -38,7 +38,7 @@ public class TypeMapper
         throw new InvalidOperationException($"The CLR type {clrType} cannot automatically be mapped to a tybscri type");
     }
 
-    private FuncType DefineFuncType(Type clrType)
+    private TybscriType DefineFuncType(Type clrType)
     {
         return MapMethodInfo(clrType.GetMethod("Invoke") ??
                               throw new InvalidOperationException(
@@ -91,47 +91,41 @@ public class TypeMapper
 
         var props = new List<TybscriMember>();
 
-        TybscriMember CreatePropertyMember(Type propertyInfoPropertyType1, MemberInfo memberInfo)
-        {
-            var propTypeRef = Map(propertyInfoPropertyType1);
-            var propertyDefinition = new TybscriMember(_options.MemberNameFormatter(memberInfo),
-                // _options.IsMemberNullable(memberInfo)
-                //     ? new RpcUnionType(new[] { PrimitiveTypes.Null, propTypeRef })
-                //    : 
-                propTypeRef, memberInfo);
-            return propertyDefinition;
-        }
-
         foreach (var memberInfo in memberInfos) {
             switch (memberInfo) {
                 case FieldInfo fieldInfo when _options.TypeFilter(fieldInfo.FieldType):
                 {
-                    var propertyInfoPropertyType = fieldInfo.FieldType;
-                    var tsProperty = CreatePropertyMember(propertyInfoPropertyType, fieldInfo);
-                    props.Add(tsProperty);
+                    props.Add(CreateMember(Map(fieldInfo.FieldType), fieldInfo));
                     break;
                 }
 
                 case PropertyInfo propertyInfo when _options.TypeFilter(propertyInfo.PropertyType):
                 {
-                    var propertyInfoPropertyType = propertyInfo.PropertyType;
-                    var tsProperty = CreatePropertyMember(propertyInfoPropertyType, propertyInfo);
-                    props.Add(tsProperty);
+                    props.Add(CreateMember(Map(propertyInfo.PropertyType), propertyInfo));
                     break;
                 }
 
                 case MethodInfo methodInfo:
                 {
-                    props.Add(new TybscriMember(methodInfo.Name, MapMethodInfo(methodInfo), memberInfo));
+                    props.Add(CreateMember(MapMethodInfo(methodInfo), memberInfo));
                     break;
                 }
             }
         }
 
         return props;
+
+        TybscriMember CreateMember(TybscriType tybscriType, MemberInfo memberInfo)
+        {
+            return new TybscriMember(_options.MemberNameFormatter(memberInfo),
+                // _options.IsMemberNullable(memberInfo)
+                //     ? new RpcUnionType(new[] { PrimitiveTypes.Null, propTypeRef })
+                //    : 
+                tybscriType, memberInfo);
+        }
     }
 
-    public FuncType MapMethodInfo(MethodInfo methodInfo)
+    public TybscriType MapMethodInfo(MethodInfo methodInfo)
     {
         var returnType = Map(methodInfo.ReturnType);
         var parameters = methodInfo.GetParameters()

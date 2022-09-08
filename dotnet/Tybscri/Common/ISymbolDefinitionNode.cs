@@ -2,7 +2,7 @@
 
 namespace Tybscri;
 
-public interface ISymbolNode
+public interface ISymbolDefinitionNode
 {
     ParameterExpression LinqExpression { get; }
     

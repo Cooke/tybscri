@@ -32,7 +32,7 @@ public class IdentifierNode : Node
     public override Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_symbol == null) {
-            throw new CompileException($"Unknown identifier: {Name}");
+            throw new TybscriException($"Unknown identifier: {Name}");
         }
 
         return _symbol.ClrExpression;

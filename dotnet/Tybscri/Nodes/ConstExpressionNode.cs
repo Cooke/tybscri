@@ -2,8 +2,16 @@
 
 namespace Tybscri.Nodes;
 
-public class MissingExpression : Node
+public class ConstExpressionNode : Node
 {
+    public object? Value { get; }
+    
+    public ConstExpressionNode(object? value, TybscriType type)
+    {
+        Value = value;
+        ValueType = type;
+    }
+
     public override void SetupScopes(Scope scope)
     {
         Scope = scope;
@@ -15,6 +23,6 @@ public class MissingExpression : Node
 
     public override Expression ToClrExpression(GenerateContext generateContext)
     {
-        throw new NotImplementedException();
+        return Expression.Constant(Value, ValueType.ClrType);
     }
 }

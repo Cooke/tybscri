@@ -15,23 +15,15 @@ public class MemberTests
     public void ReadProperty()
     {
         var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<TestEnv, string>("entity.prop", input);
+        var output = _compiler.EvaluateExpression<string, TestEnv>("entity.prop", input);
         Assert.Equal("hello", output);
     }
-    
-    [Fact]
-    public void ReadPropertyOfProperty()
-    {
-        var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<TestEnv, double>("entity.prop.length", input);
-        Assert.Equal(5, output);
-    }
-    
+
     [Fact]
     public void InvokeMember()
     {
         var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<TestEnv, double>("entity.execute()", input);
+        var output = _compiler.EvaluateExpression<double, TestEnv>("entity.execute()", input);
         Assert.Equal(1337, output);
     }
     
@@ -39,8 +31,16 @@ public class MemberTests
     public void InvokeMemberWithArguments()
     {
         var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<TestEnv, double>("entity.add(1, 2)", input);
+        var output = _compiler.EvaluateExpression<double, TestEnv>("entity.add(1, 2)", input);
         Assert.Equal(3, output);
+    }
+    
+    [Fact]
+    public void ReadPropertyOfProperty()
+    {
+        var input = new TestEnv { entity = new Entity() };
+        var output = _compiler.EvaluateExpression<double, TestEnv>("entity.prop.length", input);
+        Assert.Equal(5, output);
     }
 
     public class TestEnv

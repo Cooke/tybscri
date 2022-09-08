@@ -17,40 +17,6 @@ public abstract class TypeNode : Node
     }
 }
 
-public class LiteralTypeNode : TypeNode
-{
-    public LiteralTypeNode(TybscriType type)
-    {
-        Type = type;
-    }
-
-    public override void ResolveTypes(AnalyzeContext context)
-    {
-    }
-
-    public override TybscriType Type { get; }
-}
-
-public class IdentifierTypeNode : TypeNode
-{
-    private Symbol? _symbol;
-
-    public IdentifierNode Identifier { get; }
-
-    public IdentifierTypeNode(IdentifierNode identifier)
-    {
-        Identifier = identifier;
-    }
-
-    public override void ResolveTypes(AnalyzeContext context)
-    {
-        _symbol = Scope.ResolveLast(Identifier.Name);
-        _symbol?.ResolveTypes(context);
-    }
-
-    public override TybscriType Type => _symbol?.ValueType ?? StandardTypes.Unknown;
-}
-
 //
 //
 // public class TypeNode : Node {

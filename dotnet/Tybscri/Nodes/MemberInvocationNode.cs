@@ -4,7 +4,7 @@ using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
-public class MemberInvocation : Node
+public class MemberInvocationNode : Node
 {
     private TybscriMember? _member;
 
@@ -14,7 +14,7 @@ public class MemberInvocation : Node
 
     public IReadOnlyCollection<Node> Arguments { get; }
 
-    public MemberInvocation(Node instance, Token memberName, List<Node> arguments) : base(instance)
+    public MemberInvocationNode(Node instance, Token memberName, List<Node> arguments) : base(instance)
     {
         Instance = instance;
         MemberName = memberName;
