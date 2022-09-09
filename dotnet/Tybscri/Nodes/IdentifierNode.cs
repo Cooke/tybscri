@@ -17,9 +17,9 @@ public class IdentifierNode : Node
         Name = token.Text;
     }
     
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Scope = scopeContext.Scope;
+        Scope = scope;
         _symbol = Scope.ResolveLast(Name);
         if (_symbol == null) {
             throw new TybscriException($"Unknown symbol {Name}");

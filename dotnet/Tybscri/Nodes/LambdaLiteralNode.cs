@@ -19,9 +19,9 @@ public class LambdaLiteralNode : Node
 
     public override TybscriType ValueType { get; protected set; } = StandardTypes.Unknown;
 
-    public override void SetupScopes(ScopeContext context)
+    public override void SetupScopes(Scope context)
     {
-        Scope = context.Scope;
+        Scope = context;
         // Cannot setup scopes inside the lambda since that requires the lambda signature, specifically the
         // the presence of the "it" symbol  
     }
@@ -56,7 +56,7 @@ public class LambdaLiteralNode : Node
         ValueType = expectedFunc;
         var statementScope = ResolveStartScope(expectedFunc, Scope);
         foreach (var statement in Statements) {
-            statement.SetupScopes(new ScopeContext(statementScope));
+            statement.SetupScopes(statementScope);
             statementScope = statement.Scope;
         }
         

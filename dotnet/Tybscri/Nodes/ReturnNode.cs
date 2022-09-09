@@ -12,13 +12,13 @@ public class ReturnNode : Node
         ValueType = NeverType.Instance;
     }
     
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
         foreach (var child in Children) {
-            child.SetupScopes(scopeContext);
+            child.SetupScopes(scope);
         }
 
-        Scope = scopeContext.Scope;
+        Scope = scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)

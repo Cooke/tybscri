@@ -15,11 +15,11 @@ public class BinaryExpressionNode : Node
         _right = right;
     }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        _left.SetupScopes(scopeContext);
-        _right.SetupScopes(new ScopeContext(_left.Scope));
-        Scope = scopeContext.Scope;
+        _left.SetupScopes(scope);
+        _right.SetupScopes(_left.Scope);
+        Scope = scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)

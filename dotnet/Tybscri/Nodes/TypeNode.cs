@@ -6,9 +6,9 @@ public abstract class TypeNode : Node
 {
     public abstract TybscriType Type { get; }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Scope = scopeContext.Scope;
+        Scope = scope;
     }
 
     public override Expression ToClrExpression(GenerateContext generateContext)

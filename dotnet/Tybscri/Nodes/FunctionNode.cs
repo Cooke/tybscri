@@ -28,15 +28,14 @@ public class FunctionNode : Node, ISymbolDefinitionNode
         Body = body;
     }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
         foreach (var par in Parameters) {
-            par.SetupScopes(scopeContext);
+            par.SetupScopes(scope);
         }
 
-        Body.SetupScopes(new ScopeContext(
-            scopeContext.Scope.CreateChildScope(Parameters.Select(x => new SourceSymbol(x.Name.Text, x)))));
-        Scope = scopeContext.Scope;
+        Body.SetupScopes(scope.CreateChildScope(Parameters.Select(x => new SourceSymbol(x.Name.Text, x))));
+        Scope = scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)
@@ -155,9 +154,9 @@ public class ParameterNode : Node, ISymbolDefinitionNode
         Type = type;
     }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Scope = scopeContext.Scope;
+        Scope = scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)

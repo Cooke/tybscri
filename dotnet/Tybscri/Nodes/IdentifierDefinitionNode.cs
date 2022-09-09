@@ -12,9 +12,9 @@ public class IdentifierDefinitionNode : Node, ISymbolDefinitionNode
         Name = name;
     }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Scope = scopeContext.Scope;
+        Scope = scope;
     }
 
     public ParameterExpression LinqExpression => _parameter ?? throw new TybscriException("Missing parameter");

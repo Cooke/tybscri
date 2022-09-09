@@ -12,9 +12,9 @@ public class ConstExpressionNode : Node
         ValueType = type;
     }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Scope = scopeContext.Scope;
+        Scope = scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)

@@ -15,15 +15,15 @@ public class InvocationNode : Node
         Arguments = arguments;
     }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Target.SetupScopes(scopeContext);
+        Target.SetupScopes(scope);
 
         foreach (var arg in Arguments) {
-            arg.SetupScopes(scopeContext);
+            arg.SetupScopes(scope);
         }
 
-        Scope = scopeContext.Scope;
+        Scope = scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)

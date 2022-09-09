@@ -18,7 +18,7 @@ internal class IfNode : Node
         ElseNode = elseNode;
     }
     
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
         
     }

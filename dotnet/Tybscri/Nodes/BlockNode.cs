@@ -10,18 +10,18 @@ public class BlockNode : Node
     {
     }
 
-    public override void SetupScopes(ScopeContext scopeContext)
+    public override void SetupScopes(Scope scope)
     {
-        Scope = scopeContext.Scope;
+        Scope = scope;
         
         _scopeSymbols = new List<SourceSymbol>();
         foreach (var child in Children.OfType<FunctionNode>()) {
             _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
         }
 
-        var childScope = scopeContext.Scope.CreateChildScope(_scopeSymbols);
+        var childScope = scope.CreateChildScope(_scopeSymbols);
         foreach (var child in Children) {
-            child.SetupScopes(new ScopeContext(childScope));
+            child.SetupScopes(childScope);
             childScope = child.Scope;
         }
     }

@@ -2,8 +2,6 @@
 
 namespace Tybscri.Nodes;
 
-public record ScopeContext(Scope Scope);
-
 public abstract class Node
 {
     public IReadOnlyCollection<Node> Children { get; }
@@ -22,7 +20,7 @@ public abstract class Node
         Children = children;
     }
 
-    public abstract void SetupScopes(ScopeContext scopeContext);
+    public abstract void SetupScopes(Scope scope);
 
     public abstract void ResolveTypes(AnalyzeContext context);
 
