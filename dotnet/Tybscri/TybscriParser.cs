@@ -157,23 +157,38 @@ public class TybscriParser
 
     public Node ParseExpression()
     {
-        return ParseComparisonExpression();
+        return ParseBinaryExpressionChain(ParseAndExpression, L.OROR);
+    }
+    
+    private Node ParseAndExpression()
+    {
+        return ParseBinaryExpressionChain(ParseComparisonExpression, L.ANDAND);
     }
 
     public Node ParseComparisonExpression()
     {
-        var left = ParsePostfixExpression();
+        var left = ParseAdditiveExpression();
 
         var peek = Peek();
         if (peek == L.LT || peek == L.GT) {
             var comparisonToken = ParseAnyToken();
             AdvanceWhileNL();
 
-            var right = ParsePostfixExpression();
+            var right = ParseAdditiveExpression();
             return new BinaryExpressionNode(left, comparisonToken, right);
         }
 
         return left;
+    }
+
+    public Node ParseAdditiveExpression()
+    {
+        return ParseBinaryExpressionChain(ParseMultiplicativeExpression, L.ADD, L.SUB);
+    }
+    
+    public Node ParseMultiplicativeExpression()
+    {
+        return ParseBinaryExpressionChain(ParsePostfixExpression, L.MULT, L.DIV, L.MOD);
     }
 
     private Node ParsePostfixExpression()
@@ -445,6 +460,21 @@ public class TybscriParser
 
         var rcurl = ParseToken(TybscriLexer.RCURL);
         return new BlockNode(statements.ToArray());
+    }
+    
+    private Node ParseBinaryExpressionChain(Func<Node> parseNext, params int[] tokenTypes)
+    {
+        var node = parseNext();
+        this.AdvanceWhileNL();
+        while (tokenTypes.Contains(Peek())) {
+            var token = ParseAnyToken();
+            this.AdvanceWhileNL();
+            var right = parseNext();
+            AdvanceWhileNL();
+            node = new BinaryExpressionNode(node, token, right);
+        }
+
+        return node;
     }
 
     private Token ParseAnyToken()

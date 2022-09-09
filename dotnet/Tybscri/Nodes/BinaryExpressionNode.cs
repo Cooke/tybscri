@@ -29,12 +29,15 @@ public class BinaryExpressionNode : Node
         _right.ResolveTypes(context with { ExpectedType = _left.ValueType });
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
-    {
-        return Expression.MakeBinary(_comparisonToken.Text switch
+    public override Expression ToClrExpression(GenerateContext generateContext) =>
+        Expression.MakeBinary(_comparisonToken.Text switch
         {
             "<" => ExpressionType.LessThan, ">" => ExpressionType.GreaterThan,
+            ">=" => ExpressionType.GreaterThanOrEqual, "<=" => ExpressionType.LessThanOrEqual,
+            "-" => ExpressionType.Subtract, "+" => ExpressionType.Add,
+            "*" => ExpressionType.Multiply, "/" => ExpressionType.Divide,
+            "%" => ExpressionType.Modulo, "&&" => ExpressionType.AndAlso,
+            "||" => ExpressionType.OrElse,
             _ => throw new TybscriException("Unknown binary operator")
         }, _left.ToClrExpression(generateContext), _right.ToClrExpression(generateContext));
-    }
 }
