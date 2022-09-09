@@ -1,8 +1,5 @@
 ﻿namespace Tybscri;
 
-public class CompileContext
+public record CompileContext(Scope Scope, TybscriType? ExpectedType)
 {
-    public CompileContext()
-    {
-    }
 }

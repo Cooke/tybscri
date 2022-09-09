@@ -8,22 +8,22 @@ public class InvocationNode : Node
     public Node Target { get; }
     public IReadOnlyList<Node> Arguments { get; }
 
-    public InvocationNode(Node target,
-        IReadOnlyList<Node> arguments
-        // LambdaLiteralNode? trailingLambda = null
-    ) : base(new[] { target }.Concat(arguments).ToArray())
+    public InvocationNode(Node target, IReadOnlyList<Node> arguments) : base(new[] { target }.Concat(arguments)
+        .ToArray())
     {
         Target = target;
         Arguments = arguments;
     }
 
-    public override void SetupScopes(Scope scope)
+    public override void SetupScopes(ScopeContext scopeContext)
     {
-        foreach (var child in Children) {
-            child.SetupScopes(scope);
+        Target.SetupScopes(scopeContext);
+
+        foreach (var arg in Arguments) {
+            arg.SetupScopes(scopeContext);
         }
 
-        Scope = scope;
+        Scope = scopeContext.Scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)
@@ -31,14 +31,7 @@ public class InvocationNode : Node
         Target.ResolveTypes(context);
 
         if (Target.ValueType is not FuncType funcType) {
-            // context.onDiagnosticMessage?.({
-            //     message: `The expression cannot be invoked`,
-            //     severity:
-            //     DiagnosticSeverity.Error,
-            //     span:
-            //     this.target.span,
-            // });
-            return;
+            throw new TybscriException("Cannot invoke value of non func type");
         }
 
         var args = Arguments;
@@ -57,19 +50,6 @@ public class InvocationNode : Node
             }
 
             if (!expectedType.IsAssignableFrom(arg.ValueType)) {
-                // context.onDiagnosticMessage?.({
-                //     message: `Argument of type '${
-                //         getTypeDisplayName(arg.valueType)
-                //     }
-                //     ' is not assignable to '${
-                //         getTypeDisplayName(expectedType)
-                //     }
-                //     '`,
-                //     severity:
-                //     DiagnosticSeverity.Error,
-                //     span:
-                //     arg.span,
-                // });
             }
         }
 

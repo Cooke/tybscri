@@ -4,9 +4,9 @@ namespace Tybscri.Nodes;
 
 internal class MissingStatementNode : Node
 {
-    public override void SetupScopes(Scope scope)
+    public override void SetupScopes(ScopeContext scopeContext)
     {
-        Scope = scope;
+        Scope = scopeContext.Scope;
     }
     
     public override void ResolveTypes(AnalyzeContext context)

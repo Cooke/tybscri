@@ -17,13 +17,13 @@ public class MemberNode : Node
         MemberName = memberName;
     }
     
-    public override void SetupScopes(Scope scope)
+    public override void SetupScopes(ScopeContext scopeContext)
     {
         foreach (var child in Children) {
-            child.SetupScopes(scope);
+            child.SetupScopes(scopeContext);
         }
 
-        Scope = scope;
+        Scope = scopeContext.Scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)

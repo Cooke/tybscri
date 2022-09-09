@@ -11,39 +11,35 @@ public abstract class Symbol
     public abstract string Name { get; }
 
     public abstract Expression ClrExpression { get; }
+
+    public virtual void Resolve(CompileContext context)
+    {
+        
+    }
 }
 
 public class ExternalSymbol : Symbol
 {
-    private readonly Func<Expression> _getExpressionResolver;
-    private readonly Func<TybscriType> _valueTypeResolver;
+    private readonly Expression _getExpression;
     private readonly string _name;
-    private Expression? _clrExpression;
-    private TybscriType? _valueType;
+    private readonly TybscriType _valueType;
 
-    public ExternalSymbol(Expression getExpression, TybscriType valueType, string name) : this(() => getExpression,
-        () => valueType, name)
+    public ExternalSymbol(Expression getExpression, TybscriType valueType, string name)
     {
-    }
-
-    public ExternalSymbol(Func<Expression> getExpressionResolver, Func<TybscriType> valueTypeResolver, string name)
-    {
-        _getExpressionResolver = getExpressionResolver;
-        _valueTypeResolver = valueTypeResolver;
+        _getExpression = getExpression;
+        _valueType = valueType;
         _name = name;
     }
 
     public override void ResolveTypes(AnalyzeContext context)
     {
-        _clrExpression = _getExpressionResolver();
-        _valueType = _valueTypeResolver();
     }
 
-    public override TybscriType ValueType => _valueType ?? throw new TybscriException("Unresolved value type");
+    public override TybscriType ValueType => _valueType;
 
     public override string Name => _name;
 
-    public override Expression ClrExpression => _clrExpression ?? throw new TybscriException("Unresolved value type");
+    public override Expression ClrExpression => _getExpression;
 }
 
 public class SourceSymbol : Symbol

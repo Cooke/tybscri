@@ -14,21 +14,14 @@ public class IfTests
     [Fact]
     public void True()
     {
-        var input = new TestEnv { input = false };
-        var output = _compiler.EvaluateExpression<double, TestEnv>("if (input) 1 else 0", input);
-        Assert.Equal(0, output);
+        var output = _compiler.EvaluateExpression<double>("if (true) 111 else 222");
+        Assert.Equal(111, output);
     }
 
     [Fact]
     public void False()
     {
-        var input = new TestEnv { input = false };
-        var output = _compiler.EvaluateExpression<double, TestEnv>("if (input) 1 else 0", input);
-        Assert.Equal(0, output);
-    }
-
-    public class TestEnv
-    {
-        public bool input { get; set; }
+        var output = _compiler.EvaluateExpression<double>("if (false) 33 else 44");
+        Assert.Equal(44, output);
     }
 }

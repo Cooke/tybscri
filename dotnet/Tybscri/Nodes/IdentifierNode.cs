@@ -17,14 +17,17 @@ public class IdentifierNode : Node
         Name = token.Text;
     }
     
-    public override void SetupScopes(Scope scope)
+    public override void SetupScopes(ScopeContext scopeContext)
     {
-        Scope = scope;
+        Scope = scopeContext.Scope;
+        _symbol = Scope.ResolveLast(Name);
+        if (_symbol == null) {
+            throw new TybscriException($"Unknown symbol {Name}");
+        }
     }
 
     public override void ResolveTypes(AnalyzeContext context)
     {
-        _symbol = Scope.ResolveLast(Name);
         _symbol?.ResolveTypes(context);
         ValueType = _symbol?.ValueType ?? StandardTypes.Unknown;
     }

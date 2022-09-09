@@ -16,9 +16,8 @@ public class LambdaTests
     [Fact]
     public void ItParameter()
     {
-        var moreThanOne = _compiler.EvaluateExpression<Func<double, bool>>("{ it > 1 }");
-        Assert.True(moreThanOne(2));
-        Assert.False(moreThanOne(1));
+        var identity = _compiler.EvaluateExpression<Func<double, double>>("{ it }");
+        Assert.Equal(2, identity(2));
     }
     
     [Fact]

@@ -16,9 +16,9 @@ public class CollectionLiteralNode : Node
         Expressions = expressions;
     }
 
-    public override void SetupScopes(Scope scope)
+    public override void SetupScopes(ScopeContext scopeContext)
     {
-        Scope = scope;
+        Scope = scopeContext.Scope;
     }
 
     public override void ResolveTypes(AnalyzeContext context)

@@ -11,18 +11,18 @@ public class ScriptNode : Node
     {
     }
 
-    public override void SetupScopes(Scope scope)
+    public override void SetupScopes(ScopeContext scopeContext)
     {
-        Scope = scope;
+        Scope = scopeContext.Scope;
 
         _scopeSymbols = new List<SourceSymbol>();
         foreach (var child in Children.OfType<FunctionNode>()) {
             _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
         }
 
-        var childScope = scope.CreateChildScope(_scopeSymbols);
+        var childScope = scopeContext.Scope.CreateChildScope(_scopeSymbols);
         foreach (var child in Children) {
-            child.SetupScopes(childScope);
+            child.SetupScopes(new ScopeContext(childScope));
             childScope = child.Scope;
         }
     }

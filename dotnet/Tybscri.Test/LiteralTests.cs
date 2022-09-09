@@ -59,8 +59,7 @@ public class LiteralTests
     [Fact]
     public void Lambda()
     {
-        var moreThanOne = _compiler.EvaluateExpression<Func<double, bool>>("{ it > 1 }");
-        Assert.True(moreThanOne(2));
-        Assert.False(moreThanOne(1));
+        var getOne = _compiler.EvaluateExpression<Func<double>>("{ 1 }");
+        Assert.Equal(1f, getOne());
     }
 }

@@ -2,6 +2,7 @@
 using System.Reflection;
 using Antlr4.Runtime;
 using Tybscri.LinqExpressions;
+using Tybscri.Nodes;
 using Tybscri.TypeMapping;
 
 namespace Tybscri;
@@ -44,7 +45,7 @@ public class TybscriCompiler
 
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
         var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
-        expressionNode.SetupScopes(scope);
+        expressionNode.SetupScopes(new ScopeContext(scope));
         expressionNode.ResolveTypes(new AnalyzeContext(expectedResultType));
 
         var clrExpression = expressionNode.ToClrExpression(new GenerateContext(Expression.Label()));
@@ -84,8 +85,9 @@ public class TybscriCompiler
 
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
         var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
-        scriptNode.SetupScopes(scope);
-        scriptNode.ResolveTypes(new AnalyzeContext(_typeMapper.Map(typeof(TResult))));
+        var expectedType = _typeMapper.Map(typeof(TResult));
+        scriptNode.SetupScopes(new ScopeContext(scope));
+        scriptNode.ResolveTypes(new AnalyzeContext(expectedType));
         var clrExpression = scriptNode.ToClrExpression(new GenerateContext(Expression.Label()));
         return Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression).Compile();
     }

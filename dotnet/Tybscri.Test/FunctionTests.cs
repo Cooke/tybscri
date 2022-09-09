@@ -79,16 +79,17 @@ public class FunctionTests
         _compiler.EvaluateScript(@"
             eval { true }
             ", env);
-        Assert.True(env.didEval);
+        Assert.True(env.DidEval);
     }
 
     private class TestEnvironment
     {
-        public bool didEval;
+        public bool DidEval;
 
-        public void eval(Func<bool> func)
+        // ReSharper disable once UnusedMember.Local
+        public void Eval(Func<bool> func)
         {
-            didEval = true;
+            DidEval = true;
             func();
         }
     }
