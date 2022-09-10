@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -20,7 +21,7 @@ public class CollectionLiteralNode : IExpressionNode
 
     public IReadOnlyCollection<INode> Children => Expressions;
 
-    public TybscriType ExpressionType => ListType ?? throw new InvalidOperationException();
+    public TybscriType ValueType => ListType ?? throw new InvalidOperationException();
 
     public void SetupScopes(Scope scope)
     {
@@ -33,11 +34,11 @@ public class CollectionLiteralNode : IExpressionNode
             expression.Resolve(context);
         }
 
-        ItemType = UnionType.Create(Expressions.Select(x => x.ExpressionType).ToArray());
+        ItemType = UnionType.Create(Expressions.Select(x => x.ValueType).ToArray());
         ListType = StandardTypes.List.CreateType(ItemType);
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         if (ListType == null || ItemType == null) {
             throw new InvalidOperationException("No list type determined");
@@ -49,6 +50,6 @@ public class CollectionLiteralNode : IExpressionNode
         }
 
         return Expression.ListInit(Expression.New(listConstructor),
-            Expressions.Select(x => Expression.Convert(x.ToClrExpression(generateContext), ItemType.ClrType)));
+            Expressions.Select(x => Expression.Convert(x.GenerateLinqExpression(generateContext), ItemType.ClrType)));
     }
 }

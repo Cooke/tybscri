@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
@@ -21,7 +22,7 @@ public class InvocationNode : IExpressionNode
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public TybscriType ExpressionType { get; private set; } = UnknownType.Instance;
+    public TybscriType ValueType { get; private set; } = UnknownType.Instance;
 
     public void SetupScopes(Scope scope)
     {
@@ -38,7 +39,7 @@ public class InvocationNode : IExpressionNode
     {
         Target.Resolve(context);
 
-        if (Target.ExpressionType is not FuncType funcType) {
+        if (Target.ValueType is not FuncType funcType) {
             throw new TybscriException("Cannot invoke value of non func type");
         }
 
@@ -53,20 +54,20 @@ public class InvocationNode : IExpressionNode
             var expectedType = parameter?.Type;
             arg.Resolve(context with { ExpectedType = expectedType });
 
-            if (expectedType is null || arg.ExpressionType is null) {
+            if (expectedType is null || arg.ValueType is null) {
                 throw new NotImplementedException("Should report error");
             }
 
-            if (!expectedType.IsAssignableFrom(arg.ExpressionType)) {
+            if (!expectedType.IsAssignableFrom(arg.ValueType)) {
             }
         }
 
-        ExpressionType = funcType.ReturnType;
+        ValueType = funcType.ReturnType;
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
-        return new TybscriInvokeExpression(Target.ToClrExpression(generateContext),
-            Arguments.Select(x => x.ToClrExpression(generateContext)));
+        return new TybscriInvokeExpression(Target.GenerateLinqExpression(generateContext),
+            Arguments.Select(x => x.GenerateLinqExpression(generateContext)));
     }
 }

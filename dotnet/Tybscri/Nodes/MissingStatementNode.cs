@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -17,7 +18,7 @@ internal class MissingStatementNode : IStatementNode
     {
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         throw new TybscriException("Missing statement");
     }

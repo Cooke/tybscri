@@ -1,5 +1,5 @@
 ﻿using System.Linq.Expressions;
 
-namespace Tybscri;
+namespace Tybscri.Common;
 
 public record GenerateContext(LabelTarget ReturnLabel);

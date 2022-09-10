@@ -1,4 +1,6 @@
-﻿namespace Tybscri.Nodes;
+﻿using Tybscri.Common;
+
+namespace Tybscri.Nodes;
 
 public class LiteralTypeNode : ITypeNode
 {

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using CookeRpc.AspNetCore.Model;
 using CookeRpc.AspNetCore.Utils;
+using Tybscri.Common;
 
 namespace Tybscri.TypeMapping;
 

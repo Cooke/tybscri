@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 using Tybscri.Utils;
 
 namespace Tybscri.Nodes;
@@ -24,7 +25,7 @@ internal class IfNode : IExpressionNode
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public TybscriType ExpressionType { get; private set; } = UnknownType.Instance;
+    public TybscriType ValueType { get; private set; } = UnknownType.Instance;
 
     public void SetupScopes(Scope scope)
     {
@@ -38,11 +39,11 @@ internal class IfNode : IExpressionNode
         ElseNode?.Resolve(context);
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
-        var elseExp = ElseNode?.ToClrExpression(generateContext) ?? Expression.Constant(null, typeof(object));
-        var thenExp = Then.ToClrExpression(generateContext);
-        return Expression.Condition(Exp.ToClrExpression(generateContext), thenExp, elseExp,
+        var elseExp = ElseNode?.GenerateLinqExpression(generateContext) ?? Expression.Constant(null, typeof(object));
+        var thenExp = Then.GenerateLinqExpression(generateContext);
+        return Expression.Condition(Exp.GenerateLinqExpression(generateContext), thenExp, elseExp,
             ClrTypeUtils.FindCommonType(thenExp.Type, elseExp.Type));
     }
 }

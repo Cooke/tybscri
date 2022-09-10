@@ -1,4 +1,6 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
+using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
@@ -17,7 +19,7 @@ public class BlockNode : IExpressionNode
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public TybscriType ExpressionType { get; private set; } = StandardTypes.Unknown;
+    public TybscriType ValueType { get; private set; } = StandardTypes.Unknown;
 
     public void SetupScopes(Scope scope)
     {
@@ -41,21 +43,21 @@ public class BlockNode : IExpressionNode
             child.Resolve(context);
         }
 
-        ExpressionType = Statements.LastOrDefault() switch
+        ValueType = Statements.LastOrDefault() switch
         {
-            IExpressionNode valueNode => valueNode.ExpressionType,
+            IExpressionNode valueNode => valueNode.ValueType,
             ReturnNode => StandardTypes.Never,
             _ => StandardTypes.Null
         };
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         if (_scopeSymbols is null) {
             throw new InvalidOperationException("Scopes have not been setup");
         }
 
-        return Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(),
-            Statements.Select(x => x.ToClrExpression(generateContext)));
+        return Expression.Block(_scopeSymbols.Select(x => x.LinqExpression).Cast<ParameterExpression>(),
+            Statements.Select(x => x.GenerateLinqExpression(generateContext)));
     }
 }

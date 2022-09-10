@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace Tybscri;
+﻿namespace Tybscri.Common;
 
 public static class StandardTypes
 {

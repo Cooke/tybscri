@@ -1,4 +1,6 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
+using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
@@ -9,7 +11,7 @@ enum AnalyzeState
     Analyzed
 }
 
-public class FunctionNode : IStatementNode, ISymbolDefinition
+public class FunctionNode : IStatementNode, ISymbolDefinitionNode
 {
     private AnalyzeState _analyzeState;
     private ParameterExpression? _parameterExpression;
@@ -22,7 +24,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
         Children = parameters.Concat<INode>(new[] { Body }).ToArray();
     }
 
-    public ParameterExpression ClrExpression => _parameterExpression ?? throw new InvalidOperationException();
+    public ParameterExpression LinqExpression => _parameterExpression ?? throw new InvalidOperationException();
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
@@ -48,7 +50,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
         Scope = scope;
     }
 
-    public void ResolveSymbol()
+    public void ResolveSymbolDefinition()
     {
         if (_analyzeState == AnalyzeState.Analyzed) {
             return;
@@ -80,7 +82,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
             return;
         }
 
-        var allReturns = FindReturns(Body).Concat(new[] { Body.ExpressionType });
+        var allReturns = FindReturns(Body).Concat(new[] { Body.ValueType });
         var returnType = UnionType.Create(allReturns.ToArray());
 
         _analyzeState = AnalyzeState.Analyzed;
@@ -90,7 +92,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
 
     public void Resolve(ResolveContext context)
     {
-        ResolveSymbol();
+        ResolveSymbolDefinition();
     }
 
     private IEnumerable<TybscriType> FindReturns(INode node)
@@ -100,7 +102,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
         }
 
         if (node is ReturnNode nodeExpression) {
-            yield return nodeExpression.ReturnValue?.ExpressionType ?? UnknownType.Instance;
+            yield return nodeExpression.ReturnValue?.ValueType ?? UnknownType.Instance;
         }
 
         foreach (var child in node.Children) {
@@ -110,7 +112,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
         }
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         if (_parameterExpression == null) {
             throw new InvalidOperationException("Invalid function state");
@@ -123,12 +125,12 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
         var clrReturnType = funcType.ReturnType.ClrType;
         var returnLabel = Expression.Label(clrReturnType, "LastFuncStatement");
         var innerGenerateContext = generateContext with { ReturnLabel = returnLabel };
-        Expression funcBlock = Body.ExpressionType == NeverType.Instance
-            ? Expression.Block(Body.ToClrExpression(innerGenerateContext),
+        Expression funcBlock = Body.ValueType == NeverType.Instance
+            ? Expression.Block(Body.GenerateLinqExpression(innerGenerateContext),
                 Expression.Label(returnLabel,
                     Expression.Throw(Expression.New(typeof(InvalidOperationException)), clrReturnType)))
-            : Expression.Label(returnLabel, Body.ToClrExpression(innerGenerateContext));
-        var lambdaExpression = Expression.Lambda(funcBlock, Parameters.Select(x => x.ClrExpression));
+            : Expression.Label(returnLabel, Body.GenerateLinqExpression(innerGenerateContext));
+        var lambdaExpression = Expression.Lambda(funcBlock, Parameters.Select(x => x.LinqExpression));
         return Expression.Assign(_parameterExpression, lambdaExpression);
     }
     //
@@ -148,14 +150,9 @@ public class FunctionNode : IStatementNode, ISymbolDefinition
     //
     //   return returns;
     // }
-
-    public void ResolveTypes(CompileContext context)
-    {
-        Resolve(new ResolveContext(null));
-    }
 }
 
-public class FunctionParameterNode : INode, ISymbolDefinition
+public class FunctionParameterNode : INode, ISymbolDefinitionNode
 {
     private ParameterExpression? _linqExpression;
     private readonly ITypeNode _typeNode;
@@ -183,7 +180,7 @@ public class FunctionParameterNode : INode, ISymbolDefinition
 
     public TybscriType SymbolType => _typeNode.Type;
 
-    public void ResolveSymbol()
+    public void ResolveSymbolDefinition()
     {
         _typeNode.Resolve(new ResolveContext(null));
         _linqExpression = Expression.Parameter(SymbolType.ClrType, Name.Text);
@@ -191,13 +188,13 @@ public class FunctionParameterNode : INode, ISymbolDefinition
 
     public void Resolve(ResolveContext context)
     {
-        ResolveSymbol();
+        ResolveSymbolDefinition();
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToLinqExpression(GenerateContext generateContext)
     {
         return _linqExpression ?? throw new InvalidOperationException();
     }
 
-    public ParameterExpression ClrExpression => _linqExpression ?? throw new InvalidOperationException();
+    public ParameterExpression LinqExpression => _linqExpression ?? throw new InvalidOperationException();
 }

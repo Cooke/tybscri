@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -32,8 +33,8 @@ public class ReturnNode : IStatementNode
         }
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
-        return Expression.Return(generateContext.ReturnLabel, ReturnValue?.ToClrExpression(generateContext));
+        return Expression.Return(generateContext.ReturnLabel, ReturnValue?.GenerateLinqExpression(generateContext));
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -14,7 +15,7 @@ public class ExpressionStatementNode : IStatementNode, IExpressionNode
 
     public Scope Scope => Expression.Scope;
 
-    public TybscriType ExpressionType => Expression.ExpressionType;
+    public TybscriType ValueType => Expression.ValueType;
 
     public IReadOnlyCollection<INode> Children { get; }
 
@@ -28,5 +29,5 @@ public class ExpressionStatementNode : IStatementNode, IExpressionNode
         Expression.Resolve(context);
     }
 
-    public Expression ToClrExpression(GenerateContext context) => Expression.ToClrExpression(context);
+    public Expression GenerateLinqExpression(GenerateContext context) => Expression.GenerateLinqExpression(context);
 }

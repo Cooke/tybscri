@@ -1,8 +1,11 @@
-﻿namespace Tybscri.Nodes;
+﻿using Tybscri.Common;
+using Tybscri.Symbols;
+
+namespace Tybscri.Nodes;
 
 public class IdentifierTypeNode : ITypeNode
 {
-    private Symbol? _symbol;
+    private ISymbol? _symbol;
     private TybscriType? _type;
 
     public IdentifierTypeNode(Token identifier)
@@ -28,7 +31,7 @@ public class IdentifierTypeNode : ITypeNode
             throw new TybscriException($"Unknown symbol {Identifier.Text}");
         }
         
-        _symbol.ResolveTypes(context);
+        _symbol.Resolve();
         if (_symbol is not ITypeSymbol typeSymbol) {
             throw new TybscriException($"Symbol {Identifier.Text} is not a type");
         }

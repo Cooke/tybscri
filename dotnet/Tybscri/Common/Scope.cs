@@ -1,35 +1,35 @@
 ﻿using System.Collections.Immutable;
-using System.Xml;
+using Tybscri.Symbols;
 
-namespace Tybscri;
+namespace Tybscri.Common;
 
 public record Scope
 {
     public static readonly Scope Empty = new Scope();
 
     private readonly Scope? _parent = null;
-    private readonly ImmutableList<Symbol> _symbols = ImmutableList<Symbol>.Empty;
+    private readonly ImmutableList<ISymbol> _symbols = ImmutableList<ISymbol>.Empty;
 
     public Scope()
     {
     }
 
-    public Scope(IEnumerable<Symbol> symbols) : this(null, symbols)
+    public Scope(IEnumerable<ISymbol> symbols) : this(null, symbols)
     {
     }
 
-    private Scope(Scope? parent, IEnumerable<Symbol> symbols)
+    private Scope(Scope? parent, IEnumerable<ISymbol> symbols)
     {
         _parent = parent;
         _symbols = symbols.ToImmutableList();
     }
 
-    public Symbol? ResolveLast(string name)
+    public ISymbol? ResolveLast(string name)
     {
         return _symbols.Find(x => x.Name == name) ?? _parent?.ResolveLast(name);
     }
 
-    public Scope CreateChildScope(IEnumerable<Symbol> symbols)
+    public Scope CreateChildScope(IEnumerable<ISymbol> symbols)
     {
         return new Scope(this, symbols);
     }

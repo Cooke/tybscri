@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -8,7 +9,7 @@ public class MissingExpressionNode : IExpressionNode
     
     public IReadOnlyCollection<INode> Children => ArraySegment<INode>.Empty;
 
-    public TybscriType ExpressionType => UnknownType.Instance;
+    public TybscriType ValueType => UnknownType.Instance;
 
     public void SetupScopes(Scope scope)
     {
@@ -19,7 +20,7 @@ public class MissingExpressionNode : IExpressionNode
     {
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         throw new NotImplementedException();
     }

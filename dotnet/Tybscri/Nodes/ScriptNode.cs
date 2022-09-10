@@ -1,4 +1,6 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
+using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
@@ -13,7 +15,7 @@ public class ScriptNode : IExpressionNode
 
     public IStatementNode[] Statements { get; }
 
-    public TybscriType ExpressionType { get; private set; } = StandardTypes.Unknown;
+    public TybscriType ValueType { get; private set; } = StandardTypes.Unknown;
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
@@ -41,21 +43,21 @@ public class ScriptNode : IExpressionNode
             child.Resolve(context);
         }
 
-        ExpressionType = Statements.Last() is IExpressionNode expNode ? expNode.ExpressionType : StandardTypes.Null;
+        ValueType = Statements.Last() is IExpressionNode expNode ? expNode.ValueType : StandardTypes.Null;
     }
 
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         if (_scopeSymbols == null) {
             throw new InvalidOperationException("Scopes have not been setup");
         }
 
-        var scriptExitLabel = Expression.Label(ExpressionType.ClrType, "LastScriptStatement");
+        var scriptExitLabel = Expression.Label(ValueType.ClrType, "LastScriptStatement");
         var innerGenerateContext = generateContext with { ReturnLabel = scriptExitLabel };
 
-        var body = Statements.Select(x => x.ToClrExpression(innerGenerateContext)).Select((exp, index) =>
+        var body = Statements.Select(x => x.GenerateLinqExpression(innerGenerateContext)).Select((exp, index) =>
             index < Statements.Length - 1 ? exp : Expression.Label(scriptExitLabel, exp));
-        return Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(), body);
+        return Expression.Block(_scopeSymbols.Select(x => x.LinqExpression).Cast<ParameterExpression>(), body);
     }
 }

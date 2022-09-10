@@ -1,4 +1,6 @@
-﻿namespace Tybscri;
+﻿using Tybscri.Common;
+
+namespace Tybscri;
 
 public class StringLiteralType : TybscriType
 {

@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 using Tybscri.Nodes;
+using Tybscri.Symbols;
 
 namespace Tybscri;
 
@@ -18,7 +20,7 @@ public class LambdaLiteralNode : IExpressionNode
         Children = statements;
     }
 
-    public TybscriType ExpressionType { get; protected set; } = StandardTypes.Unknown;
+    public TybscriType ValueType { get; protected set; } = StandardTypes.Unknown;
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
@@ -33,7 +35,7 @@ public class LambdaLiteralNode : IExpressionNode
 
     private Scope ResolveStartScope(FuncType lambdaType, Scope scope)
     {
-        var hoistedSymbols = Statements.OfType<FunctionNode>().Select(x => (Symbol)new SourceSymbol(x.Name.Text, x));
+        var hoistedSymbols = Statements.OfType<FunctionNode>().Select(x => (ISymbol)new SourceSymbol(x.Name.Text, x));
         var scopeSymbols = hoistedSymbols.ToList();
 
         if (_parameters.Count == 0 && lambdaType.Parameters.Count == 1) {
@@ -58,7 +60,7 @@ public class LambdaLiteralNode : IExpressionNode
             throw new TybscriException("Lambda literals are only supported when a function type is expected");
         }
 
-        ExpressionType = expectedFunc;
+        ValueType = expectedFunc;
         var statementScope = ResolveStartScope(expectedFunc, Scope);
         foreach (var statement in Statements) {
             statement.SetupScopes(statementScope);
@@ -70,13 +72,13 @@ public class LambdaLiteralNode : IExpressionNode
         }
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         // if (_parameterExpression == null) {
         //     throw new InvalidOperationException("Invalid function state");
         // }
 
-        if (ExpressionType is not FuncType funcType) {
+        if (ValueType is not FuncType funcType) {
             throw new InvalidOperationException("Cannot compile function");
         }
 
@@ -84,38 +86,39 @@ public class LambdaLiteralNode : IExpressionNode
         var returnLabel = Expression.Label(clrReturnType, "LastFuncStatement");
         var innerGenerateContext = generateContext with { ReturnLabel = returnLabel };
 
-        var body = Expression.Block(Statements.Select(x => x.ToClrExpression(generateContext)));
+        var body = Expression.Block(Statements.Select(x => x.GenerateLinqExpression(generateContext)));
         // Expression funcBlock = Body.ValueType == NeverType.Instance
-        //     ? Expression.Block(Body.ToClrExpression(innerGenerateContext),
+        //     ? Expression.Block(Body.ToLinqExpression(innerGenerateContext),
         //         Expression.Label(returnLabel,
         //             Expression.Throw(Expression.New(typeof(InvalidOperationException)), clrReturnType)))
-        //     : Expression.Label(returnLabel, Body.ToClrExpression(innerGenerateContext));
+        //     : Expression.Label(returnLabel, Body.ToLinqExpression(innerGenerateContext));
         var lambdaExpression = Expression.Lambda(body,
             _itSymbol != null && funcType.Parameters.Count == 1
-                ? new[] { _itSymbol.ClrExpression }.ToList()
-                : _parameters.Select(x => x.ToClrExpression(generateContext)).ToList());
+                ? new[] { _itSymbol.ParameterExpression }.ToList()
+                : _parameters.Select(x => x.ToLinqExpression(generateContext)).ToList());
         return lambdaExpression;
     }
 
-    private class ItSymbol : Symbol
+    private class ItSymbol : ISymbol
     {
-        private readonly ParameterExpression _itParameterExpression;
         private readonly TybscriType _type;
 
         public ItSymbol(TybscriType type)
         {
             _type = type;
-            _itParameterExpression = Expression.Parameter(type.ClrType, "it");
+            ParameterExpression = Expression.Parameter(type.ClrType, "it");
         }
 
-        public override void ResolveTypes(ResolveContext context)
+        public void Resolve()
         {
         }
 
-        public override string Name => "it";
+        public string Name => "it";
 
-        public override TybscriType ValueType => _type;
+        public TybscriType ValueType => _type;
 
-        public override ParameterExpression ClrExpression => _itParameterExpression;
+        public Expression LinqExpression => ParameterExpression;
+
+        public ParameterExpression ParameterExpression { get; }
     }
 }

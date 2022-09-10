@@ -1,4 +1,4 @@
-﻿namespace Tybscri;
+﻿namespace Tybscri.Symbols;
 
 public interface ITypeSymbol
 {

@@ -1,10 +1,12 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
+using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
 public class IdentifierNode : IExpressionNode
 {
-    private Symbol? _symbol;
+    private ISymbol? _symbol;
 
     public IdentifierNode(Token token)
     {
@@ -17,7 +19,7 @@ public class IdentifierNode : IExpressionNode
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public TybscriType ExpressionType { get; private set; } = UnknownType.Instance;
+    public TybscriType ValueType { get; private set; } = UnknownType.Instance;
 
     public void SetupScopes(Scope scope)
     {
@@ -30,16 +32,16 @@ public class IdentifierNode : IExpressionNode
 
     public void Resolve(ResolveContext context)
     {
-        _symbol!.ResolveTypes(context);
-        ExpressionType = _symbol!.ValueType;
+        _symbol!.Resolve();
+        ValueType = _symbol!.ValueType;
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         if (_symbol == null) {
             throw new TybscriException($"Unknown identifier: {Name}");
         }
 
-        return _symbol.ClrExpression;
+        return _symbol.LinqExpression;
     }
 }

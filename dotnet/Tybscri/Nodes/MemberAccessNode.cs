@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -22,7 +23,7 @@ public class MemberAccessNode : IExpressionNode
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public TybscriType ExpressionType { get; private set; } = UnknownType.Instance;
+    public TybscriType ValueType { get; private set; } = UnknownType.Instance;
 
     public void SetupScopes(Scope scope)
     {
@@ -34,7 +35,7 @@ public class MemberAccessNode : IExpressionNode
     {
         Instance.Resolve(context);
 
-        var matchingMembers = Instance.ExpressionType.FindMembersByName(MemberName.Text);
+        var matchingMembers = Instance.ValueType.FindMembersByName(MemberName.Text);
         if (matchingMembers.Count == 0) {
             return;
         }
@@ -44,16 +45,16 @@ public class MemberAccessNode : IExpressionNode
         }
 
         _member = matchingMembers.First();
-        ExpressionType = _member.Type;
+        ValueType = _member.Type;
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext)
+    public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         if (_member is null) {
             throw new InvalidOperationException("Unknown member");
         }
 
-        var memberExpression = System.Linq.Expressions.Expression.Property(Instance.ToClrExpression(generateContext),
+        var memberExpression = System.Linq.Expressions.Expression.Property(Instance.GenerateLinqExpression(generateContext),
             (PropertyInfo)_member.MemberInfo);
 
         // if (memberExpression.Type.IsAssignableTo(_member.Type.ClrType)) {

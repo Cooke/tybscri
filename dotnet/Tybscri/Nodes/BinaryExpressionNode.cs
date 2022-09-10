@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -20,7 +21,7 @@ public class BinaryExpressionNode : IExpressionNode
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public TybscriType ExpressionType { get; private set; } = StandardTypes.Unknown;
+    public TybscriType ValueType { get; private set; } = StandardTypes.Unknown;
 
     public void SetupScopes(Scope scope)
     {
@@ -31,12 +32,12 @@ public class BinaryExpressionNode : IExpressionNode
 
     public void Resolve(ResolveContext context)
     {
-        ExpressionType = StandardTypes.Boolean;
+        ValueType = StandardTypes.Boolean;
         _left.Resolve(context);
-        _right.Resolve(context with { ExpectedType = _left.ExpressionType });
+        _right.Resolve(context with { ExpectedType = _left.ValueType });
     }
 
-    public Expression ToClrExpression(GenerateContext generateContext) =>
+    public Expression GenerateLinqExpression(GenerateContext generateContext) =>
         Expression.MakeBinary(_comparisonToken.Text switch
         {
             "<" => System.Linq.Expressions.ExpressionType.LessThan, ">" => System.Linq.Expressions.ExpressionType.GreaterThan,
@@ -46,5 +47,5 @@ public class BinaryExpressionNode : IExpressionNode
             "%" => System.Linq.Expressions.ExpressionType.Modulo, "&&" => System.Linq.Expressions.ExpressionType.AndAlso,
             "||" => System.Linq.Expressions.ExpressionType.OrElse,
             _ => throw new TybscriException("Unknown binary operator")
-        }, _left.ToClrExpression(generateContext), _right.ToClrExpression(generateContext));
+        }, _left.GenerateLinqExpression(generateContext), _right.GenerateLinqExpression(generateContext));
 }

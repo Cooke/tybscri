@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
 
 namespace Tybscri.Nodes;
 
@@ -15,12 +16,12 @@ public interface INode
 
 public interface IExpressionNode : INode
 {
-    TybscriType ExpressionType { get; }
+    TybscriType ValueType { get; }
     
-    Expression ToClrExpression(GenerateContext context);
+    Expression GenerateLinqExpression(GenerateContext context);
 }
 
 public interface IStatementNode : INode
 {
-    Expression ToClrExpression(GenerateContext context);
+    Expression GenerateLinqExpression(GenerateContext context);
 }

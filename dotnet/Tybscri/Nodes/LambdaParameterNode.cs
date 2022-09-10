@@ -1,8 +1,10 @@
 ﻿using System.Linq.Expressions;
+using Tybscri.Common;
+using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
-public class LambdaParameterNode : INode, ISymbolDefinition
+public class LambdaParameterNode : INode, ISymbolDefinitionNode
 {
     private ParameterExpression? _parameter;
 
@@ -19,7 +21,7 @@ public class LambdaParameterNode : INode, ISymbolDefinition
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public ParameterExpression ClrExpression => _parameter ?? throw new TybscriException("Missing parameter");
+    public ParameterExpression LinqExpression => _parameter ?? throw new TybscriException("Missing parameter");
 
 
     public void SetupScopes(Scope scope)
@@ -27,7 +29,7 @@ public class LambdaParameterNode : INode, ISymbolDefinition
         Scope = scope;
     }
 
-    public void ResolveSymbol()
+    public void ResolveSymbolDefinition()
     {
     }
 
@@ -38,7 +40,7 @@ public class LambdaParameterNode : INode, ISymbolDefinition
         _parameter = Expression.Parameter(SymbolType.ClrType, SymbolName);
     }
 
-    public ParameterExpression ToClrExpression(GenerateContext generateContext)
+    public ParameterExpression ToLinqExpression(GenerateContext generateContext)
     {
         return _parameter ?? throw new TybscriException("Parameter not defined");
     }
