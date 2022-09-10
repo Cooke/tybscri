@@ -66,7 +66,7 @@ public class TybscriParser
         switch (Peek()) {
             case L.FUN:
                 return ParseFunctionDeclaration();
-            
+
             case L.RETURN:
                 Advance();
                 var expression = (Peek() != L.NL) ? ParseExpression() : null;
@@ -135,9 +135,17 @@ public class TybscriParser
         return new FunctionParameterNode(ident, type);
     }
 
-    private ITypeNode ParseType()
+    public ITypeNode ParseType()
     {
-        return ParseSimpleType();
+        var types = new List<ITypeNode> { ParseSimpleType() };
+        AdvanceWhileNL();
+        while (Peek() == L.OR) {
+            Advance();
+            types.Add(ParseSimpleType());
+            AdvanceWhileNL();
+        }
+        
+        return types.Count == 1 ? types[0] : new UnionTypeNode(types);
     }
 
     private ITypeNode ParseSimpleType()
@@ -149,12 +157,24 @@ public class TybscriParser
                 return new LiteralTypeNode(type);
 
             case L.INT:
+            {
                 var token = ParseToken(L.INT);
                 var value = double.Parse(token.Text);
                 return new LiteralTypeNode(new NumberLiteralType(value));
+            }
+
+            case L.Boolean:
+            {
+                var token = ParseToken(L.Boolean);
+                var value = bool.Parse(token.Text);
+                return new LiteralTypeNode(new BooleanLiteralType(value));
+            }
 
             case L.Identifier:
                 return new IdentifierTypeNode(ParseToken(L.Identifier));
+            
+            case L.NULL:
+                return new IdentifierTypeNode(ParseToken(L.NULL));
 
             default:
                 return new IdentifierTypeNode(new MissingToken(PeekToken(), L.Identifier));
@@ -165,13 +185,13 @@ public class TybscriParser
     {
         return ParseBinaryExpressionChain(ParseAndExpression, L.OROR);
     }
-    
+
     private IExpressionNode ParseAndExpression()
     {
         return ParseBinaryExpressionChain(ParseComparisonExpression, L.ANDAND);
     }
 
-    public IExpressionNode ParseComparisonExpression()
+    private IExpressionNode ParseComparisonExpression()
     {
         var left = ParseAdditiveExpression();
 
@@ -187,12 +207,12 @@ public class TybscriParser
         return left;
     }
 
-    public IExpressionNode ParseAdditiveExpression()
+    private IExpressionNode ParseAdditiveExpression()
     {
         return ParseBinaryExpressionChain(ParseMultiplicativeExpression, L.ADD, L.SUB);
     }
-    
-    public IExpressionNode ParseMultiplicativeExpression()
+
+    private IExpressionNode ParseMultiplicativeExpression()
     {
         return ParseBinaryExpressionChain(ParsePostfixExpression, L.MULT, L.DIV, L.MOD);
     }
@@ -254,7 +274,7 @@ public class TybscriParser
                 var token = ParseToken(L.INT);
                 var value = double.Parse(token.Text);
                 return new ConstExpressionNode(value, new NumberLiteralType(value));
-            
+
             case L.LBRACKET:
                 return ParseCollectionLiteral();
             case L.LCURL:
@@ -464,7 +484,7 @@ public class TybscriParser
         var rcurl = ParseToken(TybscriLexer.RCURL);
         return new BlockNode(statements.ToArray());
     }
-    
+
     private IExpressionNode ParseBinaryExpressionChain(Func<IExpressionNode> parseNext, params int[] tokenTypes)
     {
         var node = parseNext();

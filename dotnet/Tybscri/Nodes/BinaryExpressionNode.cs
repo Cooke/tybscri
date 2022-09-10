@@ -32,20 +32,30 @@ public class BinaryExpressionNode : IExpressionNode
 
     public void Resolve(ResolveContext context)
     {
-        ValueType = StandardTypes.Boolean;
         _left.Resolve(context);
         _right.Resolve(context with { ExpectedType = _left.ValueType });
+
+        ValueType = _comparisonToken.Text switch
+        {
+            "<" => StandardTypes.Boolean,
+            ">" => StandardTypes.Boolean,
+            ">=" => StandardTypes.Boolean,
+            "<=" => StandardTypes.Boolean,
+            "==" => StandardTypes.Boolean,
+            "!=" => StandardTypes.Boolean,
+            _ => UnionType.Create(_left.ValueType, _right.ValueType)
+        };
     }
 
     public Expression GenerateLinqExpression(GenerateContext generateContext) =>
         Expression.MakeBinary(_comparisonToken.Text switch
         {
-            "<" => System.Linq.Expressions.ExpressionType.LessThan, ">" => System.Linq.Expressions.ExpressionType.GreaterThan,
-            ">=" => System.Linq.Expressions.ExpressionType.GreaterThanOrEqual, "<=" => System.Linq.Expressions.ExpressionType.LessThanOrEqual,
-            "-" => System.Linq.Expressions.ExpressionType.Subtract, "+" => System.Linq.Expressions.ExpressionType.Add,
-            "*" => System.Linq.Expressions.ExpressionType.Multiply, "/" => System.Linq.Expressions.ExpressionType.Divide,
-            "%" => System.Linq.Expressions.ExpressionType.Modulo, "&&" => System.Linq.Expressions.ExpressionType.AndAlso,
-            "||" => System.Linq.Expressions.ExpressionType.OrElse,
+            "<" => ExpressionType.LessThan, ">" => ExpressionType.GreaterThan,
+            ">=" => ExpressionType.GreaterThanOrEqual, "<=" => ExpressionType.LessThanOrEqual,
+            "-" => ExpressionType.Subtract, "+" => ExpressionType.Add,
+            "*" => ExpressionType.Multiply, "/" => ExpressionType.Divide,
+            "%" => ExpressionType.Modulo, "&&" => ExpressionType.AndAlso,
+            "||" => ExpressionType.OrElse,
             _ => throw new TybscriException("Unknown binary operator")
         }, _left.GenerateLinqExpression(generateContext), _right.GenerateLinqExpression(generateContext));
 }

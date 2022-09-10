@@ -28,7 +28,7 @@ public class IdentifierTypeNode : ITypeNode
     {
         _symbol = Scope.ResolveLast(Identifier.Text);
         if (_symbol == null) {
-            throw new TybscriException($"Unknown symbol {Identifier.Text}");
+            throw new TybscriException($"Unknown type symbol {Identifier.Text}");
         }
         
         _symbol.Resolve();

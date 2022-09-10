@@ -85,18 +85,44 @@ public class FunctionTests
             ");
         Assert.Equal(123, output);
     }
-    
+
     [Fact]
     public void OneParameter()
     {
         var output = _compiler.EvaluateScript<double>(@"
             fun identity(value: number) {
-                return value
+                value
             }
 
             identity(123)
             ");
         Assert.Equal(123, output);
+    }
+
+    [Fact]
+    public void TwoParameters()
+    {
+        var output = _compiler.EvaluateScript<double>(@"
+            fun sub(val1: number, val2: number) {
+                val1 - val2
+            }
+
+            sub(3, 1)
+            ");
+        Assert.Equal(2, output);
+    }
+
+    [Fact]
+    public void ThreeParameters()
+    {
+        var output = _compiler.EvaluateScript<List<object>>(@"
+            fun list3(val1: number, val2: ""one"", val3: true) {
+                [val1, val2, val3]
+            }
+
+            list3(1, ""one"", true)
+            ");
+        Assert.Collection(output, x => Assert.Equal(1, x), x => Assert.Equal("one", x), x => Assert.Equal(true, x));
     }
 
     [Fact]

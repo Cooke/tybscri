@@ -33,8 +33,16 @@ public class TybscriCompiler
 
         _baseScope = new Scope(new[]
         {
-            new ExternalTypeSymbol(StandardTypes.Number, "number", _typeMapper.Map(typeof(TybscriType)))
+            CreateType(StandardTypes.Number, "number"),
+            CreateType(StandardTypes.Boolean, "boolean"),
+            CreateType(StandardTypes.Null, "null"),
+            CreateType(StandardTypes.String, "string"),
         });
+
+        ExternalTypeSymbol CreateType(TybscriType tybscriType, string name)
+        {
+            return new ExternalTypeSymbol(tybscriType, name, _typeMapper.Map(typeof(TybscriType)));
+        }
     }
 
     public Func<TEnvironment, TResult> CompileExpression<TResult, TEnvironment>(string expression)
@@ -139,5 +147,18 @@ public class TybscriCompiler
             var getter = new TybscriMemberExpression(envExpression, envTypeMember.MemberInfo);
             yield return new ExternalSymbol(getter, envTypeMember.Type, envTypeMember.Name);
         }
+    }
+
+    public TybscriType EvaluateType(string type)
+    {
+        var parser = new TybscriParser(type);
+        var typeNode = parser.ParseType();
+        if (!parser.EndOfScript) {
+            throw new TybscriException("Could not parse full text as a type");
+        }
+        
+        typeNode.SetupScopes(_baseScope);
+        typeNode.Resolve(new ResolveContext(null));
+        return typeNode.Type;
     }
 }
