@@ -2,18 +2,22 @@
 
 namespace Tybscri.Nodes;
 
-internal class MissingStatementNode : Node
+internal class MissingStatementNode : IStatementNode
 {
-    public override void SetupScopes(Scope scope)
+    public Scope Scope { get; private set; } = Scope.Empty;
+    
+    public IReadOnlyCollection<INode> Children => ArraySegment<INode>.Empty;
+
+    public void SetupScopes(Scope scope)
     {
         Scope = scope;
     }
-    
-    public override void ResolveTypes(AnalyzeContext context)
+
+    public void Resolve(ResolveContext context)
     {
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         throw new TybscriException("Missing statement");
     }

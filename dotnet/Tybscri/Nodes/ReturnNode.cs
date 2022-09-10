@@ -2,17 +2,21 @@
 
 namespace Tybscri.Nodes;
 
-public class ReturnNode : Node
+public class ReturnNode : IStatementNode
 {
-    public Node? ReturnValue { get; }
-
-    public ReturnNode(Node? returnValue) : base(returnValue != null ? new[] { returnValue } : Array.Empty<Node>())
+    public ReturnNode(IExpressionNode? returnValue)
     {
         ReturnValue = returnValue;
-        ValueType = NeverType.Instance;
+        Children = returnValue != null ? new[] { returnValue } : Array.Empty<IExpressionNode>();
     }
+
+    public IExpressionNode? ReturnValue { get; }
+
+    public Scope Scope { get; private set; } = Scope.Empty;
     
-    public override void SetupScopes(Scope scope)
+    public IReadOnlyCollection<INode> Children { get; }
+
+    public void SetupScopes(Scope scope)
     {
         foreach (var child in Children) {
             child.SetupScopes(scope);
@@ -21,14 +25,14 @@ public class ReturnNode : Node
         Scope = scope;
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
         foreach (var child in Children) {
-            child.ResolveTypes(context);
+            child.Resolve(context);
         }
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         return Expression.Return(generateContext.ReturnLabel, ReturnValue?.ToClrExpression(generateContext));
     }

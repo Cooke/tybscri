@@ -53,7 +53,7 @@ public class TybscriCompiler
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
         var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
         expressionNode.SetupScopes(scope);
-        expressionNode.ResolveTypes(new AnalyzeContext(expectedResultType));
+        expressionNode.Resolve(new ResolveContext(expectedResultType));
 
         var clrExpression = expressionNode.ToClrExpression(new GenerateContext(Expression.Label()));
         var lambda = Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression);
@@ -94,7 +94,7 @@ public class TybscriCompiler
         var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
         var expectedType = _typeMapper.Map(typeof(TResult));
         scriptNode.SetupScopes(scope);
-        scriptNode.ResolveTypes(new AnalyzeContext(expectedType));
+        scriptNode.Resolve(new ResolveContext(expectedType));
         var clrExpression = scriptNode.ToClrExpression(new GenerateContext(Expression.Label()));
         return Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression).Compile();
     }

@@ -2,31 +2,25 @@
 
 namespace Tybscri.Nodes;
 
-public abstract class Node
+public interface INode
 {
-    public IReadOnlyCollection<Node> Children { get; }
+    Scope Scope { get; }
+    
+    IReadOnlyCollection<INode> Children { get; }
 
-    public Scope Scope { get; protected set; } = Scope.Empty;
+    public void SetupScopes(Scope scope);
 
-    public virtual TybscriType ValueType { get; protected set; } = StandardTypes.Unknown;
+    public void Resolve(ResolveContext context);
+}
 
-    protected Node(IReadOnlyCollection<Node> children)
-    {
-        Children = children;
-    }
+public interface IExpressionNode : INode
+{
+    TybscriType ExpressionType { get; }
+    
+    Expression ToClrExpression(GenerateContext context);
+}
 
-    protected Node(params Node[] children)
-    {
-        Children = children;
-    }
-
-    public abstract void SetupScopes(Scope scope);
-
-    public abstract void ResolveTypes(AnalyzeContext context);
-
-    public abstract Expression ToClrExpression(GenerateContext generateContext);
-
-    public virtual void Resolve(CompileContext context)
-    {
-    }
+public interface IStatementNode : INode
+{
+    Expression ToClrExpression(GenerateContext context);
 }

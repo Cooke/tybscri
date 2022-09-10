@@ -3,19 +3,27 @@ using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
-public class InvocationNode : Node
+public class InvocationNode : IExpressionNode
 {
-    public Node Target { get; }
-    public IReadOnlyList<Node> Arguments { get; }
-
-    public InvocationNode(Node target, IReadOnlyList<Node> arguments) : base(new[] { target }.Concat(arguments)
-        .ToArray())
+    public InvocationNode(IExpressionNode target, IReadOnlyList<IExpressionNode> arguments)
     {
         Target = target;
         Arguments = arguments;
+
+        Children = new[] { target }.Concat(arguments).ToArray();
     }
 
-    public override void SetupScopes(Scope scope)
+    public IExpressionNode Target { get; }
+
+    public IReadOnlyList<IExpressionNode> Arguments { get; }
+
+    public IReadOnlyCollection<INode> Children { get; }
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public TybscriType ExpressionType { get; private set; } = UnknownType.Instance;
+
+    public void SetupScopes(Scope scope)
     {
         Target.SetupScopes(scope);
 
@@ -26,11 +34,11 @@ public class InvocationNode : Node
         Scope = scope;
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
-        Target.ResolveTypes(context);
+        Target.Resolve(context);
 
-        if (Target.ValueType is not FuncType funcType) {
+        if (Target.ExpressionType is not FuncType funcType) {
             throw new TybscriException("Cannot invoke value of non func type");
         }
 
@@ -43,20 +51,20 @@ public class InvocationNode : Node
             var arg = args[i];
             var parameter = funcType.Parameters.ElementAtOrDefault(i);
             var expectedType = parameter?.Type;
-            arg.ResolveTypes(context with { ExpectedType = expectedType });
+            arg.Resolve(context with { ExpectedType = expectedType });
 
-            if (expectedType is null || arg.ValueType is null) {
+            if (expectedType is null || arg.ExpressionType is null) {
                 throw new NotImplementedException("Should report error");
             }
 
-            if (!expectedType.IsAssignableFrom(arg.ValueType)) {
+            if (!expectedType.IsAssignableFrom(arg.ExpressionType)) {
             }
         }
 
-        ValueType = funcType.ReturnType;
+        ExpressionType = funcType.ReturnType;
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         return new TybscriInvokeExpression(Target.ToClrExpression(generateContext),
             Arguments.Select(x => x.ToClrExpression(generateContext)));

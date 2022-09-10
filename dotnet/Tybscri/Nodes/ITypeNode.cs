@@ -2,19 +2,9 @@
 
 namespace Tybscri.Nodes;
 
-public abstract class TypeNode : Node
+public interface ITypeNode : INode
 {
-    public abstract TybscriType Type { get; }
-
-    public override void SetupScopes(Scope scope)
-    {
-        Scope = scope;
-    }
-
-    public override Expression ToClrExpression(GenerateContext generateContext)
-    {
-        throw new NotSupportedException("A type node cannot be converted to an LINQ expression");
-    }
+    public TybscriType Type { get; }
 }
 
 //

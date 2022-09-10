@@ -3,35 +3,41 @@ using System.Reflection;
 
 namespace Tybscri.Nodes;
 
-public class CollectionLiteralNode : Node
+public class CollectionLiteralNode : IExpressionNode
 {
-    public TybscriType? ItemType { get; private set; }
-
-    public TybscriType? ListType { get; private set; }
-
-    public IReadOnlyCollection<Node> Expressions { get; }
-
-    public CollectionLiteralNode(IReadOnlyCollection<Node> expressions) : base(expressions)
+    public CollectionLiteralNode(IReadOnlyCollection<IExpressionNode> expressions)
     {
         Expressions = expressions;
     }
 
-    public override void SetupScopes(Scope scope)
+    public TybscriType? ItemType { get; private set; }
+
+    public TybscriType? ListType { get; private set; }
+
+    public IReadOnlyCollection<IExpressionNode> Expressions { get; }
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public IReadOnlyCollection<INode> Children => Expressions;
+
+    public TybscriType ExpressionType => ListType ?? throw new InvalidOperationException();
+
+    public void SetupScopes(Scope scope)
     {
         Scope = scope;
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
         foreach (var expression in Expressions) {
-            expression.ResolveTypes(context);
+            expression.Resolve(context);
         }
 
-        ItemType = UnionType.Create(Expressions.Select(x => x.ValueType).ToArray());
+        ItemType = UnionType.Create(Expressions.Select(x => x.ExpressionType).ToArray());
         ListType = StandardTypes.List.CreateType(ItemType);
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         if (ListType == null || ItemType == null) {
             throw new InvalidOperationException("No list type determined");

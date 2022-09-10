@@ -1,26 +1,22 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
-using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
-public class MemberInvocationNode : IExpressionNode
+public class MemberAccessNode : IExpressionNode
 {
-    private TybscriMember? _member;
-
-    public MemberInvocationNode(IExpressionNode instance, Token memberName, List<IExpressionNode> arguments)
+    public MemberAccessNode(IExpressionNode instance, Token memberName)
     {
         Instance = instance;
         MemberName = memberName;
-        Arguments = arguments;
-        Children = new[] { Instance }.Concat(Arguments).ToArray();
+        Children = new[] { Instance };
     }
+
+    private TybscriMember? _member;
 
     public IExpressionNode Instance { get; }
 
     public Token MemberName { get; }
-
-    public IReadOnlyCollection<IExpressionNode> Arguments { get; }
 
     public IReadOnlyCollection<INode> Children { get; }
 
@@ -30,10 +26,7 @@ public class MemberInvocationNode : IExpressionNode
 
     public void SetupScopes(Scope scope)
     {
-        foreach (var child in Children) {
-            child.SetupScopes(scope);
-        }
-
+        Instance.SetupScopes(scope);
         Scope = scope;
     }
 
@@ -60,7 +53,13 @@ public class MemberInvocationNode : IExpressionNode
             throw new InvalidOperationException("Unknown member");
         }
 
-        return Expression.Call(Instance.ToClrExpression(generateContext), (MethodInfo)_member.MemberInfo,
-            Arguments.Select(x => x.ToClrExpression(generateContext)));
+        var memberExpression = System.Linq.Expressions.Expression.Property(Instance.ToClrExpression(generateContext),
+            (PropertyInfo)_member.MemberInfo);
+
+        // if (memberExpression.Type.IsAssignableTo(_member.Type.ClrType)) {
+        //     return memberExpression;
+        // }
+        
+        return Expression.Convert(memberExpression, _member.Type.ClrType);
     }
 }

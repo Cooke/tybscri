@@ -9,29 +9,36 @@ enum AnalyzeState
     Analyzed
 }
 
-public class FunctionNode : Node, ISymbolDefinitionNode
+public class FunctionNode : IStatementNode, ISymbolDefinition
 {
-    public ParameterExpression LinqExpression => _parameterExpression ?? throw new InvalidOperationException();
-    public TybscriType DefinedType => ValueType;
-
-    public Token Name { get; }
-    public IReadOnlyCollection<ParameterNode> Parameters { get; }
-    public BlockNode Body { get; }
-
     private AnalyzeState _analyzeState;
     private ParameterExpression? _parameterExpression;
 
-    public FunctionNode(Token name, IReadOnlyCollection<ParameterNode> parameters, BlockNode body) : base(parameters
-        .Cast<Node>().Concat(new[] { body }).ToArray())
+    public FunctionNode(Token name, IReadOnlyCollection<FunctionParameterNode> parameters, BlockNode body)
     {
         Name = name;
         Parameters = parameters;
         Body = body;
+        Children = parameters.Concat<INode>(new[] { Body }).ToArray();
     }
-    
-    
 
-    public override void SetupScopes(Scope scope)
+    public ParameterExpression ClrExpression => _parameterExpression ?? throw new InvalidOperationException();
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public IReadOnlyCollection<FunctionParameterNode> Parameters { get; }
+
+    public IReadOnlyCollection<INode> Children { get; }
+
+    public BlockNode Body { get; }
+
+    public Token Name { get; }
+
+    public TybscriType SymbolType { get; private set; } = UnknownType.Instance;
+    
+    public string SymbolName => Name.Text;
+
+    public void SetupScopes(Scope scope)
     {
         foreach (var par in Parameters) {
             par.SetupScopes(scope);
@@ -41,7 +48,7 @@ public class FunctionNode : Node, ISymbolDefinitionNode
         Scope = scope;
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void ResolveSymbol()
     {
         if (_analyzeState == AnalyzeState.Analyzed) {
             return;
@@ -56,39 +63,44 @@ public class FunctionNode : Node, ISymbolDefinitionNode
             //   span: this.span,
             // });
 
-            ValueType = new FuncType(StandardTypes.Unknown,
-                Parameters.Select((x) => new FuncParameter(x.Name.Text, x.DefinedType)));
+            SymbolType = new FuncType(StandardTypes.Unknown,
+                Parameters.Select((x) => new FuncParameter(x.Name.Text, x.SymbolType)));
             return;
         }
 
         _analyzeState = AnalyzeState.Analyzing;
         foreach (var par in Parameters) {
-            par.ResolveTypes(context);
+            par.Resolve(new ResolveContext(null));
         }
 
-        Body.ResolveTypes(new AnalyzeContext(null));
+        Body.Resolve(new ResolveContext(null));
 
         if (_analyzeState != AnalyzeState.Analyzing) {
             // Analyzed already done in a circular analyze
             return;
         }
 
-        var allReturns = FindReturns(Body).Concat(new[] { Body.ValueType });
+        var allReturns = FindReturns(Body).Concat(new[] { Body.ExpressionType });
         var returnType = UnionType.Create(allReturns.ToArray());
 
         _analyzeState = AnalyzeState.Analyzed;
-        ValueType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.DefinedType)));
-        _parameterExpression = Expression.Parameter(ValueType.ClrType, Name.Text);
+        SymbolType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)));
+        _parameterExpression = Expression.Parameter(SymbolType.ClrType, Name.Text);
     }
 
-    private IEnumerable<TybscriType> FindReturns(Node node)
+    public void Resolve(ResolveContext context)
     {
-        if (node is FunctionNode) {
+        ResolveSymbol();
+    }
+
+    private IEnumerable<TybscriType> FindReturns(INode node)
+    {
+        if (node is FunctionNode || node is LambdaLiteralNode) {
             yield break;
         }
 
         if (node is ReturnNode nodeExpression) {
-            yield return nodeExpression.ReturnValue?.ValueType ?? UnknownType.Instance;
+            yield return nodeExpression.ReturnValue?.ExpressionType ?? UnknownType.Instance;
         }
 
         foreach (var child in node.Children) {
@@ -98,25 +110,25 @@ public class FunctionNode : Node, ISymbolDefinitionNode
         }
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_parameterExpression == null) {
             throw new InvalidOperationException("Invalid function state");
         }
 
-        if (ValueType is not FuncType funcType) {
+        if (SymbolType is not FuncType funcType) {
             throw new InvalidOperationException("Cannot compile function");
         }
 
         var clrReturnType = funcType.ReturnType.ClrType;
         var returnLabel = Expression.Label(clrReturnType, "LastFuncStatement");
         var innerGenerateContext = generateContext with { ReturnLabel = returnLabel };
-        Expression funcBlock = Body.ValueType == NeverType.Instance
+        Expression funcBlock = Body.ExpressionType == NeverType.Instance
             ? Expression.Block(Body.ToClrExpression(innerGenerateContext),
                 Expression.Label(returnLabel,
                     Expression.Throw(Expression.New(typeof(InvalidOperationException)), clrReturnType)))
             : Expression.Label(returnLabel, Body.ToClrExpression(innerGenerateContext));
-        var lambdaExpression = Expression.Lambda(funcBlock, Parameters.Select(x => x.LinqExpression));
+        var lambdaExpression = Expression.Lambda(funcBlock, Parameters.Select(x => x.ClrExpression));
         return Expression.Assign(_parameterExpression, lambdaExpression);
     }
     //
@@ -139,42 +151,53 @@ public class FunctionNode : Node, ISymbolDefinitionNode
 
     public void ResolveTypes(CompileContext context)
     {
-        ResolveTypes(new AnalyzeContext(null));
+        Resolve(new ResolveContext(null));
     }
 }
 
-public class ParameterNode : Node, ISymbolDefinitionNode
+public class FunctionParameterNode : INode, ISymbolDefinition
 {
     private ParameterExpression? _linqExpression;
-    private readonly TypeNode _typeNode;
+    private readonly ITypeNode _typeNode;
 
-    public Token Name { get; }
-
-
-    public ParameterNode(Token name, TypeNode type) : base(type)
+    public FunctionParameterNode(Token name, ITypeNode type)
     {
         Name = name;
         _typeNode = type;
+        Children = new[] { type };
     }
 
-    public override void SetupScopes(Scope scope)
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public IReadOnlyCollection<INode> Children { get; }
+
+    public Token Name { get; }
+
+    public string SymbolName => Name.Text;
+
+    public void SetupScopes(Scope scope)
     {
         _typeNode.SetupScopes(scope);
         Scope = scope;
     }
 
-    public TybscriType DefinedType => _typeNode.Type;
+    public TybscriType SymbolType => _typeNode.Type;
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void ResolveSymbol()
     {
-        _typeNode.ResolveTypes(context);
-        _linqExpression = Expression.Parameter(DefinedType.ClrType, Name.Text);
+        _typeNode.Resolve(new ResolveContext(null));
+        _linqExpression = Expression.Parameter(SymbolType.ClrType, Name.Text);
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public void Resolve(ResolveContext context)
+    {
+        ResolveSymbol();
+    }
+
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         return _linqExpression ?? throw new InvalidOperationException();
     }
 
-    public ParameterExpression LinqExpression => _linqExpression ?? throw new InvalidOperationException();
+    public ParameterExpression ClrExpression => _linqExpression ?? throw new InvalidOperationException();
 }

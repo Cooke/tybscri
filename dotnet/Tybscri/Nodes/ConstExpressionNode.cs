@@ -2,27 +2,33 @@
 
 namespace Tybscri.Nodes;
 
-public class ConstExpressionNode : Node
+public class ConstExpressionNode : IExpressionNode
 {
-    public object? Value { get; }
-    
     public ConstExpressionNode(object? value, TybscriType type)
     {
         Value = value;
-        ValueType = type;
+        ExpressionType = type;
     }
 
-    public override void SetupScopes(Scope scope)
+    public object? Value { get; }
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public TybscriType ExpressionType { get; }
+
+    public IReadOnlyCollection<INode> Children => Array.Empty<INode>();
+
+    public void SetupScopes(Scope scope)
     {
         Scope = scope;
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
-        return Expression.Constant(Value, ValueType.ClrType);
+        return Expression.Constant(Value, ExpressionType.ClrType);
     }
 }

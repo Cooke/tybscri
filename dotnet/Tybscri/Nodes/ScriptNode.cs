@@ -1,52 +1,61 @@
 ﻿using System.Linq.Expressions;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace Tybscri.Nodes;
 
-public class ScriptNode : Node
+public class ScriptNode : IExpressionNode
 {
     private List<SourceSymbol>? _scopeSymbols;
 
-    public ScriptNode(Node[] statements) : base(statements)
+    public ScriptNode(IStatementNode[] statements)
     {
+        Statements = statements;
     }
 
-    public override void SetupScopes(Scope scope)
+    public IStatementNode[] Statements { get; }
+
+    public TybscriType ExpressionType { get; private set; } = StandardTypes.Unknown;
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public IReadOnlyCollection<INode> Children => Statements;
+
+    public void SetupScopes(Scope scope)
     {
         Scope = scope;
 
         _scopeSymbols = new List<SourceSymbol>();
-        foreach (var child in Children.OfType<FunctionNode>()) {
-            _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
+        foreach (var func in Statements.OfType<FunctionNode>()) {
+            _scopeSymbols.Add(new SourceSymbol(func.Name.Text, func));
         }
 
         var childScope = scope.CreateChildScope(_scopeSymbols);
-        foreach (var child in Children) {
-            child.SetupScopes(childScope);
-            childScope = child.Scope;
+        foreach (var statement in Statements) {
+            statement.SetupScopes(childScope);
+            childScope = statement.Scope;
         }
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
-        foreach (var child in Children) {
-            child.ResolveTypes(context);
+        foreach (var child in Statements) {
+            child.Resolve(context);
         }
 
-        ValueType = Children.Last().ValueType;
+        ExpressionType = Statements.Last() is IExpressionNode expNode ? expNode.ExpressionType : StandardTypes.Null;
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_scopeSymbols == null) {
             throw new InvalidOperationException("Scopes have not been setup");
         }
 
-        var scriptExitLabel = Expression.Label(ValueType.ClrType, "LastScriptStatement");
+        var scriptExitLabel = Expression.Label(ExpressionType.ClrType, "LastScriptStatement");
         var innerGenerateContext = generateContext with { ReturnLabel = scriptExitLabel };
 
-        var body = Children.Select(x => x.ToClrExpression(innerGenerateContext)).Select((exp, index) =>
-            index < Children.Count - 1 ? exp : Expression.Label(scriptExitLabel, exp));
+        var body = Statements.Select(x => x.ToClrExpression(innerGenerateContext)).Select((exp, index) =>
+            index < Statements.Length - 1 ? exp : Expression.Label(scriptExitLabel, exp));
         return Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(), body);
     }
 }

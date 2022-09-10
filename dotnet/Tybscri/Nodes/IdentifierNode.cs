@@ -2,22 +2,24 @@
 
 namespace Tybscri.Nodes;
 
-public class IdentifierNode : Node
+public class IdentifierNode : IExpressionNode
 {
     private Symbol? _symbol;
-    public string Name { get; }
 
-    public IdentifierNode(String name)
-    {
-        Name = name;
-    }
-    
     public IdentifierNode(Token token)
     {
         Name = token.Text;
     }
-    
-    public override void SetupScopes(Scope scope)
+
+    public string Name { get; }
+
+    public IReadOnlyCollection<INode> Children => ArraySegment<INode>.Empty;
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public TybscriType ExpressionType { get; private set; } = UnknownType.Instance;
+
+    public void SetupScopes(Scope scope)
     {
         Scope = scope;
         _symbol = Scope.ResolveLast(Name);
@@ -26,13 +28,13 @@ public class IdentifierNode : Node
         }
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
-        _symbol?.ResolveTypes(context);
-        ValueType = _symbol?.ValueType ?? StandardTypes.Unknown;
+        _symbol!.ResolveTypes(context);
+        ExpressionType = _symbol!.ValueType;
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_symbol == null) {
             throw new TybscriException($"Unknown identifier: {Name}");

@@ -3,39 +3,42 @@ using Tybscri.Utils;
 
 namespace Tybscri.Nodes;
 
-internal class IfNode : Node
+internal class IfNode : IExpressionNode
 {
-    public Node Exp { get; }
-
-    public Node Then { get; }
-
-    public Node? ElseNode { get; }
-
-    public IfNode(Token ifToken, Token lparen, Node exp, Token rparen, Node then, Node? elseNode) : base(exp, then)
+    public IfNode(IExpressionNode exp, IExpressionNode then, IExpressionNode? elseNode)
     {
         Exp = exp;
         Then = then;
         ElseNode = elseNode;
-    }
-    
-    public override void SetupScopes(Scope scope)
-    {
-        
+
+        Children = new[] { Exp, Then, ElseNode }.Where(x => x != null).ToArray()!;
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public IExpressionNode Exp { get; }
+
+    public IExpressionNode Then { get; }
+
+    public IExpressionNode? ElseNode { get; }
+
+    public IReadOnlyCollection<INode> Children { get; }
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public TybscriType ExpressionType { get; private set; } = UnknownType.Instance;
+
+    public void SetupScopes(Scope scope)
     {
+        Scope = scope;
     }
 
-    public override void Resolve(CompileContext context)
+    public void Resolve(ResolveContext context)
     {
         Exp.Resolve(context);
         Then.Resolve(context);
         ElseNode?.Resolve(context);
-        Scope = context.Scope;
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         var elseExp = ElseNode?.ToClrExpression(generateContext) ?? Expression.Constant(null, typeof(object));
         var thenExp = Then.ToClrExpression(generateContext);

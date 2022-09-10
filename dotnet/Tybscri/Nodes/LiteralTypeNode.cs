@@ -1,15 +1,24 @@
 ﻿namespace Tybscri.Nodes;
 
-public class LiteralTypeNode : TypeNode
+public class LiteralTypeNode : ITypeNode
 {
     public LiteralTypeNode(TybscriType type)
     {
         Type = type;
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public Scope Scope { get; private set; } = Scope.Empty;
+    
+    public IReadOnlyCollection<INode> Children => ArraySegment<INode>.Empty;
+
+    public TybscriType Type { get; }
+
+    public void SetupScopes(Scope scope)
     {
+        Scope = scope;
     }
 
-    public override TybscriType Type { get; }
+    public void Resolve(ResolveContext context)
+    {
+    }
 }

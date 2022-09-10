@@ -15,7 +15,7 @@ public class ExternalTypeSymbol : Symbol, ITypeSymbol
         ClrExpression = new TybscriTypeExpression(type);
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public override void ResolveTypes(ResolveContext context)
     {
         
     }

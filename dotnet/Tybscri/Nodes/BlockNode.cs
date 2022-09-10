@@ -2,46 +2,60 @@
 
 namespace Tybscri.Nodes;
 
-public class BlockNode : Node
+public class BlockNode : IExpressionNode
 {
     private List<SourceSymbol>? _scopeSymbols;
 
-    public BlockNode(Node[] statements) : base(statements)
+    public BlockNode(IStatementNode[] statements)
     {
+        Statements = statements;
     }
 
-    public override void SetupScopes(Scope scope)
+    public IStatementNode[] Statements { get; }
+
+    public IReadOnlyCollection<INode> Children => Statements;
+
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public TybscriType ExpressionType { get; private set; } = StandardTypes.Unknown;
+
+    public void SetupScopes(Scope scope)
     {
         Scope = scope;
-        
+
         _scopeSymbols = new List<SourceSymbol>();
-        foreach (var child in Children.OfType<FunctionNode>()) {
-            _scopeSymbols.Add(new SourceSymbol(child.Name.Text, child));
+        foreach (var func in Statements.OfType<FunctionNode>()) {
+            _scopeSymbols.Add(new SourceSymbol(func.Name.Text, func));
         }
 
         var childScope = scope.CreateChildScope(_scopeSymbols);
-        foreach (var child in Children) {
-            child.SetupScopes(childScope);
-            childScope = child.Scope;
+        foreach (var statement in Statements) {
+            statement.SetupScopes(childScope);
+            childScope = statement.Scope;
         }
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
-        foreach (var child in Children) {
-            child.ResolveTypes(context);
+        foreach (var child in Statements) {
+            child.Resolve(context);
         }
-        
-        ValueType = Children.LastOrDefault()?.ValueType ?? UnknownType.Instance;
+
+        ExpressionType = Statements.LastOrDefault() switch
+        {
+            IExpressionNode valueNode => valueNode.ExpressionType,
+            ReturnNode => StandardTypes.Never,
+            _ => StandardTypes.Null
+        };
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         if (_scopeSymbols is null) {
             throw new InvalidOperationException("Scopes have not been setup");
         }
 
         return Expression.Block(_scopeSymbols.Select(x => x.ClrExpression).Cast<ParameterExpression>(),
-            Children.Select(x => x.ToClrExpression(generateContext)));
+            Statements.Select(x => x.ToClrExpression(generateContext)));
     }
 }

@@ -35,7 +35,10 @@ statement:
 	| assignmentStatement
 	| forStatement
 	| whileStatement
-	| expression;
+	| expression
+	| returnStatement;
+
+returnStatement: RETURN expression? | CONTINUE | BREAK;
 
 block: LCURL NL* statements NL* RCURL;
 
@@ -113,7 +116,6 @@ arguments:
 primaryExpression:
 	parenExpression
 	| ifExpression
-	| jumpExpression
 	| scopeIdentifierInvocation
 	| scopeIdentifier
 	| literalConstant
@@ -129,8 +131,6 @@ ifExpression:
 	IF NL* LPAREN NL* expression NL* RPAREN NL* body (
 		NL* ELSE NL* body
 	)?;
-
-jumpExpression: RETURN expression? | CONTINUE | BREAK;
 
 // Literals
 collectionLiteral:

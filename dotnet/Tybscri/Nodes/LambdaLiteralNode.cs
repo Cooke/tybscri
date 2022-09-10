@@ -3,23 +3,28 @@ using Tybscri.Nodes;
 
 namespace Tybscri;
 
-public class LambdaLiteralNode : Node
+public class LambdaLiteralNode : IExpressionNode
 {
-    public IReadOnlyCollection<Node> Statements { get; }
+    public IReadOnlyCollection<IStatementNode> Statements { get; }
 
     private ItSymbol? _itSymbol;
-    private readonly List<IdentifierDefinitionNode> _parameters;
+    private readonly List<LambdaParameterNode> _parameters;
 
-    public LambdaLiteralNode(List<IdentifierDefinitionNode> parameters, IReadOnlyCollection<Node> statements) :
-        base(statements)
+    public LambdaLiteralNode(List<LambdaParameterNode> parameters, IReadOnlyCollection<IStatementNode> statements)
     {
         Statements = statements;
         _parameters = parameters;
+
+        Children = statements;
     }
 
-    public override TybscriType ValueType { get; protected set; } = StandardTypes.Unknown;
+    public TybscriType ExpressionType { get; protected set; } = StandardTypes.Unknown;
 
-    public override void SetupScopes(Scope context)
+    public Scope Scope { get; private set; } = Scope.Empty;
+
+    public IReadOnlyCollection<INode> Children { get; }
+
+    public void SetupScopes(Scope context)
     {
         Scope = context;
         // Cannot setup scopes inside the lambda since that requires the lambda signature, specifically the
@@ -39,21 +44,21 @@ public class LambdaLiteralNode : Node
             for (var index = 0; index < lambdaType.Parameters.Count; index++) {
                 var typeParameter = lambdaType.Parameters[index];
                 var lambdaParameter = _parameters[index];
-                lambdaParameter.SetType(typeParameter.Type);
-                scopeSymbols.Add(new SourceSymbol(lambdaParameter.Name, lambdaParameter));
+                lambdaParameter.Resolve(new ResolveContext(typeParameter.Type));
+                scopeSymbols.Add(new SourceSymbol(lambdaParameter.SymbolName, lambdaParameter));
             }
         }
 
         return scope.CreateChildScope(scopeSymbols);
     }
 
-    public override void ResolveTypes(AnalyzeContext context)
+    public void Resolve(ResolveContext context)
     {
         if (context.ExpectedType == null || context.ExpectedType is not FuncType expectedFunc) {
             throw new TybscriException("Lambda literals are only supported when a function type is expected");
         }
 
-        ValueType = expectedFunc;
+        ExpressionType = expectedFunc;
         var statementScope = ResolveStartScope(expectedFunc, Scope);
         foreach (var statement in Statements) {
             statement.SetupScopes(statementScope);
@@ -61,17 +66,17 @@ public class LambdaLiteralNode : Node
         }
         
         foreach (var statement in Statements) {
-            statement.ResolveTypes(context);
+            statement.Resolve(context);
         }
     }
 
-    public override Expression ToClrExpression(GenerateContext generateContext)
+    public Expression ToClrExpression(GenerateContext generateContext)
     {
         // if (_parameterExpression == null) {
         //     throw new InvalidOperationException("Invalid function state");
         // }
 
-        if (ValueType is not FuncType funcType) {
+        if (ExpressionType is not FuncType funcType) {
             throw new InvalidOperationException("Cannot compile function");
         }
 
@@ -103,7 +108,7 @@ public class LambdaLiteralNode : Node
             _itParameterExpression = Expression.Parameter(type.ClrType, "it");
         }
 
-        public override void ResolveTypes(AnalyzeContext context)
+        public override void ResolveTypes(ResolveContext context)
         {
         }
 
