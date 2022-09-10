@@ -18,6 +18,8 @@ public class IdentifierDefinitionNode : Node, ISymbolDefinitionNode
     }
 
     public ParameterExpression LinqExpression => _parameter ?? throw new TybscriException("Missing parameter");
+    
+    public TybscriType DefinedType => ValueType;
 
     public override void ResolveTypes(AnalyzeContext context)
     {

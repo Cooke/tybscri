@@ -44,28 +44,22 @@ public class ExternalSymbol : Symbol
 
 public class SourceSymbol : Symbol
 {
-    private readonly Func<ISymbolDefinitionNode> _laterSymbol;
+    private readonly ISymbolDefinitionNode _node;
 
-    public SourceSymbol(string name, ISymbolDefinitionNode node) : this(name, () => node)
-    {
-    }
-
-    public SourceSymbol(string name, Func<ISymbolDefinitionNode> laterSymbol)
+    public SourceSymbol(string name, ISymbolDefinitionNode node)
     {
         Name = name;
-        _laterSymbol = laterSymbol;
+        _node = node;
     }
 
     public override void ResolveTypes(AnalyzeContext context)
     {
-        Node.ResolveTypes(context);
+        _node.ResolveTypes(context);
     }
 
-    public override TybscriType ValueType => Node.ValueType;
+    public override TybscriType ValueType => _node.DefinedType;
 
     public override string Name { get; }
 
-    public ISymbolDefinitionNode Node => _laterSymbol();
-
-    public override Expression ClrExpression => Node.LinqExpression;
+    public override Expression ClrExpression => _node.LinqExpression;
 }

@@ -12,10 +12,12 @@ public class TybscriCompiler
     private static readonly object EmptyEnvironment = new object();
     
     private readonly ITypeMapper _typeMapper;
+    private readonly Scope _baseScope;
 
-    public TybscriCompiler(ITypeMapper typeMapper)
+    public TybscriCompiler(ITypeMapper typeMapper, Scope baseScope)
     {
         _typeMapper = typeMapper;
+        _baseScope = baseScope;
     }
 
     public TybscriCompiler()
@@ -26,6 +28,11 @@ public class TybscriCompiler
         typeMapper.Add(typeof(bool), StandardTypes.Boolean);
         typeMapper.Add(typeof(string), StandardTypes.String);
         _typeMapper = typeMapper;
+
+        _baseScope = new Scope(new[]
+        {
+            new ExternalTypeSymbol(StandardTypes.Number, "number", _typeMapper.Map(typeof(TybscriType)))
+        });
     }
 
     public Func<TEnvironment, TResult> CompileExpression<TResult, TEnvironment>(string expression)
@@ -44,7 +51,7 @@ public class TybscriCompiler
         }
 
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
-        var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
+        var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
         expressionNode.SetupScopes(scope);
         expressionNode.ResolveTypes(new AnalyzeContext(expectedResultType));
 
@@ -84,7 +91,7 @@ public class TybscriCompiler
         var scriptNode = parser.ParseScript();
 
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
-        var scope = new Scope(GetEnvironmentSymbols<TEnvironment>(envExpression));
+        var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
         var expectedType = _typeMapper.Map(typeof(TResult));
         scriptNode.SetupScopes(scope);
         scriptNode.ResolveTypes(new AnalyzeContext(expectedType));

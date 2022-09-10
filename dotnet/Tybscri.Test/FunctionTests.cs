@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Tybscri.Test;
@@ -60,6 +61,19 @@ public class FunctionTests
     }
 
     [Fact]
+    public void ImplicitReturn()
+    {
+        var output = _compiler.EvaluateScript<double>(@"
+            fun foo() {
+                123
+            }
+
+            foo()
+            ");
+        Assert.Equal(123, output);
+    }
+
+    [Fact]
     public void Return()
     {
         var output = _compiler.EvaluateScript<double>(@"
@@ -70,6 +84,40 @@ public class FunctionTests
             foo()
             ");
         Assert.Equal(123, output);
+    }
+    
+    [Fact]
+    public void OneParameter()
+    {
+        var output = _compiler.EvaluateScript<double>(@"
+            fun identity(value: number) {
+                return value
+            }
+
+            identity(123)
+            ");
+        Assert.Equal(123, output);
+    }
+
+    [Fact]
+    public void SeveralReturns()
+    {
+        var output = _compiler.EvaluateScript<List<double>>(@"
+            fun foo(val: number) {
+                if (val < 10) {
+                    return 1
+                }
+
+                if (val < 100) {
+                    return 2
+                }
+
+                return 3
+            }
+
+            [foo(1), foo(10), foo(100)]
+            ");
+        Assert.Collection(output, x => Assert.Equal(1, x), x => Assert.Equal(2, x), x => Assert.Equal(3, x));
     }
 
     [Fact]

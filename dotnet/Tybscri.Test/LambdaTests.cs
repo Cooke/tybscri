@@ -12,7 +12,7 @@ public class LambdaTests
     {
         _compiler = new TybscriCompiler();
     }
-
+    
     [Fact]
     public void ItParameter()
     {

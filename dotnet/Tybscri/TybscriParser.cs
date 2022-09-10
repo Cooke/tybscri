@@ -102,16 +102,16 @@ public class TybscriParser
         AdvanceWhileNL();
 
         var valueParams = new List<ParameterNode>();
-        while (Peek() != L.RPAREN && Peek() != L.Eof) {
+        if (Peek() == L.Identifier) {
             valueParams.Add(ParseParameter());
             AdvanceWhileNL();
-            if (Peek() == L.COMMA) {
-                Advance();
-                AdvanceWhileNL();
-            }
-            else {
-                break;
-            }
+        }
+
+        while (Peek() == L.COMMA) {
+            Advance();
+            AdvanceWhileNL();
+            valueParams.Add(ParseParameter());
+            AdvanceWhileNL();
         }
 
         ParseToken(L.RPAREN);

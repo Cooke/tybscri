@@ -12,6 +12,7 @@ enum AnalyzeState
 public class FunctionNode : Node, ISymbolDefinitionNode
 {
     public ParameterExpression LinqExpression => _parameterExpression ?? throw new InvalidOperationException();
+    public TybscriType DefinedType => ValueType;
 
     public Token Name { get; }
     public IReadOnlyCollection<ParameterNode> Parameters { get; }
@@ -27,6 +28,8 @@ public class FunctionNode : Node, ISymbolDefinitionNode
         Parameters = parameters;
         Body = body;
     }
+    
+    
 
     public override void SetupScopes(Scope scope)
     {
@@ -54,7 +57,7 @@ public class FunctionNode : Node, ISymbolDefinitionNode
             // });
 
             ValueType = new FuncType(StandardTypes.Unknown,
-                Parameters.Select((x) => new FuncParameter(x.Name.Text, x.Type.Type)));
+                Parameters.Select((x) => new FuncParameter(x.Name.Text, x.DefinedType)));
             return;
         }
 
@@ -74,7 +77,7 @@ public class FunctionNode : Node, ISymbolDefinitionNode
         var returnType = UnionType.Create(allReturns.ToArray());
 
         _analyzeState = AnalyzeState.Analyzed;
-        ValueType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.Type.Type)));
+        ValueType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.DefinedType)));
         _parameterExpression = Expression.Parameter(ValueType.ClrType, Name.Text);
     }
 
@@ -143,26 +146,29 @@ public class FunctionNode : Node, ISymbolDefinitionNode
 public class ParameterNode : Node, ISymbolDefinitionNode
 {
     private ParameterExpression? _linqExpression;
+    private readonly TypeNode _typeNode;
 
     public Token Name { get; }
 
-    public TypeNode Type { get; }
 
     public ParameterNode(Token name, TypeNode type) : base(type)
     {
         Name = name;
-        Type = type;
+        _typeNode = type;
     }
 
     public override void SetupScopes(Scope scope)
     {
+        _typeNode.SetupScopes(scope);
         Scope = scope;
     }
 
+    public TybscriType DefinedType => _typeNode.Type;
+
     public override void ResolveTypes(AnalyzeContext context)
     {
-        Type.ResolveTypes(context);
-        _linqExpression = Expression.Parameter(Type.Type.ClrType, Name.Text);
+        _typeNode.ResolveTypes(context);
+        _linqExpression = Expression.Parameter(DefinedType.ClrType, Name.Text);
     }
 
     public override Expression ToClrExpression(GenerateContext generateContext)
