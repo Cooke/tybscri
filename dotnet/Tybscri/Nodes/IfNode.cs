@@ -6,20 +6,20 @@ namespace Tybscri.Nodes;
 
 internal class IfNode : IExpressionNode
 {
-    public IfNode(IExpressionNode exp, IExpressionNode then, IExpressionNode? elseNode)
+    public IfNode(IExpressionNode condition, IExpressionNode then, IExpressionNode? @else)
     {
-        Exp = exp;
+        Condition = condition;
         Then = then;
-        ElseNode = elseNode;
+        Else = @else;
 
-        Children = new[] { Exp, Then, ElseNode }.Where(x => x != null).ToArray()!;
+        Children = new[] { Condition, Then, Else }.Where(x => x != null).ToArray()!;
     }
 
-    public IExpressionNode Exp { get; }
+    public IExpressionNode Condition { get; }
 
     public IExpressionNode Then { get; }
 
-    public IExpressionNode? ElseNode { get; }
+    public IExpressionNode? Else { get; }
 
     public IReadOnlyCollection<INode> Children { get; }
 
@@ -29,21 +29,25 @@ internal class IfNode : IExpressionNode
 
     public void SetupScopes(Scope scope)
     {
+        Condition.SetupScopes(scope);
+        Then.SetupScopes(scope);
+        Else?.SetupScopes(scope);
         Scope = scope;
     }
 
     public void Resolve(ResolveContext context)
     {
-        Exp.Resolve(context);
+        Condition.Resolve(context);
         Then.Resolve(context);
-        ElseNode?.Resolve(context);
+        Else?.Resolve(context);
+        ValueType = UnionType.Create(Then.ValueType, Else?.ValueType ?? StandardTypes.Null);
     }
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
-        var elseExp = ElseNode?.GenerateLinqExpression(generateContext) ?? Expression.Constant(null, typeof(object));
-        var thenExp = Then.GenerateLinqExpression(generateContext);
-        return Expression.Condition(Exp.GenerateLinqExpression(generateContext), thenExp, elseExp,
-            ClrTypeUtils.FindCommonType(thenExp.Type, elseExp.Type));
+        var thenExp = ExpressionUtils.EnsureType(Then.GenerateLinqExpression(generateContext), ValueType.ClrType);
+        var elseExp = ExpressionUtils.EnsureType(Else?.GenerateLinqExpression(generateContext) ?? Expression.Constant(null, typeof(object)), ValueType.ClrType);
+        return Expression.Condition(Condition.GenerateLinqExpression(generateContext), thenExp, elseExp,
+            ValueType.ClrType);
     }
 }

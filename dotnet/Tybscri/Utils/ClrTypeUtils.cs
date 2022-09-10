@@ -1,4 +1,6 @@
-﻿namespace Tybscri.Utils;
+﻿using System.Collections.Immutable;
+
+namespace Tybscri.Utils;
 
 internal class ClrTypeUtils
 {
@@ -8,10 +10,30 @@ internal class ClrTypeUtils
             return type1;
         }
 
-        // Simple implementation that may need to be improved. This simplification may cause
-        // unnecessary boxing 
-        if (types.All(x => type1 == x)) {
-            return type1;
+        return FindCommonType(new[] { type1 }.Concat(types).ToArray());
+    }
+
+    public static Type FindCommonType(IReadOnlyCollection<Type> types)
+    {
+        if (types.Count == 0) {
+            throw new ArgumentException("List of types is empty");
+        }
+
+        var resultTypes = new List<Type>();
+        foreach (var type in types) {
+            if (!resultTypes.Any(t => type.IsAssignableTo(t))) {
+                for (var i = resultTypes.Count - 1; i >= 0; i--) {
+                    if (resultTypes[i].IsAssignableTo(type)) {
+                        resultTypes.RemoveAt(i);
+                    }
+                }
+
+                resultTypes.Add(type);
+            }
+        }
+
+        if (resultTypes.Count == 1) {
+            return resultTypes[0];
         }
 
         return typeof(object);

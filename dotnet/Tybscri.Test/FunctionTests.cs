@@ -122,19 +122,19 @@ public class FunctionTests
 
             list3(1, ""one"", true)
             ");
-        Assert.Collection(output, x => Assert.Equal(1, x), x => Assert.Equal("one", x), x => Assert.Equal(true, x));
+        Assert.Collection(output, x => Assert.Equal(1d, x), x => Assert.Equal("one", x), x => Assert.Equal(true, x));
     }
 
     [Fact]
     public void SeveralReturns()
     {
         var output = _compiler.EvaluateScript<List<double>>(@"
-            fun foo(val: number) {
-                if (val < 10) {
+            fun foo(cond: number) {
+                if (cond < 10) {
                     return 1
                 }
 
-                if (val < 100) {
+                if (cond < 100) {
                     return 2
                 }
 

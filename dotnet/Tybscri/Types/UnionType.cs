@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Tybscri.Common;
+using Tybscri.Utils;
 
 namespace Tybscri;
 
@@ -42,7 +43,7 @@ public class UnionType : TybscriType
         _types = types;
     }
 
-    public override Type ClrType => typeof(object);
+    public override Type ClrType => ClrTypeUtils.FindCommonType(_types.Select(x => x.ClrType).ToArray());
 
     public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
     {

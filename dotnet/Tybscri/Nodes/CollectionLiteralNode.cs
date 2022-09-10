@@ -26,6 +26,9 @@ public class CollectionLiteralNode : IExpressionNode
     public void SetupScopes(Scope scope)
     {
         Scope = scope;
+        foreach (var exp in Expressions) {
+            exp.SetupScopes(scope);
+        }
     }
 
     public void Resolve(ResolveContext context)

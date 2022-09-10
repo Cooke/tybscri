@@ -430,13 +430,13 @@ public class TybscriParser
 
     private IfNode ParseIf()
     {
-        var ifToken = ParseToken(TybscriLexer.IF);
+        ParseToken(TybscriLexer.IF);
         AdvanceWhileNL();
-        var lparen = ParseToken(TybscriLexer.LPAREN);
+        ParseToken(TybscriLexer.LPAREN);
         AdvanceWhileNL();
         var exp = ParseExpression();
         AdvanceWhileNL();
-        var rparen = ParseToken(TybscriLexer.RPAREN);
+        ParseToken(TybscriLexer.RPAREN);
         AdvanceWhileNL();
         var thenNode = ParseControlBody();
 
