@@ -31,12 +31,15 @@ public class VariableDeclarationNode : IStatementNode, ISymbolDefinitionNode
 
     public void SetupScopes(Scope scope)
     {
+        Assignment.SetupScopes(scope);
         Scope = scope.WithSymbol(new SourceSymbol(SymbolName, this));
     }
 
     public void Resolve(ResolveContext context)
     {
-        ResolveSymbolDefinition();
+        Assignment.Resolve(new ResolveContext(null));
+        SymbolType = Assignment.ValueType;
+        _linqExpression = Expression.Variable(SymbolType.ClrType, Name.Text);
     }
 
     public Expression GenerateLinqExpression(GenerateContext context)
@@ -47,8 +50,8 @@ public class VariableDeclarationNode : IStatementNode, ISymbolDefinitionNode
 
     public void ResolveSymbolDefinition()
     {
-        Assignment.Resolve(new ResolveContext(null));
-        SymbolType = Assignment.ValueType;
-        _linqExpression = Expression.Variable(SymbolType.ClrType, Name.Text);
+        if (_linqExpression == null) {
+            throw new TybscriException($"Variable {SymbolName} can not be used before initialization");
+        }
     }
 }

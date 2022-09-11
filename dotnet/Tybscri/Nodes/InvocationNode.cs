@@ -43,13 +43,8 @@ public class InvocationNode : IExpressionNode
             throw new TybscriException("Cannot invoke value of non func type");
         }
 
-        var args = Arguments;
-        // const args  = [
-        // ...this.argumentList,
-        // ...(this.trailingLambda?[this.trailingLambda] : []), ]
-        // ;
-        for (var i = 0; i < args.Count; i++) {
-            var arg = args[i];
+        for (var i = 0; i < Arguments.Count; i++) {
+            var arg = Arguments[i];
             var parameter = funcType.Parameters.ElementAtOrDefault(i);
             var expectedType = parameter?.Type;
             arg.Resolve(context with { ExpectedType = expectedType });
@@ -67,7 +62,8 @@ public class InvocationNode : IExpressionNode
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
+        var funcType = (FuncType)Target.ValueType;
         return new TybscriInvokeExpression(Target.GenerateLinqExpression(generateContext),
-            Arguments.Select(x => x.GenerateLinqExpression(generateContext)));
+            Arguments.Select((x, i) => ExpressionUtils.EnsureType(x.GenerateLinqExpression(generateContext), x.ValueType, funcType.Parameters[i].Type));
     }
 }

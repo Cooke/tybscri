@@ -142,7 +142,7 @@ public class FunctionTests
             ");
         Assert.Collection(output, x => Assert.Equal(1, x), x => Assert.Equal(2, x), x => Assert.Equal(3, x));
     }
-    
+
     [Fact]
     public void NestingWithHoisting()
     {
@@ -159,7 +159,7 @@ public class FunctionTests
             ");
         Assert.Equal(123, output);
     }
-    
+
     [Fact]
     public void NestingWithReturnWithHoisting()
     {
@@ -175,6 +175,34 @@ public class FunctionTests
             }
             ");
         Assert.Equal(123, output);
+    }
+
+    [Fact]
+    public void UninitializedVariable()
+    {
+        Assert.Throws<TybscriException>(() => _compiler.EvaluateScript<string>(@"
+            var result = foo()
+            var hello = ""hello""
+            result
+
+            fun foo() {
+                hello
+            }
+            "));
+    }
+
+    [Fact]
+    public void Closure()
+    {
+        var output = _compiler.EvaluateScript<string>(@"
+            var hello = ""hello""
+            foo()
+
+            fun foo() {
+                hello
+            }
+            ");
+        Assert.Equal("hello", output);
     }
 
     [Fact]

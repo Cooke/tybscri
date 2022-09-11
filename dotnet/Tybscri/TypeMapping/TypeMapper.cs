@@ -67,25 +67,6 @@ public class TypeMapper : ITypeMapper
                 CreateMemberDefinitions(type).OrderBy(x => x.Name).ToList()));
     }
 
-    // private RpcType DefineUnion(Type type)
-    // {
-    //     var memberTypes = new List<RpcType>();
-    //     var name = _options.TypeNameFormatter(type);
-    //     var typeDefinition = new RpcUnionDefinition(name, type, memberTypes);
-    //     var customType = AddTypeDefinition(typeDefinition);
-    //     memberTypes.AddRange(ReflectionHelper.FindAllOfType(type).Except(new[] { type }).Where(_options.TypeFilter)
-    //         .Select(MapType));
-    //     return customType;
-    // }
-    //
-    // private RpcType DefineEnum(Type type)
-    // {
-    //     var typeDefinition = new RpcEnumDefinition(_options.TypeNameFormatter(type), type,
-    //         Enum.GetNames(type).Zip(Enum.GetValues(type).Cast<int>(),
-    //             (name, val) => new RpcEnumMember(_options.EnumMemberNameFormatter(name), val)).ToList());
-    //     return AddTypeDefinition(typeDefinition);
-    // }
-    //
     private IEnumerable<TybscriMember> CreateMemberDefinitions(Type type)
     {
         var memberInfos = type.GetMembers(_options.MemberBindingFilter).Where(_options.MemberFilter);

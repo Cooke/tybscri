@@ -6,8 +6,6 @@ namespace Tybscri.Nodes;
 
 public class BlockNode : IExpressionNode
 {
-    private List<SourceSymbol>? _scopeSymbols;
-
     public BlockNode(IStatementNode[] statements)
     {
         Statements = statements;
@@ -25,12 +23,12 @@ public class BlockNode : IExpressionNode
     {
         Scope = scope;
 
-        _scopeSymbols = new List<SourceSymbol>();
+        var scopeSymbols = new List<SourceSymbol>();
         foreach (var func in Statements.OfType<FunctionNode>()) {
-            _scopeSymbols.Add(new SourceSymbol(func.Name.Text, func));
+            scopeSymbols.Add(new SourceSymbol(func.Name.Text, func));
         }
 
-        var childScope = scope.CreateChildScope(_scopeSymbols);
+        var childScope = scope.CreateChildScope(scopeSymbols);
         foreach (var statement in Statements) {
             statement.SetupScopes(childScope);
             childScope = statement.Scope;
@@ -53,10 +51,6 @@ public class BlockNode : IExpressionNode
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
-        if (_scopeSymbols is null) {
-            throw new InvalidOperationException("Scopes have not been setup");
-        }
-
         var variables = Statements.OfType<ISymbolDefinitionNode>().Select(x => x.SymbolLinqExpression);
         var statements = Statements.OrderBy(x => x is FunctionNode ? 0 : 1).Select(x => x.GenerateLinqExpression(generateContext));
         return Expression.Block(variables, statements);

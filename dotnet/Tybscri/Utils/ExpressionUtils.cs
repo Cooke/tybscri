@@ -20,4 +20,24 @@ internal static class ExpressionUtils
 
         return Expression.Convert(exp, type);
     }
+
+    public static Expression WrapVoid(Expression exp, Type type)
+    {
+        if (exp.Type == typeof(void)) {
+            return Expression.Block(exp, Expression.Throw(Expression.New(typeof(InvalidOperationException)), type));
+        }
+
+        return exp;
+    }
+
+    public static Expression EnsureType(Expression expression, TybscriType from, TybscriType to)
+    {
+        if (from == to) {
+            return expression;
+        }
+        
+        if (to ==)
+        
+        return expression;
+    }
 }

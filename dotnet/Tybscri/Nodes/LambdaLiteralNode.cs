@@ -33,25 +33,24 @@ public class LambdaLiteralNode : IExpressionNode
         // the presence of the "it" symbol  
     }
 
-    private Scope ResolveStartScope(FuncType lambdaType, Scope scope)
+    private List<ISymbol> ResolveStartScope(FuncType lambdaType)
     {
-        var hoistedSymbols = Statements.OfType<FunctionNode>().Select(x => (ISymbol)new SourceSymbol(x.Name.Text, x));
-        var scopeSymbols = hoistedSymbols.ToList();
+        var parameterSymbols = new List<ISymbol>();
 
         if (_parameters.Count == 0 && lambdaType.Parameters.Count == 1) {
             _itSymbol = new ItSymbol(lambdaType.Parameters[0].Type);
-            scopeSymbols.Add(_itSymbol);
+            parameterSymbols.Add(_itSymbol);
         }
         else {
             for (var index = 0; index < lambdaType.Parameters.Count; index++) {
                 var typeParameter = lambdaType.Parameters[index];
                 var lambdaParameter = _parameters[index];
                 lambdaParameter.Resolve(new ResolveContext(typeParameter.Type));
-                scopeSymbols.Add(new SourceSymbol(lambdaParameter.SymbolName, lambdaParameter));
+                parameterSymbols.Add(new SourceSymbol(lambdaParameter.SymbolName, lambdaParameter));
             }
         }
 
-        return scope.CreateChildScope(scopeSymbols);
+        return parameterSymbols;
     }
 
     public void Resolve(ResolveContext context)
@@ -61,12 +60,9 @@ public class LambdaLiteralNode : IExpressionNode
         }
 
         ValueType = expectedFunc;
-        var statementScope = ResolveStartScope(expectedFunc, Scope);
-        foreach (var statement in Statements) {
-            statement.SetupScopes(statementScope);
-            statementScope = statement.Scope;
-        }
-        
+        var parameterSymbols = ResolveStartScope(expectedFunc);
+        BodyUtils.SetupScopes(Statements, Scope.CreateChildScope(parameterSymbols));
+
         foreach (var statement in Statements) {
             statement.Resolve(context);
         }
@@ -82,21 +78,11 @@ public class LambdaLiteralNode : IExpressionNode
             throw new InvalidOperationException("Cannot compile function");
         }
 
-        var clrReturnType = funcType.ReturnType.ClrType;
-        var returnLabel = Expression.Label(clrReturnType, "LastFuncStatement");
-        var innerGenerateContext = generateContext with { ReturnLabel = returnLabel };
-
-        var body = Expression.Block(Statements.Select(x => x.GenerateLinqExpression(generateContext)));
-        // Expression funcBlock = Body.ValueType == NeverType.Instance
-        //     ? Expression.Block(Body.ToLinqExpression(innerGenerateContext),
-        //         Expression.Label(returnLabel,
-        //             Expression.Throw(Expression.New(typeof(InvalidOperationException)), clrReturnType)))
-        //     : Expression.Label(returnLabel, Body.ToLinqExpression(innerGenerateContext));
-        var lambdaExpression = Expression.Lambda(body,
-            _itSymbol != null && funcType.Parameters.Count == 1
-                ? new[] { _itSymbol.ParameterExpression }.ToList()
-                : _parameters.Select(x => x.ToLinqExpression(generateContext)).ToList());
-        return lambdaExpression;
+        var body = BodyUtils.GenerateLinqExpression(Statements, funcType.ReturnType.ClrType);
+        var parameters = _itSymbol != null && funcType.Parameters.Count == 1
+            ? new[] { _itSymbol.ParameterExpression }.ToList()
+            : _parameters.Select(x => x.ToLinqExpression(generateContext)).ToList();
+        return Expression.Lambda(body, parameters);
     }
 
     private class ItSymbol : ISymbol

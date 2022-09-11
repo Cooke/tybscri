@@ -40,4 +40,39 @@ public class LambdaTests
         var math = _compiler.EvaluateExpression<Func<double, double, double, double>>("{ arg1, arg2, arg3 => arg1 - arg2 - arg3}");
         Assert.Equal(8, math(10, 1, 1));
     }
+    
+    [Fact]
+    public void Variable()
+    {
+        var func = _compiler.EvaluateExpression<Func<double>>(
+            @"{ 
+                var value = 123
+                value 
+            }");
+        Assert.Equal(123, func());
+    }
+    
+    [Fact]
+    public void Return()
+    {
+        var func = _compiler.EvaluateExpression<Func<double>>(
+            @"{ 
+                return 123
+            }");
+        Assert.Equal(123, func());
+    }
+    
+    [Fact]
+    public void Function()
+    {
+        var func = _compiler.EvaluateExpression<Func<double>>(
+            @"{ 
+                fun foo() {
+                    123
+                }
+                
+                foo()
+            }");
+        Assert.Equal(123, func());
+    }
 }

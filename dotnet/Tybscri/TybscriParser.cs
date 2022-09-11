@@ -111,8 +111,11 @@ public class TybscriParser
         // }
 
         AdvanceWhileNL();
-        var body = ParseBlock();
-        var functionNode = new FunctionNode(identifier, parameters, body);
+        ParseToken(TybscriLexer.LCURL);
+        AdvanceWhileNL();
+        var statements = ParseStatements();
+        ParseToken(TybscriLexer.RCURL);
+        var functionNode = new FunctionNode(identifier, parameters, statements);
         return functionNode;
     }
 
@@ -481,9 +484,15 @@ public class TybscriParser
 
     private BlockNode ParseBlock()
     {
-        var lcurl = ParseToken(TybscriLexer.LCURL);
+        ParseToken(TybscriLexer.LCURL);
         AdvanceWhileNL();
+        var statements = ParseStatements();
+        ParseToken(TybscriLexer.RCURL);
+        return new BlockNode(statements.ToArray());
+    }
 
+    private List<IStatementNode> ParseStatements()
+    {
         var statements = new List<IStatementNode>();
         while (Peek() != TybscriLexer.RCURL && Peek() != TybscriLexer.Eof) {
             var statement = ParseStatement();
@@ -495,8 +504,7 @@ public class TybscriParser
             AdvanceWhileNL();
         }
 
-        var rcurl = ParseToken(TybscriLexer.RCURL);
-        return new BlockNode(statements.ToArray());
+        return statements;
     }
 
     private IExpressionNode ParseBinaryExpressionChain(Func<IExpressionNode> parseNext, params int[] tokenTypes)
