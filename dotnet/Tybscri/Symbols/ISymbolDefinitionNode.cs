@@ -4,7 +4,7 @@ namespace Tybscri.Symbols;
 
 public interface ISymbolDefinitionNode
 {
-    ParameterExpression LinqExpression { get; }
+    ParameterExpression SymbolLinqExpression { get; }
     
     TybscriType SymbolType { get; }
     

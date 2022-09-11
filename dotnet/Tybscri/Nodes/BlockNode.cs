@@ -43,7 +43,7 @@ public class BlockNode : IExpressionNode
             child.Resolve(context);
         }
 
-        ValueType = Statements.LastOrDefault() switch
+        ValueType = Statements.LastOrDefault(x => x is not FunctionNode) switch
         {
             IExpressionNode valueNode => valueNode.ValueType,
             ReturnNode => StandardTypes.Never,
@@ -57,7 +57,8 @@ public class BlockNode : IExpressionNode
             throw new InvalidOperationException("Scopes have not been setup");
         }
 
-        return Expression.Block(_scopeSymbols.Select(x => x.LinqExpression).Cast<ParameterExpression>(),
-            Statements.Select(x => x.GenerateLinqExpression(generateContext)));
+        var variables = Statements.OfType<ISymbolDefinitionNode>().Select(x => x.SymbolLinqExpression);
+        var statements = Statements.OrderBy(x => x is FunctionNode ? 0 : 1).Select(x => x.GenerateLinqExpression(generateContext));
+        return Expression.Block(variables, statements);
     }
 }

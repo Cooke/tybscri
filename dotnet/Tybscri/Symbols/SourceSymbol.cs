@@ -16,7 +16,7 @@ public class SourceSymbol : ISymbol
 
     public string Name { get; }
 
-    public Expression LinqExpression => _node.LinqExpression;
+    public Expression LinqExpression => _node.SymbolLinqExpression;
 
     public void Resolve()
     {

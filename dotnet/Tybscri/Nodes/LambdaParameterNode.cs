@@ -21,7 +21,7 @@ public class LambdaParameterNode : INode, ISymbolDefinitionNode
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
-    public ParameterExpression LinqExpression => _parameter ?? throw new TybscriException("Missing parameter");
+    public ParameterExpression SymbolLinqExpression => _parameter ?? throw new TybscriException("Missing parameter");
 
 
     public void SetupScopes(Scope scope)

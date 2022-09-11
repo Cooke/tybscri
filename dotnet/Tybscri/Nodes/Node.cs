@@ -14,11 +14,9 @@ public interface INode
     public void Resolve(ResolveContext context);
 }
 
-public interface IExpressionNode : INode
+public interface IExpressionNode : INode, IStatementNode
 {
     TybscriType ValueType { get; }
-    
-    Expression GenerateLinqExpression(GenerateContext context);
 }
 
 public interface IStatementNode : INode

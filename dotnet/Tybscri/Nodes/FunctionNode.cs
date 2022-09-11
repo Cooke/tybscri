@@ -24,7 +24,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
         Children = parameters.Concat<INode>(new[] { Body }).ToArray();
     }
 
-    public ParameterExpression LinqExpression => _parameterExpression ?? throw new InvalidOperationException();
+    public ParameterExpression SymbolLinqExpression => _parameterExpression ?? throw new InvalidOperationException();
 
     public Scope Scope { get; private set; } = Scope.Empty;
 
@@ -130,26 +130,9 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
                 Expression.Label(returnLabel,
                     Expression.Throw(Expression.New(typeof(InvalidOperationException)), clrReturnType)))
             : Expression.Label(returnLabel, Body.GenerateLinqExpression(innerGenerateContext));
-        var lambdaExpression = Expression.Lambda(funcBlock, Parameters.Select(x => x.LinqExpression));
+        var lambdaExpression = Expression.Lambda(funcBlock, Parameters.Select(x => x.SymbolLinqExpression));
         return Expression.Assign(_parameterExpression, lambdaExpression);
     }
-    //
-    // private findReturns(node: Node): ReturnNode[] {
-    //   if (node instanceof FunctionNode || node instanceof LambdaLiteralNode) {
-    //     return [];
-    //   }
-    //
-    //   if (node instanceof ReturnNode) {
-    //     return [node];
-    //   }
-    //
-    //   const returns: ReturnNode[] = [];
-    //   for (const child of node.children) {
-    //     returns.push(...this.findReturns(child));
-    //   }
-    //
-    //   return returns;
-    // }
 }
 
 public class FunctionParameterNode : INode, ISymbolDefinitionNode
@@ -196,5 +179,5 @@ public class FunctionParameterNode : INode, ISymbolDefinitionNode
         return _linqExpression ?? throw new InvalidOperationException();
     }
 
-    public ParameterExpression LinqExpression => _linqExpression ?? throw new InvalidOperationException();
+    public ParameterExpression SymbolLinqExpression => _linqExpression ?? throw new InvalidOperationException();
 }

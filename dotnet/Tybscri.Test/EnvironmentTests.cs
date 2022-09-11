@@ -2,11 +2,11 @@ using Xunit;
 
 namespace Tybscri.Test;
 
-public class IdentifierTests
+public class EnvironmentTests
 {
     private readonly TybscriCompiler _compiler;
 
-    public IdentifierTests()
+    public EnvironmentTests()
     {
         _compiler = new TybscriCompiler();
     }

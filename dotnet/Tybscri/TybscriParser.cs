@@ -66,6 +66,9 @@ public class TybscriParser
         switch (Peek()) {
             case L.FUN:
                 return ParseFunctionDeclaration();
+            
+            case L.VAR:
+                return ParseVariableDeclaration();
 
             case L.RETURN:
                 Advance();
@@ -79,7 +82,18 @@ public class TybscriParser
             return new MissingStatementNode();
         }
 
-        return new ExpressionStatementNode(exp);
+        return exp;
+    }
+
+    private IStatementNode ParseVariableDeclaration()
+    {
+        ParseToken(L.VAR);
+        var name = ParseToken(L.Identifier);
+        AdvanceWhileNL();
+        ParseToken(L.ASSIGNMENT);
+        AdvanceWhileNL();
+        var exp = ParseExpression();
+        return new VariableDeclarationNode(name, exp);
     }
 
     private FunctionNode ParseFunctionDeclaration()
@@ -488,12 +502,12 @@ public class TybscriParser
     private IExpressionNode ParseBinaryExpressionChain(Func<IExpressionNode> parseNext, params int[] tokenTypes)
     {
         var node = parseNext();
-        this.AdvanceWhileNL();
-        while (tokenTypes.Contains(Peek())) {
+        
+        while (tokenTypes.Contains(PeekIgnoreNL())) {
+            AdvanceWhileNL();
             var token = ParseAnyToken();
             this.AdvanceWhileNL();
             var right = parseNext();
-            AdvanceWhileNL();
             node = new BinaryExpressionNode(node, token, right);
         }
 

@@ -43,7 +43,9 @@ public class ScriptNode : IExpressionNode
             child.Resolve(context);
         }
 
-        ValueType = Statements.Last() is IExpressionNode expNode ? expNode.ValueType : StandardTypes.Null;
+        ValueType = Statements.Last(x => x is not FunctionNode) is IExpressionNode expNode
+            ? expNode.ValueType
+            : StandardTypes.Null;
     }
 
 
@@ -56,8 +58,10 @@ public class ScriptNode : IExpressionNode
         var scriptExitLabel = Expression.Label(ValueType.ClrType, "LastScriptStatement");
         var innerGenerateContext = generateContext with { ReturnLabel = scriptExitLabel };
 
-        var body = Statements.Select(x => x.GenerateLinqExpression(innerGenerateContext)).Select((exp, index) =>
-            index < Statements.Length - 1 ? exp : Expression.Label(scriptExitLabel, exp));
-        return Expression.Block(_scopeSymbols.Select(x => x.LinqExpression).Cast<ParameterExpression>(), body);
+        var variables = Statements.OfType<ISymbolDefinitionNode>().Select(x => x.SymbolLinqExpression);
+        var body = Statements.OrderBy(x => x is FunctionNode ? 0 : 1)
+            .Select(x => x.GenerateLinqExpression(innerGenerateContext)).Select((exp, index) =>
+                index < Statements.Length - 1 ? exp : Expression.Label(scriptExitLabel, exp));
+        return Expression.Block(variables, body);
     }
 }

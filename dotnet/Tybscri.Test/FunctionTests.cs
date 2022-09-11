@@ -20,6 +20,7 @@ public class FunctionTests
             fun hello() {
                 ""hello""
             }
+
             hello()
             ");
         Assert.Equal("hello", output);
@@ -47,15 +48,11 @@ public class FunctionTests
     public void Hoisting()
     {
         var output = _compiler.EvaluateScript<string>(@"
-            fun foo() {
-                bar()
-            }
+            foo()
 
-            fun bar() {
+            fun foo() {
                 ""hello""
             }
-
-            foo()
             ");
         Assert.Equal("hello", output);
     }
@@ -144,6 +141,40 @@ public class FunctionTests
             [foo(1), foo(10), foo(100)]
             ");
         Assert.Collection(output, x => Assert.Equal(1, x), x => Assert.Equal(2, x), x => Assert.Equal(3, x));
+    }
+    
+    [Fact]
+    public void NestingWithHoisting()
+    {
+        var output = _compiler.EvaluateScript<double>(@"
+            foo()
+
+            fun foo() {
+                bar()
+
+                fun bar() {
+                    123
+                }
+            }
+            ");
+        Assert.Equal(123, output);
+    }
+    
+    [Fact]
+    public void NestingWithReturnWithHoisting()
+    {
+        var output = _compiler.EvaluateScript<double>(@"
+            foo()
+
+            fun foo() {
+                return bar()
+
+                fun bar() {
+                    return 123
+                }
+            }
+            ");
+        Assert.Equal(123, output);
     }
 
     [Fact]
