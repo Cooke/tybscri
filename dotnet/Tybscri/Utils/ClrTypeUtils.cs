@@ -1,4 +1,6 @@
 ﻿using System.Collections.Immutable;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Tybscri.Utils;
 
@@ -37,5 +39,11 @@ internal class ClrTypeUtils
         }
 
         return typeof(object);
+    }
+
+    public static Type GetDelegateType(MethodInfo methodInfo)
+    {
+        return Expression.GetDelegateType(methodInfo.GetParameters().Select(x => x.ParameterType)
+            .Concat(new[] { methodInfo.ReturnType }).ToArray());
     }
 }

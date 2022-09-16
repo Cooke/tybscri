@@ -1,13 +1,14 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using Tybscri.Utils;
 
 namespace Tybscri.LinqExpressions;
 
 public class TybscriMemberExpression : Expression
 {
     private readonly Lazy<Expression> _reduced;
-    
+
     public Expression Instance { get; }
 
     public MemberInfo MemberInfo { get; }
@@ -21,7 +22,14 @@ public class TybscriMemberExpression : Expression
 
     public override ExpressionType NodeType => ExpressionType.Extension;
 
-    public override Type Type => _reduced.Value.Type;
+    public override Type Type =>
+        MemberInfo switch
+        {
+            MethodInfo methodInfo => ClrTypeUtils.GetDelegateType(methodInfo),
+            PropertyInfo propertyInfo => propertyInfo.PropertyType,
+            FieldInfo fieldInfo => fieldInfo.FieldType,
+            _ => throw new NotSupportedException()
+        };
 
     public override Expression Reduce()
     {

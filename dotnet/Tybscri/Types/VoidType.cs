@@ -8,7 +8,7 @@ public class VoidType : TybscriType
     {
     }
 
-    public override Type ClrType => typeof(object);
+    public override Type ClrType => typeof(void);
 
     public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
     {

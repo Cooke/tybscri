@@ -12,7 +12,7 @@ namespace Tybscri;
 public class TybscriCompiler
 {
     private static readonly object EmptyEnvironment = new object();
-    
+
     private readonly ITypeMapper _typeMapper;
     private readonly Scope _baseScope;
 
@@ -33,10 +33,8 @@ public class TybscriCompiler
 
         _baseScope = new Scope(new[]
         {
-            CreateType(StandardTypes.Number, "number"),
-            CreateType(StandardTypes.Boolean, "boolean"),
-            CreateType(StandardTypes.Null, "null"),
-            CreateType(StandardTypes.String, "string"),
+            CreateType(StandardTypes.Number, "number"), CreateType(StandardTypes.Boolean, "boolean"),
+            CreateType(StandardTypes.Null, "null"), CreateType(StandardTypes.String, "string"),
         });
 
         ExternalTypeSymbol CreateType(TybscriType tybscriType, string name)
@@ -95,18 +93,10 @@ public class TybscriCompiler
         return func(environment);
     }
 
+
     public Func<TEnvironment, TResult> CompileScript<TResult, TEnvironment>(string script) where TEnvironment : class
     {
-        var parser = new TybscriParser(script);
-        var scriptNode = parser.ParseScript();
-
-        var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
-        var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
-        var expectedType = _typeMapper.Map(typeof(TResult));
-        scriptNode.SetupScopes(scope);
-        scriptNode.Resolve(new ResolveContext(expectedType));
-        var clrExpression = scriptNode.GenerateLinqExpression(new GenerateContext(Expression.Label()));
-        return Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression).Compile();
+        return Compile<Func<TEnvironment, TResult>, TEnvironment>(script, _typeMapper.Map(typeof(TResult)));
     }
 
     public Func<TResult> CompileScript<TResult>(string script)
@@ -117,8 +107,8 @@ public class TybscriCompiler
 
     public void EvaluateScript(string script)
     {
-        var func = CompileScript<object>(script);
-        func();
+        var func = Compile<Action<object>, object>(script, StandardTypes.Void);
+        func(new object());
     }
 
     public TResult EvaluateScript<TResult>(string script)
@@ -129,11 +119,12 @@ public class TybscriCompiler
 
     public void EvaluateScript<TEnvironment>(string script, TEnvironment environment) where TEnvironment : class
     {
-        var func = CompileScript<object, TEnvironment>(script);
+        var func = Compile<Action<TEnvironment>, TEnvironment>(script, StandardTypes.Void);
         func(environment);
     }
 
-    public TResult EvaluateScript<TResult, TEnvironment>(string script, TEnvironment environment) where TEnvironment : class
+    public TResult EvaluateScript<TResult, TEnvironment>(string script, TEnvironment environment)
+        where TEnvironment : class
     {
         var func = CompileScript<TResult, TEnvironment>(script);
         return func(environment);
@@ -149,6 +140,20 @@ public class TybscriCompiler
         }
     }
 
+    private TDelegate Compile<TDelegate, TEnvironment>(string script, TybscriType expectedType)
+        where TEnvironment : class
+    {
+        var parser = new TybscriParser(script);
+        var scriptNode = parser.ParseScript();
+
+        var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
+        var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
+        scriptNode.SetupScopes(scope);
+        scriptNode.Resolve(new ResolveContext(expectedType));
+        var clrExpression = scriptNode.GenerateLinqExpression(new GenerateContext(Expression.Label()));
+        return Expression.Lambda<TDelegate>(clrExpression, envExpression).Compile();
+    }
+
     public TybscriType EvaluateType(string type)
     {
         var parser = new TybscriParser(type);
@@ -156,7 +161,7 @@ public class TybscriCompiler
         if (!parser.EndOfScript) {
             throw new TybscriException("Could not parse full text as a type");
         }
-        
+
         typeNode.SetupScopes(_baseScope);
         typeNode.Resolve(new ResolveContext(null));
         return typeNode.Type;

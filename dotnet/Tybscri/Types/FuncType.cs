@@ -15,14 +15,8 @@ public class FuncType : TybscriType
     {
         ReturnType = returnType;
         Parameters = parameters.ToArray();
-
-        if (ReturnType == StandardTypes.Void) {
-            ClrType = Expression.GetActionType(Parameters.Select(x => x.Type.ClrType).ToArray());
-        }
-        else {
-            ClrType = Expression.GetFuncType(Parameters.Select(x => x.Type.ClrType).Concat(new[] { ReturnType.ClrType })
-                .ToArray());
-        }
+        ClrType = Expression.GetDelegateType(Parameters.Select(x => x.Type.ClrType).Concat(new[] { ReturnType.ClrType })
+            .ToArray());
     }
 
     public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
