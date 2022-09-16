@@ -6,7 +6,7 @@
   "types": "./lib",
   "repository": "https://github.com/Cooke/tybscri",
   "author": "Henrik Cooke",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "private": false,
   "devDependencies": {
     "@types/mocha": "^9.0.0",

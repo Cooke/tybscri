@@ -11,12 +11,13 @@
     },
     {
       "path": "demo"
+    },
+    {
+      "path": "react-editor"
     }
   ],
   "settings": {
-    "cSpell.words": [
-      "Tybscri"
-    ],
+    "cSpell.words": ["Tybscri"],
     "files.watcherExclude": {
       "**/lib/**": true,
       "**/out/**": true
