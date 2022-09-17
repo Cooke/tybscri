@@ -6,8 +6,10 @@ import {
   getAllTypeMembers,
   MemberNode,
   getTypeDisplayName,
+  widenType,
 } from "tybscri";
 import { findNonTokenNode } from "./utils";
+import { getModelEnvironment } from "./common";
 
 export class TybscriCompletionItemProvider
   implements languages.CompletionItemProvider
@@ -20,7 +22,11 @@ export class TybscriCompletionItemProvider
     context: monaco.languages.CompletionContext,
     token: monaco.CancellationToken
   ): Promise<monaco.languages.CompletionList | undefined> {
-    const scriptNode = parseScript(textModel.getValue()).tree;
+    var environment = getModelEnvironment(textModel);
+
+    const scriptNode = parseScript(textModel.getValue(), {
+      scope: environment,
+    }).tree;
 
     const offset = textModel.getOffsetAt(position);
 
@@ -72,7 +78,8 @@ function calcMemberSuggestions(
   textModel: monaco.editor.ITextModel,
   position: monaco.Position
 ) {
-  const members = getAllTypeMembers(currentNode.expression.valueType);
+  const type = currentNode.expression.valueType;
+  const members = getAllTypeMembers(type);
   const wordRange = calcRangeFromCurrentWord(textModel, position);
 
   const suggestions =
@@ -84,7 +91,12 @@ function calcMemberSuggestions(
           : monaco.languages.CompletionItemKind.Field,
       range: wordRange,
       label: m.name,
-      detail: getTypeDisplayName(m.type),
+      detail:
+        getTypeDisplayName(widenType(type)) +
+        "." +
+        m.name +
+        ": " +
+        getTypeDisplayName(m.type),
     })) ?? [];
   return suggestions;
 }

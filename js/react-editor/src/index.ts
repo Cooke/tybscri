@@ -1,1 +1,5 @@
-export { TybscriEditor } from "./TybscriEditor";
+export {
+  TybscriEditor,
+  TybscriEditorProps,
+  TybscriEditorRef,
+} from "./TybscriEditor";

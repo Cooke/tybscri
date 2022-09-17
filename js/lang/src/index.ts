@@ -13,9 +13,10 @@ import { getTypeDisplayName, isTypeAssignableToType, Type } from "./typeSystem";
 
 export { DiagnosticMessage } from "./common";
 export * from "./nodes";
-export * from "./typeSystem/core";
+export * from "./typeSystem";
 export { treeToString as printTree } from "./utils";
 export { Parser, Lexer };
+export { Scope };
 
 export function createLexer(source: string) {
   return new Lexer(CharStreams.fromString(source));
@@ -65,6 +66,7 @@ export function parseExpression(
 
 export interface ScriptParseOptions {
   reportTimings?: boolean;
+  scope?: Scope | null;
 }
 
 export interface ScriptParseResult {
@@ -99,7 +101,7 @@ export function parseScript(
   timeEnd("parse");
 
   time("setup scopes");
-  exp.setupScopes(new Scope(), context);
+  exp.setupScopes(options?.scope ?? new Scope(), context);
   timeEnd("setup scopes");
 
   time("resolve types");
