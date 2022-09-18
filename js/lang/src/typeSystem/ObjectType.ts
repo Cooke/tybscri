@@ -5,17 +5,24 @@ import {
   Member,
   TypeParameter,
   TypeParameterBinding,
-  isTypeArgumentAssignableToType,
+  TypeParameterVariance,
 } from "./common";
 
 export class ObjectType implements Type {
+  private _directMembers?: Array<Member>;
+  public typeParameters: TypeParameter[];
+  public typeArguments: Type[];
+
   constructor(
     readonly name: string,
     readonly base: ObjectType | null,
-    private readonly membersThunk: () => Array<Member>
-  ) {}
-
-  private _directMembers?: Array<Member>;
+    private readonly membersThunk: () => Array<Member>,
+    typeArguments?: Type[],
+    typeParameters?: TypeParameter[]
+  ) {
+    this.typeParameters = typeParameters ?? [];
+    this.typeArguments = typeArguments ?? [];
+  }
 
   protected get directMembers(): Array<Member> {
     if (!this._directMembers) {
@@ -25,51 +32,11 @@ export class ObjectType implements Type {
   }
 
   public get members(): Array<Member> {
-    return this.directMembers.concat(this.base ? this.base.members : []);
-  }
-
-  public get displayName() {
-    return this.name;
-  }
-
-  public isAssignableFrom(from: Type): boolean {
-    if (from instanceof ObjectType) {
-      return isObjectAssignableToObject(from, this);
-    } else if (from instanceof UnionType) {
-      return from.types.every((t) => this.isAssignableFrom(t));
-    } else if (from instanceof LiteralType) {
-      return this.isAssignableFrom(from.valueType);
-    }
-
-    return false;
-  }
-
-  public bind(bindings: TypeParameterBinding[]): Type {
-    return this;
-  }
-}
-
-export class GenericObjectType extends ObjectType {
-  constructor(
-    name: string,
-    base: ObjectType | null,
-    membersThunk: () => Array<Member>,
-    readonly typeArguments: Type[],
-    readonly typeParameters: TypeParameter[]
-  ) {
-    super(name, base, membersThunk);
-  }
-
-  public getTypeAssignments(): TypeParameterBinding[] {
-    return this.typeParameters.map((parameter, index) => ({
+    const typeAssignments = this.typeParameters.map((parameter, index) => ({
       parameter,
       to: this.typeArguments[index],
     }));
-  }
-
-  public get members(): Array<Member> {
-    const typeAssignments = this.getTypeAssignments();
-    return super.directMembers
+    return this.directMembers
       .map(
         (member) =>
           new Member(
@@ -90,65 +57,88 @@ export class GenericObjectType extends ObjectType {
     return `${this.name}${suffix}`;
   }
 
-  bind(bindings: TypeParameterBinding[]) {
+  public isAssignableFrom(from: Type): boolean {
+    if (from instanceof ObjectType) {
+      return this.isAssignableFromObject(from);
+    } else if (from instanceof UnionType) {
+      return from.types.every((t) => this.isAssignableFrom(t));
+    } else if (from instanceof LiteralType) {
+      return this.isAssignableFrom(from.valueType);
+    }
+
+    return false;
+  }
+
+  private isAssignableFromObject(from: ObjectType): boolean {
+    if (from.name !== this.name) {
+      return !!from.base && this.isAssignableFromObject(from.base);
+    }
+
+    for (let i = 0; i < from.typeArguments.length; i++) {
+      const fromArg = from.typeArguments[i];
+      const toArg = this.typeArguments[i];
+      const parameter = from.typeParameters[i];
+      if (!isTypeArgumentAssignableToType(parameter.variance, fromArg, toArg)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public bind(bindings: TypeParameterBinding[]): Type {
+    if (this.typeParameters.length === 0) {
+      return this;
+    }
+
     const typeArguments = this.typeArguments.map((param) => {
       return bindings.find((ass) => ass.parameter === param)?.to ?? param;
     });
 
-    return new GenericObjectType(
+    return new ObjectType(
       this.name,
       this.base,
-      () => this.directMembers,
+      this.membersThunk,
+      typeArguments,
+      this.typeParameters
+    );
+  }
+
+  public bindAll(typeArguments: Type[]) {
+    if (this.typeParameters.length !== typeArguments.length) {
+      throw new Error("Type argument mismatch when binding type");
+    }
+
+    return new ObjectType(
+      this.name,
+      this.base,
+      this.membersThunk,
       typeArguments,
       this.typeParameters
     );
   }
 }
 
-export function bindGenericObjectType(
-  type: GenericObjectType,
-  typeArguments: Type[]
-): GenericObjectType {
-  if (type.typeParameters.length !== typeArguments.length) {
-    throw new Error("Type argument mismatch when binding type");
+// Exampele:
+// out: Generic<Parent> var1 = Generic<Child>()
+// in:  Generic<Child> var1 = Generic<Parent>()
+function isTypeArgumentAssignableToType(
+  variance: TypeParameterVariance,
+  from: Type,
+  to: Type
+) {
+  switch (variance) {
+    // Invariant
+    case undefined:
+    case null:
+      return from.isAssignableFrom(to) && to.isAssignableFrom(from);
+
+    // Contravariant
+    case "in":
+      return from.isAssignableFrom(to);
+
+    // Convariant
+    case "out":
+      return to.isAssignableFrom(from);
   }
-
-  return new GenericObjectType(
-    type.name,
-    type.base,
-    () => type.members,
-    typeArguments,
-    type.typeParameters
-  );
-}
-
-function isObjectAssignableToObject(
-  from: ObjectType | null,
-  to: ObjectType
-): boolean {
-  if (!from) {
-    return false;
-  }
-
-  if (from.name !== to.name) {
-    return isObjectAssignableToObject(from.base, to);
-  }
-
-  if (
-    !(from instanceof GenericObjectType) ||
-    !(to instanceof GenericObjectType)
-  ) {
-    return true;
-  }
-
-  for (let i = 0; i < from.typeArguments.length; i++) {
-    const fromArg = from.typeArguments[i];
-    const toArg = to.typeArguments[i];
-    const parameter = from.typeParameters[i];
-    if (!isTypeArgumentAssignableToType(parameter.variance, fromArg, toArg)) {
-      return false;
-    }
-  }
-
-  return true;
 }

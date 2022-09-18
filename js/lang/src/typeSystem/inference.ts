@@ -1,44 +1,8 @@
 import { TypeParameter } from ".";
 import { Type, TypeParameterBinding } from "./common";
-import { GenericObjectType, ObjectType } from "./ObjectType";
 import { FuncParameter, FuncType } from "./FuncType";
-import { LiteralType } from "./LiteralType";
-import {
-  booleanType,
-  numberType,
-  stringType,
-  trueType,
-  unknownType,
-} from "./types";
-
-export function widenType(type: Type) {
-  if (type instanceof LiteralType) {
-    return type.valueType;
-  }
-
-  return type;
-}
-
-export function narrowTypeTruthy(type: Type) {
-  if (type === booleanType) {
-    return trueType;
-  }
-
-  return type;
-}
-
-export function createLiteralType(
-  value: string | number | boolean
-): LiteralType {
-  return new LiteralType(
-    value,
-    typeof value === "string"
-      ? stringType
-      : typeof value === "boolean"
-      ? booleanType
-      : numberType
-  );
-}
+import { ObjectType } from "./ObjectType";
+import { unknownType } from "./types";
 
 export function inferTypeArguments(
   parameters: readonly FuncParameter[],
@@ -58,7 +22,7 @@ export function inferTypes(to: Type, from: Type): TypeParameterBinding[] {
   } else if (to instanceof ObjectType) {
     const fromObject = from instanceof ObjectType ? from : null;
 
-    if (!(to instanceof GenericObjectType)) {
+    if (!(to instanceof ObjectType)) {
       return [];
     }
 
@@ -67,7 +31,7 @@ export function inferTypes(to: Type, from: Type): TypeParameterBinding[] {
       results.push(
         ...inferTypes(
           to.typeArguments[i],
-          (fromObject instanceof GenericObjectType
+          (fromObject instanceof ObjectType
             ? fromObject.typeArguments?.[i]
             : unknownType) ?? unknownType
         )

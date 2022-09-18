@@ -1,6 +1,6 @@
 export * from "./common";
 export * from "./types";
-export * from "./core";
+export * from "./utils";
 export * from "./listType";
 export * from "./utils";
 export * from "./FuncType";
@@ -9,3 +9,4 @@ export * from "./NeverType";
 export * from "./UnknownType";
 export * from "./LiteralType";
 export * from "./UnionType";
+export * from "./inference";

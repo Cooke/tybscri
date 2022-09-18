@@ -1,5 +1,5 @@
 import assert from "assert";
-import { areTypesEqual, Type } from "../src/typeSystem/common";
+import { areTypesEqual, Type } from "../src";
 
 export function assertEqual<T>(val: any, expected: T): asserts val is T {
   assert.equal(val, expected);

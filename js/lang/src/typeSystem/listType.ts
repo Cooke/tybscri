@@ -1,11 +1,11 @@
 import { Member, TypeParameter } from ".";
 import { FuncParameter, FuncType } from "./FuncType";
-import { bindGenericObjectType, GenericObjectType } from "./ObjectType";
+import { ObjectType } from "./ObjectType";
 import { booleanType, numberType, objectType } from "./types";
 
 const itemType = new TypeParameter("TItem");
 const mapResultType = new TypeParameter("TResult");
-export const listType: GenericObjectType = new GenericObjectType(
+export const listType: ObjectType = new ObjectType(
   "List",
   objectType,
   () => [
@@ -33,7 +33,7 @@ export const listType: GenericObjectType = new GenericObjectType(
             new FuncType([new FuncParameter("item", itemType)], mapResultType)
           ),
         ],
-        bindGenericObjectType(listType, [mapResultType])
+        listType.bindAll([mapResultType])
       ),
       [mapResultType]
     ),

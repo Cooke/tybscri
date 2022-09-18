@@ -1,12 +1,8 @@
 import assert from "assert";
-import {
-  bindGenericObjectType,
-  createUnionType,
-  parseExpression,
-} from "../src";
-import { createLiteralType } from "../src/typeSystem/core";
-import { numberType, stringType } from "../src/typeSystem/types";
+import { createUnionType, parseExpression } from "../src";
+import { createLiteralType } from "../src/typeSystem/utils";
 import { listType } from "../src/typeSystem/listType";
+import { numberType, stringType } from "../src/typeSystem/types";
 import { assertTybscriType } from "./utils";
 
 describe("Member", function () {
@@ -22,20 +18,14 @@ describe("Member", function () {
   describe("inferred return type", function () {
     it("from map", function () {
       const result = parseExpression(`[1, 2].map { it.toString() }`);
-      assertTybscriType(
-        result.tree.valueType,
-        bindGenericObjectType(listType, [stringType])
-      );
+      assertTybscriType(result.tree.valueType, listType.bindAll([stringType]));
     });
 
     it("from map of map", function () {
       const result = parseExpression(
         `[1, 2].map { it.toString() }.map { it.length }`
       );
-      assertTybscriType(
-        result.tree.valueType,
-        bindGenericObjectType(listType, [numberType])
-      );
+      assertTybscriType(result.tree.valueType, listType.bindAll([numberType]));
     });
   });
 });

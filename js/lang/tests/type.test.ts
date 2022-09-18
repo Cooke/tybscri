@@ -1,16 +1,16 @@
 import assert from "assert";
 import {
-  bindGenericObjectType,
+  createLiteralType,
   FuncParameter,
   FuncType,
-  GenericObjectType,
+  inferTypeArguments,
   inferTypes,
-  Member,
+  ObjectType,
   Type,
   TypeParameter,
   UnionType,
 } from "../src/typeSystem";
-import { createLiteralType, inferTypeArguments } from "../src/typeSystem/core";
+import { listType } from "../src/typeSystem/listType";
 import {
   booleanType,
   neverType,
@@ -19,7 +19,6 @@ import {
   objectType,
   stringType,
 } from "../src/typeSystem/types";
-import { listType } from "../src/typeSystem/listType";
 import { assertTybscriType } from "./utils";
 
 function createUnionType(...types: Type[]) {
@@ -84,45 +83,45 @@ describe("Types", function () {
   describe("generics", function () {
     it("covariance", function () {
       const typeParameter: TypeParameter = new TypeParameter("T", "out");
-      const myType: GenericObjectType = new GenericObjectType(
+      const myType: ObjectType = new ObjectType(
         "MyType",
         null,
         () => [],
         [typeParameter],
         [typeParameter]
       );
-      const ofString = bindGenericObjectType(myType, [stringType]);
-      const ofObject = bindGenericObjectType(myType, [objectType]);
+      const ofString = myType.bindAll([stringType]);
+      const ofObject = myType.bindAll([objectType]);
       assert.ok(ofObject.isAssignableFrom(ofString));
       assert.ok(!ofString.isAssignableFrom(ofObject));
     });
 
     it("invariance", function () {
       const typeParameter: TypeParameter = new TypeParameter("T");
-      const myType: GenericObjectType = new GenericObjectType(
+      const myType: ObjectType = new ObjectType(
         "MyType",
         null,
         () => [],
         [typeParameter],
         [typeParameter]
       );
-      const ofString = bindGenericObjectType(myType, [stringType]);
-      const ofObject = bindGenericObjectType(myType, [objectType]);
+      const ofString = myType.bindAll([stringType]);
+      const ofObject = myType.bindAll([objectType]);
       assert.ok(!isTypeAssignableToType(ofString, ofObject));
       assert.ok(!isTypeAssignableToType(ofObject, ofString));
     });
 
     it("contravariance", function () {
       const typeParameter: TypeParameter = new TypeParameter("T", "in");
-      const myType: GenericObjectType = new GenericObjectType(
+      const myType: ObjectType = new ObjectType(
         "MyType",
         null,
         () => [],
         [typeParameter],
         [typeParameter]
       );
-      const ofString = bindGenericObjectType(myType, [stringType]);
-      const ofObject = bindGenericObjectType(myType, [objectType]);
+      const ofString = myType.bindAll([stringType]);
+      const ofObject = myType.bindAll([objectType]);
       assert.ok(!isTypeAssignableToType(ofString, ofObject));
       assert.ok(isTypeAssignableToType(ofObject, ofString));
     });
@@ -191,7 +190,7 @@ describe("Types", function () {
 
     it("infer type parameter from object type parameter", function () {
       const typeParameter: TypeParameter = new TypeParameter("T");
-      const definition: GenericObjectType = new GenericObjectType(
+      const definition: ObjectType = new ObjectType(
         "MyObject",
         null,
         () => [],
@@ -199,8 +198,8 @@ describe("Types", function () {
         [typeParameter]
       );
       const typeParameter2: TypeParameter = new TypeParameter("T");
-      const toType = bindGenericObjectType(definition, [typeParameter2]);
-      const fromType = bindGenericObjectType(definition, [stringType]);
+      const toType = definition.bindAll([typeParameter2]);
+      const fromType = definition.bindAll([stringType]);
       const inferredTypes = inferTypes(toType, fromType);
       assert.deepEqual(inferredTypes, [
         {
@@ -229,7 +228,7 @@ describe("Types", function () {
     });
 
     it("members of bound object should also be bound", function () {
-      const stringList = bindGenericObjectType(listType, [stringType]);
+      const stringList = listType.bindAll([stringType]);
       const filterMember = stringList.members.find((x) => x.name === "filter");
       assert.ok(filterMember);
       assertTybscriType(
@@ -248,9 +247,6 @@ describe("Types", function () {
   });
 });
 
-function isTypeAssignableToType(
-  from: GenericObjectType,
-  to: GenericObjectType
-) {
+function isTypeAssignableToType(from: ObjectType, to: ObjectType) {
   return to.isAssignableFrom(from);
 }

@@ -1,5 +1,5 @@
 import { Node } from "./nodes/base";
-import { GenericObjectType, ObjectType } from "./typeSystem";
+import { ObjectType } from "./typeSystem";
 
 export function treeToString(node: Node) {
   const analyzeTree: string[] = [];
@@ -25,7 +25,7 @@ export function treeToString(node: Node) {
 }
 
 export function objectTypeToString(type: ObjectType) {
-  if (type instanceof GenericObjectType) {
+  if (type.typeParameters) {
     return `${type.name}<${
       type.typeParameters
         ?.map(
