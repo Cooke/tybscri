@@ -1,6 +1,5 @@
 import { DiagnosticSeverity } from "../common";
 import { SourceSymbol } from "../symbols";
-import { reduceUnionType } from "../typeSystem/core";
 import { FuncType, Type, UnionType } from "../typeSystem/common";
 import { nullType } from "../typeSystem";
 import { unknownType } from "../typeSystem";
@@ -50,14 +49,13 @@ export class FunctionNode extends StatementNode {
         span: this.span,
       });
 
-      this.valueType = {
-        kind: "Func",
-        returnType: unknownType,
-        parameters: this.parameters.map((x) => ({
+      this.valueType = new FuncType(
+        this.parameters.map((x) => ({
           type: x.type.type ?? unknownType,
           name: x.name.text,
         })),
-      } as FuncType;
+        unknownType
+      );
       return;
     }
 
@@ -73,24 +71,20 @@ export class FunctionNode extends StatementNode {
     }
 
     const allReturns = this.findReturns(this.body);
-    const unionType: UnionType = {
-      kind: "Union",
-      types: allReturns
+    const returnType = UnionType.create(
+      allReturns
         .map((x) => x.expression?.valueType ?? nullType)
-        .concat([this.body.valueType]),
-    };
-
-    const returnType = reduceUnionType(unionType);
+        .concat([this.body.valueType])
+    );
 
     this._analyzeState = "analyzed";
-    this.valueType = {
-      kind: "Func",
-      returnType,
-      parameters: this.parameters.map((x) => ({
+    this.valueType = new FuncType(
+      this.parameters.map((x) => ({
         type: x.type.type ?? unknownType,
         name: x.name.text,
       })),
-    } as FuncType;
+      returnType
+    );
   }
 
   private findReturns(node: Node): ReturnNode[] {

@@ -1,5 +1,5 @@
 import { parseScript } from "../src";
-import { numberType, stringType } from "../src/typeSystem";
+import { createLiteralType, numberType, stringType } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("Variables", function () {
@@ -8,11 +8,7 @@ describe("Variables", function () {
       val foo = "bar";
     `);
     const valNode = parseResult.tree.statements[0];
-    assertTybscriType(valNode.valueType, {
-      kind: "Literal",
-      value: "bar",
-      valueType: stringType,
-    });
+    assertTybscriType(valNode.valueType, createLiteralType("bar"));
   });
 
   it("inferred var type", function () {
@@ -34,10 +30,6 @@ describe("Variables", function () {
     `
     );
     const valNode = parseResult.tree.statements[0];
-    assertTybscriType(valNode.valueType, {
-      kind: "Literal",
-      value: 321,
-      valueType: numberType,
-    });
+    assertTybscriType(valNode.valueType, createLiteralType(321));
   });
 });

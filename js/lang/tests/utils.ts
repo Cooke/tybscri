@@ -1,9 +1,5 @@
 import assert from "assert";
-import {
-  getTypeDisplayName,
-  isTypeAssignableToType,
-} from "../src/typeSystem/core";
-import { Type } from "../src/typeSystem/common";
+import { areTypesEqual, Type } from "../src/typeSystem/common";
 
 export function assertEqual<T>(val: any, expected: T): asserts val is T {
   assert.equal(val, expected);
@@ -25,11 +21,7 @@ export function assertTybscriType<T extends Type>(
 ): asserts actual is T {
   assert.ok(actual, `Actual type is null`);
   assert.ok(
-    isTypeAssignableToType(actual, expected) &&
-      isTypeAssignableToType(expected, actual) &&
-      actual.kind === expected.kind,
-    `Actual type '${getTypeDisplayName(
-      actual
-    )}' but expected type '${getTypeDisplayName(expected)}'`
+    areTypesEqual(actual, expected),
+    `Actual type '${actual.displayName}' but expected type '${expected.displayName}'`
   );
 }

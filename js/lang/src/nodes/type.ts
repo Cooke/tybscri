@@ -2,7 +2,7 @@ import { Scope } from "../scope";
 import { Symbol } from "../symbols";
 import { unknownType } from "../typeSystem";
 import { numberType, stringType } from "../typeSystem/types";
-import { Type } from "../typeSystem/common";
+import { LiteralType, Type } from "../typeSystem/common";
 import { Node } from "./base";
 import { CompileContext } from "../common";
 import { IdentifierNode } from "./identifier";
@@ -22,12 +22,10 @@ export class TypeNode extends Node {
       this.typeSymbol = scope.resolveLast(this.node.token.text);
       // TODO report if not found
     } else {
-      this._type = {
-        kind: "Literal",
-        value: this.node.value,
-        valueType:
-          typeof this.node.value === "string" ? stringType : numberType,
-      };
+      this._type = new LiteralType(
+        this.node.value,
+        typeof this.node.value === "string" ? stringType : numberType
+      );
     }
 
     this.scope = scope;

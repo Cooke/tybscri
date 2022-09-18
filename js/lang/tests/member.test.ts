@@ -1,11 +1,10 @@
 import assert from "assert";
-import { parseExpression } from "../src";
 import {
-  createLiteralType,
+  bindGenericObjectType,
   createUnionType,
-  deriveObjectType,
-  getAllTypeMembers,
-} from "../src/typeSystem/core";
+  parseExpression,
+} from "../src";
+import { createLiteralType } from "../src/typeSystem/core";
 import { numberType, stringType } from "../src/typeSystem/types";
 import { listType } from "../src/typeSystem/listType";
 import { assertTybscriType } from "./utils";
@@ -14,8 +13,8 @@ describe("Member", function () {
   describe("union members", function () {
     it("common members", function () {
       const union = createUnionType(createLiteralType(1), createLiteralType(1));
-      const unionMembers = getAllTypeMembers(union);
-      const numberMembers = getAllTypeMembers(numberType);
+      const unionMembers = union.members;
+      const numberMembers = numberType.members;
       assert.deepEqual(unionMembers, numberMembers);
     });
   });
@@ -25,7 +24,7 @@ describe("Member", function () {
       const result = parseExpression(`[1, 2].map { it.toString() }`);
       assertTybscriType(
         result.tree.valueType,
-        deriveObjectType(listType, [stringType])
+        bindGenericObjectType(listType, [stringType])
       );
     });
 
@@ -35,7 +34,7 @@ describe("Member", function () {
       );
       assertTybscriType(
         result.tree.valueType,
-        deriveObjectType(listType, [numberType])
+        bindGenericObjectType(listType, [numberType])
       );
     });
   });

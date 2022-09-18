@@ -1,5 +1,4 @@
 import { DiagnosticSeverity } from "../common";
-import { getAllTypeMembers, getTypeDisplayName } from "../typeSystem/core";
 import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
@@ -13,13 +12,11 @@ export class MemberNode extends ExpressionNode {
       return;
     }
 
-    const members = getAllTypeMembers(this.expression.valueType);
+    const members = this.expression.valueType.members;
     const matchingMembers = members.filter((x) => x.name === this.member.text);
     if (matchingMembers.length === 0) {
       context.onDiagnosticMessage?.({
-        message: `No member with name '${
-          this.member.text
-        }' exists on type '${getTypeDisplayName(this.expression.valueType)}'`,
+        message: `No member with name '${this.member.text}' exists on type '${this.expression.valueType.displayName}'`,
         severity: DiagnosticSeverity.Error,
         span: this.member.span,
       });

@@ -1,12 +1,12 @@
 import assert from "assert";
-import { DiagnosticMessage, parseScript } from "../src";
+import { parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
 import {
   createLiteralType,
-  createUnionType,
-  numberType,
-  stringType,
+  FuncParameter,
+  FuncType,
+  UnionType,
 } from "../src/typeSystem";
 import { assertTybscriType, assertType } from "./utils";
 
@@ -28,11 +28,10 @@ describe("Functions", function () {
     `);
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(funcNode.valueType, {
-      kind: "Func",
-      returnType: createLiteralType("bar"),
-      parameters: [],
-    });
+    assertTybscriType(
+      funcNode.valueType,
+      new FuncType([], createLiteralType("bar"))
+    );
   });
 
   it("explicit return", function () {
@@ -43,11 +42,10 @@ describe("Functions", function () {
     `);
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(funcNode.valueType, {
-      kind: "Func",
-      returnType: createLiteralType("bar"),
-      parameters: [],
-    });
+    assertTybscriType(
+      funcNode.valueType,
+      new FuncType([], createLiteralType("bar"))
+    );
   });
 
   it("several returns", function () {
@@ -66,15 +64,17 @@ describe("Functions", function () {
     `);
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(funcNode.valueType, {
-      kind: "Func",
-      returnType: createUnionType(
-        createLiteralType(1),
-        createLiteralType(2),
-        createLiteralType(3)
-      ),
-      parameters: [],
-    });
+    assertTybscriType(
+      funcNode.valueType,
+      new FuncType(
+        [],
+        UnionType.create([
+          createLiteralType(1),
+          createLiteralType(2),
+          createLiteralType(3),
+        ])
+      )
+    );
   });
 
   it("handle inner functions", function () {
@@ -89,11 +89,10 @@ describe("Functions", function () {
     `);
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(funcNode.valueType, {
-      kind: "Func",
-      returnType: createLiteralType("123"),
-      parameters: [],
-    });
+    assertTybscriType(
+      funcNode.valueType,
+      new FuncType([], createLiteralType("123"))
+    );
   });
 
   it("function parameters", function () {
@@ -106,20 +105,16 @@ describe("Functions", function () {
     );
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(funcNode.valueType, {
-      kind: "Func",
-      returnType: createLiteralType("1"),
-      parameters: [
-        {
-          name: "arg1",
-          type: createLiteralType("1"),
-        },
-        {
-          name: "arg2",
-          type: createLiteralType(2),
-        },
-      ],
-    });
+    assertTybscriType(
+      funcNode.valueType,
+      new FuncType(
+        [
+          new FuncParameter("arg1", createLiteralType("1")),
+          new FuncParameter("arg2", createLiteralType(2)),
+        ],
+        createLiteralType("1")
+      )
+    );
   });
 
   it("invoke function result type", function () {
@@ -134,11 +129,7 @@ describe("Functions", function () {
     );
     const resultNode =
       parseResult.tree.statements[parseResult.tree.statements.length - 1];
-    assertTybscriType(resultNode.valueType, {
-      kind: "Literal",
-      value: "bar",
-      valueType: stringType,
-    });
+    assertTybscriType(resultNode.valueType, createLiteralType("bar"));
   });
 
   it("circular reference error", function () {
@@ -177,10 +168,6 @@ describe("Functions", function () {
     `);
     const varNode = parseResult.tree.statements[0];
     assertType(varNode, VariableDeclarationNode);
-    assertTybscriType(varNode.valueType, {
-      kind: "Literal",
-      value: 123,
-      valueType: numberType,
-    });
+    assertTybscriType(varNode.valueType, createLiteralType(123));
   });
 });

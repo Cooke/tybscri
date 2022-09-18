@@ -1,79 +1,63 @@
-import {
-  createLiteralType,
-  createUnionType,
-  deriveObjectType,
-  parseExpression,
-} from "../src";
+import { createLiteralType, parseExpression } from "../src";
 import { Scope } from "../src/scope";
 import { ExternalSymbol } from "../src/symbols";
 import {
+  bindGenericObjectType,
   booleanType,
   FuncType,
   listType,
   numberType,
   stringType,
   trueType,
+  UnionType,
 } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("Literals", function () {
   it("integer literal", function () {
     const parseResult = parseExpression("123");
-    assertTybscriType(parseResult.tree.valueType, {
-      kind: "Literal",
-      value: 123,
-      valueType: numberType,
-    });
+    assertTybscriType(parseResult.tree.valueType, createLiteralType(123));
   });
 
   it("string literal", function () {
     const parseResult = parseExpression('"123"');
-    assertTybscriType(parseResult.tree.valueType, {
-      kind: "Literal",
-      value: "123",
-      valueType: stringType,
-    });
+    assertTybscriType(parseResult.tree.valueType, createLiteralType("123"));
   });
 
   it("true", function () {
     const parseResult = parseExpression("true");
-    assertTybscriType(parseResult.tree.valueType, {
-      kind: "Literal",
-      value: true,
-      valueType: booleanType,
-    });
+    assertTybscriType(parseResult.tree.valueType, createLiteralType(true));
   });
 
   it("collection", function () {
     const parseResult = parseExpression('[true, 123, "321"]');
-    const expected = deriveObjectType(listType, [
-      createUnionType(
+    const expected = bindGenericObjectType(listType, [
+      UnionType.create([
         trueType,
         createLiteralType(123),
-        createLiteralType("321")
-      ),
+        createLiteralType("321"),
+      ]),
     ]);
     assertTybscriType(parseResult.tree.valueType, expected);
   });
 
   it("lambda", function () {
-    const expectedType: FuncType = {
-      kind: "Func",
-      parameters: [
+    const expectedType = new FuncType(
+      [
         {
           name: "str",
           type: stringType,
         },
       ],
-      returnType: numberType,
-    };
+      numberType
+    );
     const parseResult = parseExpression("{ it.length }", { expectedType });
     assertTybscriType(parseResult.tree.valueType, expectedType);
   });
 
   it("trailing lambda with parathesis", function () {
-    const stringListType = deriveObjectType(listType, [stringType]);
-    const numberListType = deriveObjectType(listType, [numberType]);
+    const stringListType = bindGenericObjectType(listType, [stringType]);
+    const numberListType = bindGenericObjectType(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
     const parseResult = parseExpression("list.map() { it.length }", {
       scope,
@@ -82,8 +66,8 @@ describe("Literals", function () {
   });
 
   it("trailing lambda without parathesis", function () {
-    const stringListType = deriveObjectType(listType, [stringType]);
-    const numberListType = deriveObjectType(listType, [numberType]);
+    const stringListType = bindGenericObjectType(listType, [stringType]);
+    const numberListType = bindGenericObjectType(listType, [numberType]);
     const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
     const parseResult = parseExpression("list.map { it.length }", { scope });
     assertTybscriType(parseResult.tree.valueType, numberListType);

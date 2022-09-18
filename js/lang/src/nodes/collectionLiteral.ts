@@ -1,5 +1,4 @@
-import { createUnionType, reduceUnionType } from "..";
-import { deriveObjectType, listType } from "../typeSystem";
+import { bindGenericObjectType, listType, UnionType } from "../typeSystem";
 import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
@@ -10,10 +9,9 @@ export class CollectionLiteralNode extends ExpressionNode {
       exp.resolveTypes(context);
     }
 
-    const union = createUnionType(...this.expressions.map((x) => x.valueType));
-    const itemType = reduceUnionType(union);
+    const itemType = UnionType.create(this.expressions.map((x) => x.valueType));
 
-    this.valueType = deriveObjectType(listType, [itemType]);
+    this.valueType = bindGenericObjectType(listType, [itemType]);
   }
 
   constructor(

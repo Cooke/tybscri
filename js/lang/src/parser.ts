@@ -413,11 +413,11 @@ export class Parser {
     }
 
     const value = this.peekToken().text === "true";
-    return new LiteralNode([this.parseToken(L.Boolean)], value, {
-      kind: "Literal",
+    return new LiteralNode(
+      [this.parseToken(L.Boolean)],
       value,
-      valueType: booleanType,
-    });
+      new LiteralType(value, booleanType)
+    );
   }
 
   private parseStringLiteral() {
@@ -427,11 +427,7 @@ export class Parser {
   private parseNumberLiteral() {
     const syntaxToken = this.parseToken(L.INT);
     const value = parseInt(syntaxToken.text);
-    const literalType: LiteralType = {
-      kind: "Literal",
-      value,
-      valueType: numberType,
-    };
+    const literalType: LiteralType = new LiteralType(value, numberType);
     return new LiteralNode([syntaxToken], value, literalType);
   }
 
@@ -449,11 +445,10 @@ export class Parser {
       });
     }
 
-    const literalType: LiteralType = {
-      kind: "Literal",
-      value: textToken.text,
-      valueType: stringType,
-    };
+    const literalType: LiteralType = new LiteralType(
+      textToken.text,
+      stringType
+    );
     return new LiteralNode(
       [openQuote, textToken, closeQuote],
       textToken.text,

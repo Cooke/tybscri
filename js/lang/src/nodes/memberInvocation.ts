@@ -1,11 +1,5 @@
-import { DiagnosticSeverity } from "../common";
-import {
-  bindType,
-  getAllTypeMembers,
-  getTypeDisplayName,
-  inferTypeArguments,
-} from "../typeSystem";
-import { CompileContext } from "../common";
+import { CompileContext, DiagnosticSeverity } from "../common";
+import { bindType, FuncType, inferTypeArguments } from "../typeSystem";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
@@ -19,13 +13,11 @@ export class MemberInvocationNode extends ExpressionNode {
       return;
     }
 
-    const members = getAllTypeMembers(this.expression.valueType);
+    const members = this.expression.valueType.members;
     const matchingMembers = members.filter((x) => x.name === this.member.text);
     if (matchingMembers.length === 0) {
       context.onDiagnosticMessage?.({
-        message: `No member with name '${
-          this.member.text
-        }' exists on type '${getTypeDisplayName(this.expression.valueType)}'`,
+        message: `No member with name '${this.member.text}' exists on type '${this.expression.valueType.displayName}'`,
         severity: DiagnosticSeverity.Error,
         span: this.member.span,
       });
@@ -51,7 +43,7 @@ export class MemberInvocationNode extends ExpressionNode {
     }
 
     const member = matchingMembers[0];
-    if (member.type.kind !== "Func") {
+    if (!(member.type instanceof FuncType)) {
       context.onDiagnosticMessage?.({
         message: `The expression cannot be invoked`,
         severity: DiagnosticSeverity.Error,

@@ -9,7 +9,7 @@ import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { Parser } from "./parser";
 import { Scope } from "./scope";
-import { getTypeDisplayName, isTypeAssignableToType, Type } from "./typeSystem";
+import { Type } from "./typeSystem";
 
 export { DiagnosticMessage } from "./common";
 export * from "./nodes";
@@ -46,13 +46,9 @@ export function parseExpression(
   const expectedType = options?.expectedType;
   exp.resolveTypes(context, expectedType);
 
-  if (expectedType && !isTypeAssignableToType(exp.valueType, expectedType)) {
+  if (expectedType && !expectedType.isAssignableFrom(exp.valueType)) {
     context?.onDiagnosticMessage?.({
-      message: `Expression type '${getTypeDisplayName(
-        exp.valueType
-      )}' is not assignable to expected type ' ${getTypeDisplayName(
-        expectedType
-      )}'`,
+      message: `Expression type '${exp.valueType.displayName}' is not assignable to expected type ' ${expectedType.displayName}'`,
       severity: DiagnosticSeverity.Error,
       span: exp.span,
     });

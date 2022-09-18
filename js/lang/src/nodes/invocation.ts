@@ -1,4 +1,4 @@
-import { getTypeDisplayName, isTypeAssignableToType } from "..";
+import { FuncType } from "..";
 import { DiagnosticSeverity } from "../common";
 import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
@@ -9,7 +9,7 @@ export class InvocationNode extends ExpressionNode {
   public resolveTypes(context: CompileContext) {
     this.target.resolveTypes(context);
 
-    if (this.target.valueType?.kind !== "Func") {
+    if (!(this.target.valueType instanceof FuncType)) {
       context.onDiagnosticMessage?.({
         message: `The expression cannot be invoked`,
         severity: DiagnosticSeverity.Error,
@@ -28,11 +28,9 @@ export class InvocationNode extends ExpressionNode {
       const expectedType = parameter?.type;
       arg.resolveTypes(context, expectedType);
 
-      if (!isTypeAssignableToType(arg.valueType, expectedType)) {
+      if (!expectedType.isAssignableFrom(arg.valueType)) {
         context.onDiagnosticMessage?.({
-          message: `Argument of type '${getTypeDisplayName(
-            arg.valueType
-          )}' is not assignable to '${getTypeDisplayName(expectedType)}'`,
+          message: `Argument of type '${arg.valueType.displayName}' is not assignable to '${expectedType.displayName}'`,
           severity: DiagnosticSeverity.Error,
           span: arg.span,
         });

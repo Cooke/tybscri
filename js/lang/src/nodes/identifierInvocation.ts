@@ -1,3 +1,4 @@
+import { FuncType } from "..";
 import { DiagnosticSeverity } from "../common";
 import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
@@ -31,7 +32,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
     }
 
     const target = potentialTargets[0];
-    if (target.valueType.kind !== "Func") {
+    if (!(target.valueType instanceof FuncType)) {
       context.onDiagnosticMessage?.({
         message: `The expression cannot be invoked`,
         severity: DiagnosticSeverity.Error,

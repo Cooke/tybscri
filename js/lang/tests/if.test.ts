@@ -1,5 +1,5 @@
 import { parseScript } from "../src";
-import { numberType } from "../src/typeSystem";
+import { createLiteralType, numberType, UnionType } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
 describe("If", function () {
@@ -12,20 +12,9 @@ describe("If", function () {
       }
     `);
     const valNode = parseResult.tree.statements[0];
-    assertTybscriType(valNode.valueType, {
-      kind: "Union",
-      types: [
-        {
-          kind: "Literal",
-          value: 123,
-          valueType: numberType,
-        },
-        {
-          kind: "Literal",
-          value: 456,
-          valueType: numberType,
-        },
-      ],
-    });
+    assertTybscriType(
+      valNode.valueType,
+      UnionType.create([createLiteralType(123), createLiteralType(456)])
+    );
   });
 });

@@ -1,4 +1,3 @@
-import { getTypeDisplayName } from "../typeSystem/core";
 import { unknownType, Type } from "../typeSystem";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";
@@ -16,7 +15,7 @@ export abstract class StatementNode extends Node {
   }
 
   public toString(): string {
-    return `${super.toString()} (type: ${getTypeDisplayName(this.valueType)})`;
+    return `${super.toString()} (type: ${this.valueType.displayName})`;
   }
 }
 

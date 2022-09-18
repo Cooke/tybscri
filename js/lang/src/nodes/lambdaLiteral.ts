@@ -1,12 +1,7 @@
 import { SourceSymbol, Symbol } from "../symbols";
 import { Scope } from "../scope";
 import { neverType, nullType, unknownType } from "../typeSystem";
-import {
-  getTypeDisplayName,
-  isTypeAssignableToType,
-  reduceUnionType,
-} from "../typeSystem/core";
-import { FuncType, Type, UnionType } from "../typeSystem/common";
+import { FuncType, Type, TypeParameter, UnionType } from "../typeSystem/common";
 import { Node } from "./base";
 import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
@@ -42,7 +37,7 @@ export class LambdaLiteralNode extends ExpressionNode {
   }
 
   public resolveTypes(context: CompileContext, expectedType?: Type | null) {
-    if (!expectedType || expectedType.kind !== "Func") {
+    if (!expectedType || !(expectedType instanceof FuncType)) {
       context.onDiagnosticMessage?.({
         message:
           "Lambda literals are currently only supported when a function type is expected",
@@ -50,11 +45,7 @@ export class LambdaLiteralNode extends ExpressionNode {
         span: this.span,
       });
 
-      this.valueType = {
-        kind: "Func",
-        returnType: unknownType,
-        parameters: [],
-      } as FuncType;
+      this.valueType = new FuncType([], unknownType);
 
       return;
     }
@@ -69,40 +60,32 @@ export class LambdaLiteralNode extends ExpressionNode {
       (p, c) => [...p, ...this.findReturns(c)],
       []
     );
-    const unionType: UnionType = {
-      kind: "Union",
-      types: allReturns
+    const returnType = UnionType.create(
+      allReturns
         .map((x) => x.expression?.valueType ?? nullType)
         .concat([
           this.statements[this.statements.length - 1]?.valueType ?? neverType,
-        ]),
-    };
-
-    const returnType = reduceUnionType(unionType);
+        ])
+    );
 
     if (
-      expectedType.returnType.kind !== "TypeParameter" &&
-      !isTypeAssignableToType(returnType, expectedType.returnType)
+      !(expectedType.returnType instanceof TypeParameter) &&
+      !expectedType.returnType.isAssignableFrom(returnType)
     ) {
       context.onDiagnosticMessage?.({
-        message: `Return type '${getTypeDisplayName(
-          returnType
-        )}' is not compatible with the expected return type '${getTypeDisplayName(
-          expectedType.returnType
-        )}'`,
+        message: `Return type '${returnType.displayName}' is not compatible with the expected return type '${expectedType.returnType.displayName}'`,
         span: this.span,
         severity: DiagnosticSeverity.Error,
       });
     }
 
-    this.valueType = {
-      kind: "Func",
-      returnType,
-      parameters: expectedType.parameters.map((x) => ({
+    this.valueType = new FuncType(
+      expectedType.parameters.map((x) => ({
         type: x.type,
         name: x.name,
       })),
-    } as FuncType;
+      returnType
+    );
   }
 
   private findReturns(node: Node): ReturnNode[] {

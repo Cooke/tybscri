@@ -24,15 +24,14 @@ export class IfNode extends ExpressionNode {
     }
     this.thenBlock.resolveTypes(context);
     this.elseBlock?.resolveTypes(context);
-    const unionType: UnionType = {
-      kind: "Union",
-      types: this.elseBlock
+    const unionType = UnionType.create(
+      this.elseBlock
         ? [
             this.thenBlock.valueType ?? unknownType,
             this.elseBlock.valueType ?? unknownType,
           ]
-        : [this.thenBlock.valueType ?? unknownType, nullType],
-    };
+        : [this.thenBlock.valueType ?? unknownType, nullType]
+    );
     this.valueType = unionType;
   }
 
