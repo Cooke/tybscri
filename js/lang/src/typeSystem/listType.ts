@@ -1,11 +1,6 @@
-import {
-  bindGenericObjectType,
-  FuncParameter,
-  FuncType,
-  Member,
-  TypeParameter,
-} from ".";
-import { GenericObjectType } from "./common";
+import { Member, TypeParameter } from ".";
+import { FuncParameter, FuncType } from "./FuncType";
+import { bindGenericObjectType, GenericObjectType } from "./ObjectType";
 import { booleanType, numberType, objectType } from "./types";
 
 const itemType = new TypeParameter("TItem");

@@ -1,7 +1,7 @@
 import { Symbol } from "../symbols";
 import { Scope } from "../scope";
 import { nullType, unknownType } from "../typeSystem";
-import { UnionType } from "../typeSystem/common";
+import { UnionType } from "../typeSystem/UnionType";
 import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";

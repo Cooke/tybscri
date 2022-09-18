@@ -1,6 +1,8 @@
 import { DiagnosticSeverity } from "../common";
 import { SourceSymbol } from "../symbols";
-import { FuncType, Type, UnionType } from "../typeSystem/common";
+import { Type } from "../typeSystem/common";
+import { FuncType } from "../typeSystem/FuncType";
+import { UnionType } from "../typeSystem/UnionType";
 import { nullType } from "../typeSystem";
 import { unknownType } from "../typeSystem";
 import { Node } from "./base";

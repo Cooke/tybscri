@@ -1,13 +1,8 @@
 import { TypeParameter } from ".";
-import {
-  FuncParameter,
-  FuncType,
-  GenericObjectType,
-  LiteralType,
-  ObjectType,
-  Type,
-  TypeParameterBinding,
-} from "./common";
+import { Type, TypeParameterBinding } from "./common";
+import { GenericObjectType, ObjectType } from "./ObjectType";
+import { FuncParameter, FuncType } from "./FuncType";
+import { LiteralType } from "./LiteralType";
 import {
   booleanType,
   numberType,

@@ -1,4 +1,4 @@
-import { LiteralType } from "../typeSystem/common";
+import { LiteralType } from "../typeSystem/LiteralType";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";
 

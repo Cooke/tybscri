@@ -1,11 +1,9 @@
 import { FuncType, Member } from ".";
-import {
-  TypeParameter,
-  LiteralType,
-  NeverType,
-  ObjectType,
-  UnknownType,
-} from "./common";
+import { TypeParameter } from "./common";
+import { ObjectType } from "./ObjectType";
+import { LiteralType } from "./LiteralType";
+import { NeverType } from "./NeverType";
+import { UnknownType } from "./UnknownType";
 
 export const objectType: ObjectType = new ObjectType("object", null, () => [
   new Member(true, "toString", new FuncType([], stringType)),

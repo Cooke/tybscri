@@ -1,5 +1,5 @@
 import { CompileContext, DiagnosticSeverity } from "../common";
-import { bindType, FuncType, inferTypeArguments } from "../typeSystem";
+import { FuncType, inferTypeArguments } from "../typeSystem";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
@@ -68,7 +68,7 @@ export class MemberInvocationNode extends ExpressionNode {
         args.map((x) => x.valueType)
       );
 
-      this.valueType = bindType(member.type.returnType, typeAssignments);
+      this.valueType = member.type.returnType.bind(typeAssignments);
       return;
     }
 

@@ -1,7 +1,9 @@
 import { SourceSymbol, Symbol } from "../symbols";
 import { Scope } from "../scope";
 import { neverType, nullType, unknownType } from "../typeSystem";
-import { FuncType, Type, TypeParameter, UnionType } from "../typeSystem/common";
+import { Type, TypeParameter } from "../typeSystem/common";
+import { FuncType } from "../typeSystem/FuncType";
+import { UnionType } from "../typeSystem/UnionType";
 import { Node } from "./base";
 import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";

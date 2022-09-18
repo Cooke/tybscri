@@ -39,7 +39,7 @@ import {
   stringType,
   unknownType,
 } from "./typeSystem";
-import { LiteralType } from "./typeSystem/common";
+import { LiteralType } from "./typeSystem/LiteralType";
 
 const L = TybscriLexer;
 
