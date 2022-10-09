@@ -64,7 +64,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
             this._analyzeState = AnalyzeState.Analyzed;
 
             SymbolType = new FuncType(StandardTypes.Unknown,
-                Parameters.Select((x) => new FuncParameter(x.Name.Text, x.SymbolType)));
+                Parameters.Select((x) => new FuncParameter(x.Name.Text, x.SymbolType)).ToList);
             return;
         }
 
@@ -81,10 +81,11 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
             // Analyzed already done in a circular analyze
             return;
         }
+
         _analyzeState = AnalyzeState.Analyzed;
-        
+
         var returnType = BodyUtils.CalculateReturnType(Statements);
-        SymbolType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)));
+        SymbolType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)).ToList);
         _parameterExpression = Expression.Parameter(SymbolType.ClrType, Name.Text);
     }
 

@@ -20,4 +20,9 @@ public class UnknownType : TybscriType
     {
         return false;
     }
+
+    public override TResult Visit<TResult>(TybscriTypeVisitor<TResult> visitor)
+    {
+        return visitor.VisitUnknown(this);
+    }
 }

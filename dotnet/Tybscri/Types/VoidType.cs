@@ -19,4 +19,9 @@ public class VoidType : TybscriType
     {
         return source.Equals(this);
     }
+
+    public override TResult Visit<TResult>(TybscriTypeVisitor<TResult> visitor)
+    {
+        return visitor.VisitVoid(this);
+    }
 }

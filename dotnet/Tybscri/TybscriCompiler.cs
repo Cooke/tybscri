@@ -1,9 +1,6 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection;
-using Antlr4.Runtime;
 using Tybscri.Common;
 using Tybscri.LinqExpressions;
-using Tybscri.Nodes;
 using Tybscri.Symbols;
 using Tybscri.TypeMapping;
 
@@ -13,44 +10,43 @@ public class TybscriCompiler
 {
     private static readonly object EmptyEnvironment = new object();
 
-    private readonly ITypeMapper _typeMapper;
-    private readonly Scope _baseScope;
+    private readonly Func<ITypeMapper> _typeMapperFactory;
 
-    public TybscriCompiler(ITypeMapper typeMapper, Scope baseScope)
+    private readonly IReadOnlyCollection<DefinitionType> _defaultTypes = new DefinitionType[]
     {
-        _typeMapper = typeMapper;
-        _baseScope = baseScope;
+        StandardTypes.List, StandardTypes.NumberDefinition, StandardTypes.BooleanDefinition,
+        StandardTypes.NullDefinition, StandardTypes.StringDefinition, StandardTypes.VoidDefinition,
+        StandardTypes.NeverDefinition
+    };
+
+
+    public TybscriCompiler(Func<ITypeMapper> typeMapperFactory)
+    {
+        _typeMapperFactory = typeMapperFactory;
     }
 
     public TybscriCompiler()
     {
-        var typeMapper = new TypeMapper();
-        typeMapper.Add(typeof(int), StandardTypes.Number);
-        typeMapper.Add(typeof(double), StandardTypes.Number);
-        typeMapper.Add(typeof(bool), StandardTypes.Boolean);
-        typeMapper.Add(typeof(string), StandardTypes.String);
-        _typeMapper = typeMapper;
-
-        _baseScope = new Scope(new[]
+        _typeMapperFactory = () => new TypeMapper(new Dictionary<object, TybscriType>
         {
-            CreateType(StandardTypes.Number, "number"), CreateType(StandardTypes.Boolean, "boolean"),
-            CreateType(StandardTypes.Null, "null"), CreateType(StandardTypes.String, "string"),
+            { typeof(double), StandardTypes.Number },
+            { typeof(int), StandardTypes.Number },
+            { typeof(bool), StandardTypes.Boolean },
+            { typeof(string), StandardTypes.String }
         });
-
-        ExternalTypeSymbol CreateType(TybscriType tybscriType, string name)
-        {
-            return new ExternalTypeSymbol(tybscriType, name, _typeMapper.Map(typeof(TybscriType)));
-        }
     }
 
     public Func<TEnvironment, TResult> CompileExpression<TResult, TEnvironment>(string expression)
         where TEnvironment : class
     {
-        return CompileExpression<TResult, TEnvironment>(expression, _typeMapper.Map(typeof(TResult)));
+        var typeMapper = CreateTypeMapper();
+        return CompileExpression<TResult, TEnvironment>(expression, typeMapper.Map(typeof(TResult)), typeMapper);
     }
 
+
     public Func<TEnvironment, TResult> CompileExpression<TResult, TEnvironment>(string expression,
-        TybscriType expectedResultType) where TEnvironment : class
+        TybscriType expectedResultType,
+        ITypeMapper typeMapper) where TEnvironment : class
     {
         var parser = new TybscriParser(expression);
         var expressionNode = parser.ParseExpression();
@@ -58,25 +54,37 @@ public class TybscriCompiler
             throw new TybscriException("Could not parse full text as one expression");
         }
 
-        var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
-        var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
+        var env = CreateEnvironment<TEnvironment>(typeMapper);
+        var scope = new Scope(env.Symbols.Select(x => new ExternalSymbol(x.Expression, x.Type, x.Name)));
+
         expressionNode.SetupScopes(scope);
         expressionNode.Resolve(new ResolveContext(expectedResultType));
 
         var clrExpression = expressionNode.GenerateLinqExpression(new GenerateContext(Expression.Label()));
-        var lambda = Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, envExpression);
+        var lambda = Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, env.Expression);
         return lambda.Compile();
+    }
+
+    private Environment CreateEnvironment<TEnvironment>(ITypeMapper typeMapper) where TEnvironment : class
+    {
+        var envExpression = Expression.Parameter(typeof(TEnvironment));
+        var envSymbols = CreateEnvironmentSymbols<TEnvironment>(envExpression, typeMapper);
+        var typeSymbols = _defaultTypes.Concat(typeMapper.Definitions).Select(x =>
+            new EnvironmentSymbol(x.Name, x, Expression.Constant(null, typeof(object))));
+        return new Environment(typeSymbols.Concat(envSymbols).ToArray(), envExpression);
     }
 
     public Func<TResult> CompileExpression<TResult>(string script)
     {
-        var expression = CompileExpression<TResult, object>(script, _typeMapper.Map(typeof(TResult)));
+        var mapper = CreateTypeMapper();
+        var expectedType = mapper.Map(typeof(TResult));
+        var expression = CompileExpression<TResult, object>(script, expectedType, mapper);
         return () => expression(EmptyEnvironment);
     }
 
     public TResult EvaluateExpression<TResult>(string script, TybscriType expectedResultType)
     {
-        var func = CompileExpression<TResult, object>(script, expectedResultType);
+        var func = CompileExpression<TResult, object>(script, expectedResultType, CreateTypeMapper());
         return func(EmptyEnvironment);
     }
 
@@ -93,10 +101,10 @@ public class TybscriCompiler
         return func(environment);
     }
 
-
     public Func<TEnvironment, TResult> CompileScript<TResult, TEnvironment>(string script) where TEnvironment : class
     {
-        return Compile<Func<TEnvironment, TResult>, TEnvironment>(script, _typeMapper.Map(typeof(TResult)));
+        var mapper = CreateTypeMapper();
+        return Compile<Func<TEnvironment, TResult>, TEnvironment>(script, mapper.Map(typeof(TResult)), mapper);
     }
 
     public Func<TResult> CompileScript<TResult>(string script)
@@ -107,7 +115,7 @@ public class TybscriCompiler
 
     public void EvaluateScript(string script)
     {
-        var func = Compile<Action<object>, object>(script, StandardTypes.Void);
+        var func = Compile<Action<object>, object>(script, StandardTypes.Void, CreateTypeMapper());
         func(new object());
     }
 
@@ -119,7 +127,7 @@ public class TybscriCompiler
 
     public void EvaluateScript<TEnvironment>(string script, TEnvironment environment) where TEnvironment : class
     {
-        var func = Compile<Action<TEnvironment>, TEnvironment>(script, StandardTypes.Void);
+        var func = Compile<Action<TEnvironment>, TEnvironment>(script, StandardTypes.Void, CreateTypeMapper());
         func(environment);
     }
 
@@ -130,24 +138,27 @@ public class TybscriCompiler
         return func(environment);
     }
 
-    private IEnumerable<ExternalSymbol> GetEnvironmentSymbols<TEnvironment>(ParameterExpression envExpression)
-        where TEnvironment : class
+    private IEnumerable<EnvironmentSymbol> CreateEnvironmentSymbols<TEnvironment>(ParameterExpression envExpression,
+        ITypeMapper typeMapper) where TEnvironment : class
     {
-        var envType = (ObjectType)_typeMapper.Map(typeof(TEnvironment));
-        foreach (var envTypeMember in envType.Members) {
+        foreach (var envTypeMember in typeMapper.MapMembers(typeof(TEnvironment))) {
             var getter = new TybscriMemberExpression(envExpression, envTypeMember.MemberInfo);
-            yield return new ExternalSymbol(getter, envTypeMember.Type, envTypeMember.Name);
+            yield return new EnvironmentSymbol(envTypeMember.Name, envTypeMember.Type, getter);
         }
     }
 
-    private TDelegate Compile<TDelegate, TEnvironment>(string script, TybscriType expectedType)
+    private TDelegate Compile<TDelegate, TEnvironment>(string script, TybscriType expectedType, ITypeMapper typeMapper)
         where TEnvironment : class
     {
         var parser = new TybscriParser(script);
         var scriptNode = parser.ParseScript();
 
         var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
-        var scope = _baseScope.CreateChildScope(GetEnvironmentSymbols<TEnvironment>(envExpression));
+        var envSymbols = CreateEnvironmentSymbols<TEnvironment>(envExpression, typeMapper);
+        var typeSymbols = typeMapper.Definitions.Concat(_defaultTypes).Select(x =>
+            new EnvironmentSymbol(x.Name, x, Expression.Constant(null, typeof(object))));
+        var scope = new Scope(envSymbols.Concat(typeSymbols)
+            .Select(x => new ExternalSymbol(x.Expression, x.Type, x.Name)));
         scriptNode.SetupScopes(scope);
         scriptNode.Resolve(new ResolveContext(expectedType));
         var clrExpression = scriptNode.GenerateLinqExpression(new GenerateContext(Expression.Label()));
@@ -162,8 +173,20 @@ public class TybscriCompiler
             throw new TybscriException("Could not parse full text as a type");
         }
 
-        typeNode.SetupScopes(_baseScope);
+        var scope = new Scope(_defaultTypes.Select(x =>
+            new ExternalSymbol(Expression.Constant(null, typeof(Object)), x, x.Name)));
+        typeNode.SetupScopes(scope);
         typeNode.Resolve(new ResolveContext(null));
         return typeNode.Type;
+    }
+
+    private ITypeMapper CreateTypeMapper()
+    {
+        return _typeMapperFactory();
+    }
+
+    public Environment CreateEnvironment<TEnvironment>() where TEnvironment : class
+    {
+        return CreateEnvironment<TEnvironment>(CreateTypeMapper());
     }
 }

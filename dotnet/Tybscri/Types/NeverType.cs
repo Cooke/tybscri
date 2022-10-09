@@ -20,4 +20,9 @@ public class NeverType : TybscriType
     {
         return source.Equals(this);
     }
+
+    public override TResult Visit<TResult>(TybscriTypeVisitor<TResult> visitor)
+    {
+        return visitor.VisitNever(this);
+    }
 }

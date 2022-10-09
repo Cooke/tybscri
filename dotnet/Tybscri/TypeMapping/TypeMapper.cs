@@ -1,73 +1,83 @@
-﻿using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
+﻿using System.Reflection;
 using CookeRpc.AspNetCore.Model;
 using CookeRpc.AspNetCore.Utils;
 using Tybscri.Common;
 
 namespace Tybscri.TypeMapping;
 
+public interface ITypeMapper
+{
+    TybscriType Map(Type clrType);
+
+    TybscriType MapMethodInfo(MethodInfo methodInfo);
+
+    IEnumerable<TybscriMember> MapMembers(Type type);
+
+    IReadOnlyCollection<ObjectDefinitionType> Definitions { get; }
+}
+
 public class TypeMapper : ITypeMapper
 {
-    private readonly List<TybscriType> types = new List<TybscriType>();
-    private readonly Dictionary<Type, TybscriType> _typeMap = new Dictionary<Type, TybscriType>();
+    private readonly Dictionary<object, TybscriType> _mappings;
     private readonly TypeMapperOptions _options = new TypeMapperOptions();
+    private readonly List<ObjectDefinitionType> _definitions = new();
+
+    public TypeMapper(IReadOnlyDictionary<object, TybscriType> initialMappings)
+    {
+        _mappings = initialMappings.ToDictionary(x => x.Key, x => x.Value);
+    }
+
+    public IReadOnlyCollection<ObjectDefinitionType> Definitions => _definitions;
 
     public TybscriType Map(Type clrType)
     {
-        var knownType = _typeMap.GetValueOrDefault(clrType);
-        if (knownType != null) {
-            return knownType;
+        var mappedType = _mappings.GetValueOrDefault(clrType);
+        if (mappedType != null) {
+            return mappedType;
         }
 
         if (clrType == typeof(void)) {
             return StandardTypes.Void;
         }
 
+        var genericClrList = ReflectionHelper.GetGenericTypeOfDefinition(clrType, typeof(IList<>));
+        if (genericClrList != null) {
+            var clrItemType = genericClrList.GenericTypeArguments[0];
+            var itemType = Map(clrItemType);
+            return StandardTypes.List.CreateType(itemType);
+        }
+
         if (clrType.IsAssignableTo(typeof(Delegate))) {
-            var funcType = DefineFuncType(clrType);
-            Add(clrType, funcType);
-            return funcType;
+            return MapFuncType(clrType);
         }
 
         if (clrType.IsClass) {
-            var objectType = DefineObject(clrType);
-            Add(clrType, objectType);
-            return objectType;
+            return MapObject(clrType);
         }
 
         throw new InvalidOperationException($"The CLR type {clrType} cannot automatically be mapped to a tybscri type");
     }
 
-    private TybscriType DefineFuncType(Type clrType)
+    private TybscriType MapFuncType(Type clrType)
     {
         return MapMethodInfo(clrType.GetMethod("Invoke") ??
-                              throw new InvalidOperationException(
-                                  $"CLR type {clrType} cannot be mapped to a tybscri func type"));
+                             throw new InvalidOperationException(
+                                 $"CLR type {clrType} cannot be mapped to a tybscri func type"));
     }
 
-    public void Add(Type clrType, TybscriType tybscriType)
-    {
-        if (_typeMap.TryGetValue(clrType, out var alreadyMapped)) {
-            if (tybscriType != alreadyMapped) {
-                throw new ArgumentException("CLR type already mapped to a different tybscri type", nameof(tybscriType));
-            }
-
-            return;
-        }
-
-        _typeMap.Add(clrType, tybscriType);
-    }
-
-    private TybscriType DefineObject(Type type)
+    private ObjectType MapObject(Type type)
     {
         var typeName = _options.TypeNameFormatter(type);
-        return new ObjectType(type,
-            new Lazy<IReadOnlyCollection<TybscriMember>>(() =>
-                CreateMemberDefinitions(type).OrderBy(x => x.Name).ToList()));
+        var members = new List<TybscriMember>();
+        var objectDefinitionType = new ObjectDefinitionType(typeName, type, ArraySegment<TypeParameter>.Empty,
+            new Lazy<IReadOnlyCollection<TybscriMember>>(() => members));
+        var objectType = objectDefinitionType.CreateType();
+        Add(type, objectType);
+        members.AddRange(MapMembers(type).OrderBy(x => x.Name));
+        return objectType;
     }
 
-    private IEnumerable<TybscriMember> CreateMemberDefinitions(Type type)
+    public IEnumerable<TybscriMember> MapMembers(Type type)
     {
         var memberInfos = type.GetMembers(_options.MemberBindingFilter).Where(_options.MemberFilter);
 
@@ -109,10 +119,34 @@ public class TypeMapper : ITypeMapper
 
     public TybscriType MapMethodInfo(MethodInfo methodInfo)
     {
+        var mappedType = _mappings.GetValueOrDefault(methodInfo);
+        if (mappedType != null) {
+            return mappedType;
+        }
+        
         var returnType = Map(methodInfo.ReturnType);
-        var parameters = methodInfo.GetParameters()
-            .Select((p, i) => new FuncParameter(p.Name ?? $"arg{i}", Map(p.ParameterType)));
-        var funcType = new FuncType(returnType, parameters);
+        var parameters = new List<FuncParameter>();
+        var funcType = new FuncType(returnType, () => parameters);
+        Add(methodInfo, funcType);
+        parameters.AddRange(methodInfo.GetParameters()
+            .Select((p, i) => new FuncParameter(p.Name ?? $"arg{i}", Map(p.ParameterType))));
         return funcType;
+    }
+
+    private void Add(Object clrTypeOrMethodInfo, TybscriType tybscriType)
+    {
+        if (_mappings.TryGetValue(clrTypeOrMethodInfo, out var alreadyMapped)) {
+            if (tybscriType != alreadyMapped) {
+                throw new ArgumentException("CLR type already mapped to a different tybscri type", nameof(tybscriType));
+            }
+
+            return;
+        }
+
+        if (tybscriType is ObjectType objectType) {
+            _definitions.Add(objectType.Definition);
+        }
+
+        _mappings.Add(clrTypeOrMethodInfo, tybscriType);
     }
 }

@@ -170,21 +170,21 @@ public class TybscriParser
         switch (Peek()) {
             case L.QUOTE_OPEN:
                 var textToken = ParseLineString();
-                var type = new StringLiteralType(textToken.Text);
+                var type = new LiteralType(textToken.Text, StandardTypes.String);
                 return new LiteralTypeNode(type);
 
             case L.INT:
             {
                 var token = ParseToken(L.INT);
                 var value = double.Parse(token.Text);
-                return new LiteralTypeNode(new NumberLiteralType(value));
+                return new LiteralTypeNode( new LiteralType(value, StandardTypes.Number));
             }
 
             case L.Boolean:
             {
                 var token = ParseToken(L.Boolean);
                 var value = bool.Parse(token.Text);
-                return new LiteralTypeNode(new BooleanLiteralType(value));
+                return new LiteralTypeNode(new LiteralType(value, StandardTypes.Boolean));
             }
 
             case L.Identifier:
@@ -286,11 +286,11 @@ public class TybscriParser
                 return ParseNull();
             case L.QUOTE_OPEN:
                 var textToken = ParseLineString();
-                return new ConstExpressionNode(textToken.Text, new StringLiteralType(textToken.Text));
+                return new ConstExpressionNode(textToken.Text, new LiteralType(textToken.Text, StandardTypes.String));
             case L.INT:
                 var token = ParseToken(L.INT);
                 var value = double.Parse(token.Text);
-                return new ConstExpressionNode(value, new NumberLiteralType(value));
+                return new ConstExpressionNode(value, new LiteralType(value, StandardTypes.Number));
 
             case L.LBRACKET:
                 return ParseCollectionLiteral();
@@ -442,7 +442,7 @@ public class TybscriParser
     {
         var token = ParseToken(L.Boolean);
         var value = token.Text == "true";
-        return new ConstExpressionNode(value, new BooleanLiteralType(value));
+        return new ConstExpressionNode(value, new LiteralType(value, StandardTypes.Boolean));
     }
 
     private IfNode ParseIf()

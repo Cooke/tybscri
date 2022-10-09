@@ -4,6 +4,8 @@ namespace Tybscri.Nodes;
 
 internal static class ExpressionUtils
 {
+    public static ConstantExpression NullOf<T>() => Expression.Constant(null, typeof(T));
+    
     public static Expression EnsureType(Expression exp, Type type)
     {
         if (exp.Type == type) {

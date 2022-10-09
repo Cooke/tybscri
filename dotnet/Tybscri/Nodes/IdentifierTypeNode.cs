@@ -32,11 +32,11 @@ public class IdentifierTypeNode : ITypeNode
         }
         
         _symbol.Resolve();
-        if (_symbol is not ITypeSymbol typeSymbol) {
+        if (_symbol.ValueType is not ObjectDefinitionType definitionType) {
             throw new TybscriException($"Symbol {Identifier.Text} is not a type");
         }
 
-        _type = typeSymbol.Type;
+        _type = definitionType.CreateType();
     }
 
     public TybscriType Type => _type ?? throw new TybscriException("Unresolved type");

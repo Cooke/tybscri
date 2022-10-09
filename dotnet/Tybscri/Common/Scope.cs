@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Tybscri.Symbols;
+using Tybscri.TypeSerialization;
 
 namespace Tybscri.Common;
 
@@ -23,6 +24,8 @@ public record Scope
         _parent = parent;
         _symbols = symbols.ToImmutableList();
     }
+
+    public IEnumerable<ISymbol> AllSymbols => _symbols.Concat(_parent?.AllSymbols ?? ArraySegment<ISymbol>.Empty);
 
     public ISymbol? ResolveLast(string name)
     {

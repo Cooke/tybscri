@@ -6,8 +6,6 @@ namespace Tybscri;
 
 public class UnionType : TybscriType
 {
-    private readonly IImmutableSet<TybscriType> _types;
-
     public static TybscriType Create(params TybscriType[] types)
     {
         if (types.Length == 0) {
@@ -40,10 +38,12 @@ public class UnionType : TybscriType
 
     private UnionType(IImmutableSet<TybscriType> types)
     {
-        _types = types;
+        Types = types;
     }
 
-    public override Type ClrType => ClrTypeUtils.FindCommonType(_types.Select(x => x.ClrType).ToArray());
+    public override Type ClrType => ClrTypeUtils.FindCommonType(Types.Select(x => x.ClrType).ToArray());
+
+    public IImmutableSet<TybscriType> Types { get; }
 
     public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)
     {
@@ -52,6 +52,11 @@ public class UnionType : TybscriType
 
     public override bool IsAssignableFrom(TybscriType source)
     {
-        return _types.Any(x => x.IsAssignableFrom(source));
+        return Types.Any(x => x.IsAssignableFrom(source));
+    }
+
+    public override TResult Visit<TResult>(TybscriTypeVisitor<TResult> visitor)
+    {
+        return visitor.VisitUnion(this);
     }
 }

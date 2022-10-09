@@ -87,7 +87,7 @@ public class FunctionTests
     public void OneParameter()
     {
         var output = _compiler.EvaluateScript<double>(@"
-            fun identity(value: number) {
+            fun identity(value: Number) {
                 value
             }
 
@@ -100,7 +100,7 @@ public class FunctionTests
     public void TwoParameters()
     {
         var output = _compiler.EvaluateScript<double>(@"
-            fun sub(val1: number, val2: number) {
+            fun sub(val1: Number, val2: Number) {
                 val1 - val2
             }
 
@@ -113,7 +113,7 @@ public class FunctionTests
     public void ThreeParameters()
     {
         var output = _compiler.EvaluateScript<List<object>>(@"
-            fun list3(val1: number, val2: ""one"", val3: true) {
+            fun list3(val1: Number, val2: ""one"", val3: true) {
                 [val1, val2, val3]
             }
 
@@ -126,7 +126,7 @@ public class FunctionTests
     public void SeveralReturns()
     {
         var output = _compiler.EvaluateScript<List<double>>(@"
-            fun foo(cond: number) {
+            fun foo(cond: Number) {
                 if (cond < 10) {
                     return 1
                 }

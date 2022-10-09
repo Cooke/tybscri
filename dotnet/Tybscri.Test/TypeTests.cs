@@ -15,31 +15,31 @@ public class TypeTests
     }
 
     [Fact]
-    public void Number() => AssertType(StandardTypes.Number, "number");
+    public void Number() => AssertType(StandardTypes.Number, "Number");
 
     [Fact]
-    public void Boolean() => AssertType(StandardTypes.Boolean, "boolean");
+    public void Boolean() => AssertType(StandardTypes.Boolean, "Boolean");
 
     [Fact]
-    public void String() => AssertType(StandardTypes.String, "string");
+    public void String() => AssertType(StandardTypes.String, "String");
 
     [Fact]
-    public void Null() => AssertType(StandardTypes.Null, "null");
+    public void Null() => AssertType(StandardTypes.Null, "Null");
 
     [Fact]
-    public void NumberLiteral() => AssertType(new NumberLiteralType(123), "123");
+    public void NumberLiteral() => AssertType(LiteralType.FromClrType(123), "123");
 
     [Fact]
-    public void True() => AssertType(new BooleanLiteralType(true), "true");
+    public void True() => AssertType(LiteralType.FromClrType(true), "true");
 
     [Fact]
-    public void False() => AssertType(new BooleanLiteralType(false), "false");
+    public void False() => AssertType(LiteralType.FromClrType(false), "false");
 
     [Fact]
-    public void StringLiteral() => AssertType(new StringLiteralType("foo"), "\"foo\"");
+    public void StringLiteral() => AssertType(LiteralType.FromClrType("foo"), "\"foo\"");
 
     [Fact]
-    public void Union() => AssertType(UnionType.Create(StandardTypes.Boolean, StandardTypes.Null), "boolean | null");
+    public void Union() => AssertType(UnionType.Create(StandardTypes.Boolean, StandardTypes.Null), "Boolean | Null");
 
     private void AssertType(TybscriType expectedType, string typeString)
     {

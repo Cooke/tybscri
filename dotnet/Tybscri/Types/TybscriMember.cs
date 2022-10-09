@@ -19,7 +19,7 @@ public class TybscriMember
 
     public TybscriMember CreateMember(IEnumerable<TypeAssignment> typeAssignments)
     {
-        var tybscriType = Type.CreateType(typeAssignments);
+        var tybscriType = Type.AssignTypes(typeAssignments);
         return tybscriType == Type ? this : new TybscriMember(Name, tybscriType, MemberInfo);
     }
 }

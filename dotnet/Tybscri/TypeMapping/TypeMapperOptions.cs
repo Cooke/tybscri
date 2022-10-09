@@ -32,7 +32,7 @@ namespace CookeRpc.AspNetCore.Model
                 _ when info.GetCustomAttribute<IgnoreDataMemberAttribute>() != null => false,
                 FieldInfo fi => !IsReflectionType(fi.FieldType),
                 PropertyInfo pi => !IsReflectionType(pi.PropertyType),
-                MethodInfo mi => !IsReflectionType(mi.ReturnType),
+                MethodInfo { IsSpecialName: false } mi => !IsReflectionType(mi.ReturnType),
                 _ => false
             };
         };
