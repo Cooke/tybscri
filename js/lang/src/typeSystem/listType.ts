@@ -1,14 +1,12 @@
 import { Member, TypeParameter } from ".";
 import { FuncParameter, FuncType } from "./FuncType";
-import { ObjectType } from "./ObjectType";
+import { ObjectDefinitionType, ObjectType } from "./ObjectType";
 import { booleanType, numberType, objectType } from "./types";
 
 const itemType = new TypeParameter("TItem");
 const mapResultType = new TypeParameter("TResult");
-export const listType: ObjectType = new ObjectType(
-  "List",
-  objectType,
-  () => [
+export const listDefinitionType: ObjectDefinitionType =
+  new ObjectDefinitionType("List", objectType, [itemType], () => [
     new Member(true, "length", numberType),
     new Member(
       true,
@@ -20,7 +18,7 @@ export const listType: ObjectType = new ObjectType(
             new FuncType([new FuncParameter("item", itemType)], booleanType)
           ),
         ],
-        listType
+        listDefinitionType.createType([itemType])
       )
     ),
     new Member(
@@ -33,11 +31,8 @@ export const listType: ObjectType = new ObjectType(
             new FuncType([new FuncParameter("item", itemType)], mapResultType)
           ),
         ],
-        listType.bindAll([mapResultType])
+        listDefinitionType.createType([mapResultType])
       ),
       [mapResultType]
     ),
-  ],
-  [itemType],
-  [itemType]
-);
+  ]);

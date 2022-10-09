@@ -7,53 +7,86 @@ import {
   TypeParameterBinding,
   TypeParameterVariance,
 } from "./common";
+import { DefinitionType } from ".";
+
+export class ObjectDefinitionType implements DefinitionType {
+  constructor(
+    public readonly name: string,
+    public readonly base: ObjectType | null,
+    public readonly typeParameters: TypeParameter[],
+    private readonly instanceDirectMembersThunk: () => Member[]
+  ) {
+    this.displayName = name;
+  }
+
+  public readonly displayName: string;
+
+  public readonly members: Member[] = [];
+
+  public get instanceDirectMembers() {
+    return this.instanceDirectMembersThunk();
+  }
+
+  isAssignableFrom(type: Type): boolean {
+    return false;
+  }
+
+  bind(bindings: TypeParameterBinding[]): Type {
+    throw new Error("Method not implemented.");
+  }
+
+  createType(typeArguments: Type[]): ObjectType {
+    return new ObjectType(this, typeArguments);
+  }
+}
 
 export class ObjectType implements Type {
+  private readonly _directMembersThunk: () => Member[];
   private _directMembers?: Array<Member>;
-  public typeParameters: TypeParameter[];
-  public typeArguments: Type[];
+  private readonly base: ObjectType | null;
+  public readonly name: string;
+  public readonly typeParameters: TypeParameter[];
+  public readonly typeArguments: Type[];
 
   constructor(
-    readonly name: string,
-    readonly base: ObjectType | null,
-    private readonly membersThunk: () => Array<Member>,
-    typeArguments?: Type[],
-    typeParameters?: TypeParameter[]
+    public readonly definition: ObjectDefinitionType,
+    typeArguments?: Type[]
   ) {
-    this.typeParameters = typeParameters ?? [];
     this.typeArguments = typeArguments ?? [];
+
+    if (definition.typeParameters?.length !== typeArguments?.length) {
+      throw new Error("Invalid number of type arguments");
+    }
+
+    var bindings = definition.typeParameters.map<TypeParameterBinding>(
+      (p, i) => ({ parameter: p, to: typeArguments[i] })
+    );
+
+    this._directMembersThunk = () =>
+      definition.instanceDirectMembers.map((m) => m.bindTypes(bindings));
+
+    this.typeParameters = definition.typeParameters;
+    this.name = definition.name;
+    this.base = definition.base;
   }
 
   protected get directMembers(): Array<Member> {
     if (!this._directMembers) {
-      this._directMembers = this.membersThunk();
+      this._directMembers = this._directMembersThunk();
     }
     return this._directMembers;
   }
 
   public get members(): Array<Member> {
-    const typeAssignments = this.typeParameters.map((parameter, index) => ({
-      parameter,
-      to: this.typeArguments[index],
-    }));
-    return this.directMembers
-      .map(
-        (member) =>
-          new Member(
-            member.isConst,
-            member.name,
-            member.type.bind(typeAssignments),
-            member.typeParameters
-          )
-      )
-      .concat(this.base ? this.base.members : []);
+    return this.directMembers.concat(this.base ? this.base.members : []);
   }
 
   public get displayName(): string {
     const typeArgsOrParams = this.typeArguments ?? this.typeParameters;
-    const suffix = typeArgsOrParams
-      ? `<${typeArgsOrParams.map((x) => x.displayName).join(", ")}>`
-      : "";
+    const suffix =
+      typeArgsOrParams && typeArgsOrParams.length > 0
+        ? `<${typeArgsOrParams.map((x) => x.displayName).join(", ")}>`
+        : "";
     return `${this.name}${suffix}`;
   }
 
@@ -95,13 +128,7 @@ export class ObjectType implements Type {
       return bindings.find((ass) => ass.parameter === param)?.to ?? param;
     });
 
-    return new ObjectType(
-      this.name,
-      this.base,
-      this.membersThunk,
-      typeArguments,
-      this.typeParameters
-    );
+    return new ObjectType(this.definition, typeArguments);
   }
 
   public bindAll(typeArguments: Type[]) {
@@ -109,13 +136,7 @@ export class ObjectType implements Type {
       throw new Error("Type argument mismatch when binding type");
     }
 
-    return new ObjectType(
-      this.name,
-      this.base,
-      this.membersThunk,
-      typeArguments,
-      this.typeParameters
-    );
+    return new ObjectType(this.definition, typeArguments);
   }
 }
 

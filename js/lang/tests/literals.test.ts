@@ -1,9 +1,10 @@
 import { createLiteralType, parseExpression } from "../src";
+import { Environment } from "../src/common";
 import { Scope } from "../src/scope";
 import { ExternalSymbol } from "../src/symbols";
 import {
   FuncType,
-  listType,
+  listDefinitionType,
   numberType,
   stringType,
   trueType,
@@ -29,7 +30,7 @@ describe("Literals", function () {
 
   it("collection", function () {
     const parseResult = parseExpression('[true, 123, "321"]');
-    const expected = listType.bindAll([
+    const expected = listDefinitionType.createType([
       UnionType.create([
         trueType,
         createLiteralType(123),
@@ -54,20 +55,26 @@ describe("Literals", function () {
   });
 
   it("trailing lambda with parathesis", function () {
-    const stringListType = listType.bindAll([stringType]);
-    const numberListType = listType.bindAll([numberType]);
-    const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
+    const stringListType = listDefinitionType.createType([stringType]);
+    const numberListType = listDefinitionType.createType([numberType]);
+    const env: Environment = {
+      symbols: [{ name: "list", type: stringListType }],
+    };
     const parseResult = parseExpression("list.map() { it.length }", {
-      scope,
+      envrionment: env,
     });
     assertTybscriType(parseResult.tree.valueType, numberListType);
   });
 
   it("trailing lambda without parathesis", function () {
-    const stringListType = listType.bindAll([stringType]);
-    const numberListType = listType.bindAll([numberType]);
-    const scope = new Scope(null, [new ExternalSymbol("list", stringListType)]);
-    const parseResult = parseExpression("list.map { it.length }", { scope });
+    const stringListType = listDefinitionType.createType([stringType]);
+    const numberListType = listDefinitionType.createType([numberType]);
+    const env: Environment = {
+      symbols: [{ name: "list", type: stringListType }],
+    };
+    const parseResult = parseExpression("list.map { it.length }", {
+      envrionment: env,
+    });
     assertTybscriType(parseResult.tree.valueType, numberListType);
   });
 });

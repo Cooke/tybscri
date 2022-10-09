@@ -1,17 +1,18 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Tybscri.Common;
 
 namespace Tybscri.TypeSerialization;
 
-public record EnvironmentData(IReadOnlyCollection<SymbolData> Symbols)
+public record EnvironmentData(IReadOnlyCollection<EnvironmentSymbolData> Symbols)
 {
     public EnvironmentData(Environment environment) : this(environment.Symbols.Select(s =>
-        new SymbolData(s.Name, TypeData.Create(s.Type))).ToArray())
+        new EnvironmentSymbolData(s.Name, TypeData.Create(s.Type))).ToArray())
     {
     }
 }
 
-public record SymbolData(string Name, TypeData Type);
+public record EnvironmentSymbolData(string Name, TypeData Type);
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TypeKind
@@ -36,6 +37,7 @@ public record ObjectTypeDefinitionData(string Name,
     public override TypeKind Kind => TypeKind.ObjectDefinition;
 }
 
+[JsonConverter(typeof(TypeDataConverter))]
 public abstract record TypeData
 {
     private static readonly MapperTypeVisitor MapperTypeVisitorInstance = new MapperTypeVisitor();
@@ -115,6 +117,19 @@ public abstract record TypeData
     }
 }
 
+public class TypeDataConverter : JsonConverter<TypeData>
+{
+    public override TypeData? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Write(Utf8JsonWriter writer, TypeData value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (object)value, options);
+    }
+}
+
 public record NeverDefinitionTypeData : TypeData
 {
     public override TypeKind Kind => TypeKind.NeverDefinition;
@@ -171,6 +186,7 @@ public record MemberData(string Name,
 
 public record TypeParameterData(string Name, TypeVariance Variance);
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TypeVariance
 {
     None,

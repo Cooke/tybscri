@@ -1,4 +1,5 @@
 import { TybscriLexer } from "./generated/TybscriLexer";
+import { Type } from "./typeSystem";
 
 export { TybscriLexer as Lexer };
 
@@ -21,6 +22,15 @@ export interface DiagnosticMessage {
   message: string;
   severity: DiagnosticSeverity;
   span: SourceSpan;
+}
+
+export interface Environment {
+  readonly symbols: EnvironmentSymbol[];
+}
+
+export interface EnvironmentSymbol {
+  readonly name: string;
+  readonly type: Type;
 }
 
 export function assert(condition: any, msg?: string): asserts condition {

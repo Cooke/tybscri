@@ -1,6 +1,10 @@
 import assert from "assert";
 import { parseExpression } from "../src";
-import { DiagnosticMessage, DiagnosticSeverity } from "../src/common";
+import {
+  DiagnosticMessage,
+  DiagnosticSeverity,
+  Environment,
+} from "../src/common";
 import { Scope } from "../src/scope";
 import { ExternalSymbol } from "../src/symbols";
 import { stringType, unknownType } from "../src/typeSystem";
@@ -18,8 +22,10 @@ describe("Identifiers", function () {
   });
 
   it("identifier type", function () {
-    const scope = new Scope(null, [new ExternalSymbol("data", stringType)]);
-    const parseResult = parseExpression("data", { scope });
+    const env: Environment = {
+      symbols: [{ name: "data", type: stringType }],
+    };
+    const parseResult = parseExpression("data", { envrionment: env });
     assertTybscriType(parseResult.tree.valueType, stringType);
   });
 });

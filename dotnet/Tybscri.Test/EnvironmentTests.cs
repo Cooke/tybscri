@@ -41,7 +41,8 @@ public class EnvironmentTests
     {
         var environment = _compiler.CreateEnvironment<TestEnv>();
         var environmentData = new EnvironmentData(environment);
-        var json = JsonSerializer.Serialize(environmentData, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(environmentData,
+            new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         _testOutputHelper.WriteLine(json);
         Assert.Equal(@"{
   ""Symbols"": [

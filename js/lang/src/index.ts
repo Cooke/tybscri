@@ -3,12 +3,14 @@ import {
   CompileContext,
   DiagnosticMessage,
   DiagnosticSeverity,
+  Environment,
   Lexer,
 } from "./common";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { Parser } from "./parser";
 import { Scope } from "./scope";
+import { ExternalSymbol, Symbol } from "./symbols";
 import { Type } from "./typeSystem";
 
 export { DiagnosticMessage } from "./common";
@@ -23,7 +25,7 @@ export function createLexer(source: string) {
 }
 
 export interface ExpressionParseOptions {
-  scope?: Scope;
+  envrionment?: Environment;
   expectedType?: Type;
 }
 
@@ -42,7 +44,15 @@ export function parseExpression(
   };
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseExpression();
-  exp.setupScopes(options?.scope ?? new Scope(), context);
+  const scope = options?.envrionment
+    ? new Scope(
+        null,
+        options?.envrionment.symbols.map(
+          (s) => new ExternalSymbol(s.name, s.type)
+        )
+      )
+    : new Scope();
+  exp.setupScopes(scope, context);
   const expectedType = options?.expectedType;
   exp.resolveTypes(context, expectedType);
 

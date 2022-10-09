@@ -26,9 +26,9 @@ public class ObjectType : TybscriType
 
             _directMembers = new Lazy<IReadOnlyCollection<TybscriMember>>(() =>
             {
-                var newMembers = DirectMembers.All(x => x.CreateMember(typeAssignments) == x)
-                    ? DirectMembers
-                    : DirectMembers.Select(x => x.CreateMember(typeAssignments)).ToArray();
+                var newMembers = Definition.InstanceDirectMembers.All(x => x.CreateMember(typeAssignments) == x)
+                    ? Definition.InstanceDirectMembers
+                    : Definition.InstanceDirectMembers.Select(x => x.CreateMember(typeAssignments)).ToArray();
                 return newMembers;
             });
 

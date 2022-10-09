@@ -8,6 +8,14 @@ export interface Type {
   bind(bindings: TypeParameterBinding[]): Type;
 }
 
+export interface DefinitionType extends Type {
+  readonly name: string;
+
+  readonly typeParameters: TypeParameter[];
+
+  createType(typeArguments: Type[]): Type;
+}
+
 export class Member {
   constructor(
     readonly isConst: boolean,
@@ -15,6 +23,11 @@ export class Member {
     readonly type: Type,
     readonly typeParameters?: TypeParameter[]
   ) {}
+
+  bindTypes(bindings: TypeParameterBinding[]): Member {
+    const newType = this.type.bind(bindings);
+    return new Member(this.isConst, this.name, newType, this.typeParameters);
+  }
 }
 
 export type TypeParameterVariance = "in" | "out" | undefined;

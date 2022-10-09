@@ -1,4 +1,7 @@
-﻿namespace Tybscri.Common;
+﻿using System.Linq.Expressions;
+using System.Reflection;
+
+namespace Tybscri.Common;
 
 public static class StandardTypes
 {
@@ -6,7 +9,12 @@ public static class StandardTypes
         new TypeParameter("T", typeof(List<>).GetGenericArguments()[0]);
 
     public static readonly ObjectDefinitionType List = new("List", typeof(List<>), new[] { ItemTypeParameter },
-        new Lazy<IReadOnlyCollection<TybscriMember>>(Array.Empty<TybscriMember>()));
+        new Lazy<IReadOnlyCollection<TybscriMember>>(() => new[]
+        {
+            new TybscriMember("filter",
+                new FuncType(Boolean!, new[] { new FuncParameter("item", ItemTypeParameter) }),
+                typeof(Enumerable).GetMember("Where").First())
+        }));
 
     public static readonly ObjectDefinitionType NumberDefinition = new("Number", typeof(double),
         ArraySegment<TypeParameter>.Empty, new Lazy<IReadOnlyCollection<TybscriMember>>(Array.Empty<TybscriMember>));
@@ -22,8 +30,8 @@ public static class StandardTypes
 
     public static readonly ObjectType String = StringDefinition.CreateType();
 
-    public static readonly ObjectDefinitionType NullDefinition = new("Null", typeof(object), ArraySegment<TypeParameter>.Empty,
-        new Lazy<IReadOnlyCollection<TybscriMember>>(Array.Empty<TybscriMember>));
+    public static readonly ObjectDefinitionType NullDefinition = new("Null", typeof(object),
+        ArraySegment<TypeParameter>.Empty, new Lazy<IReadOnlyCollection<TybscriMember>>(Array.Empty<TybscriMember>));
 
     public static readonly ObjectType Null = NullDefinition.CreateType();
 
