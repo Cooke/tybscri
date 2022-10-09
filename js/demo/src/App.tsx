@@ -2,21 +2,16 @@ import { useRef } from "react";
 import { TybscriEditor } from "tybscri-react-editor";
 import { TybscriEditorRef } from "tybscri-react-editor/lib/TybscriEditor";
 import "./App.css";
-import { Scope, ObjectType, stringType } from "tybscri";
+import { Scope, ObjectType, stringType, objectType } from "tybscri";
 import { ExternalSymbol } from "tybscri/lib/symbols";
 
-const npcType: ObjectType = {
-  base: null,
-  kind: "Object",
-  name: "Npc",
-  members: [
-    {
-      isConst: true,
-      name: "name",
-      type: stringType,
-    },
-  ],
-};
+const npcType = new ObjectType("Npc", objectType, () => [
+  {
+    isConst: true,
+    name: "name",
+    type: stringType,
+  },
+]);
 
 const environment = new Scope(null, [new ExternalSymbol("npc", npcType)]);
 

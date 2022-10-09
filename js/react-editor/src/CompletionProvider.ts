@@ -1,13 +1,6 @@
 import { languages, Range, Uri } from "monaco-editor";
 import * as monaco from "monaco-editor";
-import {
-  Node,
-  parseScript,
-  getAllTypeMembers,
-  MemberNode,
-  getTypeDisplayName,
-  widenType,
-} from "tybscri";
+import { Node, parseScript, MemberNode, FuncType, widenType } from "tybscri";
 import { findNonTokenNode } from "./utils";
 import { getModelEnvironment } from "./common";
 
@@ -64,12 +57,12 @@ function calcSymbolSuggestions(
     .map<monaco.languages.CompletionItem>((sug) => ({
       insertText: sug.name,
       kind:
-        sug.valueType.kind === "Func"
+        sug.valueType instanceof FuncType
           ? monaco.languages.CompletionItemKind.Function
           : monaco.languages.CompletionItemKind.Field,
       range: calcRangeFromCurrentWord(textModel, position),
       label: sug.name,
-      detail: getTypeDisplayName(sug.valueType),
+      detail: sug.valueType.displayName,
     }));
 }
 
@@ -79,24 +72,20 @@ function calcMemberSuggestions(
   position: monaco.Position
 ) {
   const type = currentNode.expression.valueType;
-  const members = getAllTypeMembers(type);
+  const members = type.members;
   const wordRange = calcRangeFromCurrentWord(textModel, position);
 
   const suggestions =
     members.map<monaco.languages.CompletionItem>((m) => ({
       insertText: m.name,
       kind:
-        m.type.kind === "Func"
+        m.type instanceof FuncType
           ? monaco.languages.CompletionItemKind.Method
           : monaco.languages.CompletionItemKind.Field,
       range: wordRange,
       label: m.name,
       detail:
-        getTypeDisplayName(widenType(type)) +
-        "." +
-        m.name +
-        ": " +
-        getTypeDisplayName(m.type),
+        widenType(type).displayName + "." + m.name + ": " + m.type.displayName,
     })) ?? [];
   return suggestions;
 }

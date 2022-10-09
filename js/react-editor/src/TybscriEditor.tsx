@@ -38,7 +38,7 @@ export const TybscriEditor = forwardRef(
         setEnvironment: (value) => {
           environmentRef.current = value;
           // Not verified that this works
-          editorRef?.current.setValue(editorRef.current?.getValue() ?? "");
+          editorRef.current?.setValue(editorRef.current?.getValue() ?? "");
           setEditorModelEnvironment(editorRef.current?.getModel(), value);
         },
       }),
