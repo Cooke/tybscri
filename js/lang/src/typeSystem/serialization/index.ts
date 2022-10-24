@@ -46,8 +46,11 @@ export function deserialize(environmentJson: string) {
     })
   );
 }
+
 function convertType(type: TypeData, definitionTable: DefinitionTable): Type {
   switch (type.kind) {
+    case "ObjectDefinition":
+
     default:
       throw new Error("Could not convert type");
   }
