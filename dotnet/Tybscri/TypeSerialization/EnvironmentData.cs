@@ -26,7 +26,8 @@ public enum TypeKind
     Never,
     Void,
     VoidDefinition,
-    NeverDefinition
+    NeverDefinition,
+    TypeParameter
 }
 
 public record ObjectTypeDefinitionData(string Name,
@@ -53,8 +54,9 @@ public abstract record TypeData
     {
         public TypeData VisitFunc(FuncType funcType)
         {
-            return new FuncTypeData(funcType.Parameters.Select(p => new FuncParameterData(p.Name, Create(p.Type)))
-                .ToArray());
+            return new FuncTypeData(
+                funcType.Parameters.Select(p => new FuncParameterData(p.Name, Create(p.Type))).ToArray(),
+                Create(funcType.ReturnType));
         }
 
         public TypeData VisitLiteral(LiteralType literalType)
@@ -112,7 +114,7 @@ public abstract record TypeData
 
         private static ObjectTypeData VisitObjectStatic(ObjectType objectType)
         {
-            return new ObjectTypeData(objectType.Name, ArraySegment<Type>.Empty);
+            return new ObjectTypeData(objectType.Definition.Name, ArraySegment<Type>.Empty);
         }
     }
 }
@@ -160,7 +162,7 @@ public record UnionTypeData(IReadOnlyCollection<TypeData> Types) : TypeData
     public override TypeKind Kind => TypeKind.Union;
 }
 
-public record FuncTypeData(IReadOnlyCollection<FuncParameterData> Parameters) : TypeData
+public record FuncTypeData(IReadOnlyCollection<FuncParameterData> Parameters, TypeData ReturnType) : TypeData
 {
     public override TypeKind Kind => TypeKind.Func;
 }
@@ -172,7 +174,7 @@ public record LiteralTypeData(object Value, ObjectTypeData ValueType) : TypeData
     public override TypeKind Kind => TypeKind.Literal;
 }
 
-public record ObjectTypeData(string NameRef, IReadOnlyCollection<Type> TypeArguments) : TypeData
+public record ObjectTypeData(string DefinitionName, IReadOnlyCollection<Type> TypeArguments) : TypeData
 {
     public override TypeKind Kind => TypeKind.Object;
 }
@@ -184,7 +186,10 @@ public record MemberData(string Name,
 {
 }
 
-public record TypeParameterData(string Name, TypeVariance Variance);
+public record TypeParameterData(string Name, TypeVariance Variance) : TypeData
+{
+    public override TypeKind Kind => TypeKind.TypeParameter;
+}
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TypeVariance
