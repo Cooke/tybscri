@@ -6,6 +6,7 @@ export * from "./utils";
 export * from "./FuncType";
 export * from "./ObjectType";
 export * from "./NeverType";
+export * from "./VoidType";
 export * from "./UnknownType";
 export * from "./LiteralType";
 export * from "./UnionType";

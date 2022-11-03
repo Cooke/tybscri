@@ -1,14 +1,19 @@
 import {
+  createUnionType,
   DefinitionType,
   FuncParameter,
   FuncType,
   LiteralType,
   Member,
+  NeverDefinitionType,
+  NeverType,
   ObjectDefinitionType,
   ObjectType,
   Type,
   TypeParameter,
   TypeParameterVariance,
+  UnionType,
+  VoidDefinitionType,
 } from "..";
 import { Environment, EnvironmentSymbol } from "../../common";
 
@@ -26,7 +31,10 @@ type TypeData =
   | FuncTypeData
   | ObjectTypeData
   | LiteralTypeData
-  | TypeParameterData;
+  | TypeReferenceData
+  | UnionTypeData
+  | NeverTypeDefinitionData
+  | VoidTypeDefinitionData;
 
 interface LiteralTypeData {
   kind: "Literal";
@@ -68,20 +76,46 @@ interface MemberData {
 type TypeParameterVarianceData = "None" | "In" | "Out";
 
 interface TypeParameterData {
-  kind: "TypeParameter";
   name: string;
   variance: TypeParameterVarianceData;
 }
 
-interface DefinitionTable {
-  readonly [key: string]: ObjectDefinitionType;
+interface TypeReferenceData {
+  kind: "TypeReference";
+  name: string;
+}
+
+interface UnionTypeData {
+  kind: "Union";
+  types: TypeData[];
+}
+
+interface NeverTypeDefinitionData {
+  kind: "NeverDefinition";
+  name: string;
+}
+
+interface VoidTypeDefinitionData {
+  kind: "VoidDefinition";
+  name: string;
+}
+
+interface TypeResolver {
+  (name: string): Type | null | undefined;
 }
 
 export function deserialize(environmentJson: string) {
   var env: EnvironmentData = JSON.parse(environmentJson);
   var definitionTable: { [name: string]: ObjectDefinitionType } = {};
+  var typeResolver: TypeResolver = (name) => {
+    if (!definitionTable[name]) {
+      throw new Error("Unknown type: " + name);
+    }
+
+    return definitionTable[name];
+  };
   const symbols = env.symbols.map((symbol): EnvironmentSymbol => {
-    const type = convertType(symbol.type, definitionTable);
+    const type = convertType(symbol.type, typeResolver);
     if (type instanceof ObjectDefinitionType) {
       definitionTable[type.name] = type;
     }
@@ -93,51 +127,72 @@ export function deserialize(environmentJson: string) {
   });
 }
 
-function convertType(type: TypeData, definitionTable: DefinitionTable): Type {
+function convertType(type: TypeData, typeResolver: TypeResolver): Type {
   switch (type.kind) {
     case "ObjectDefinition":
+      const typeParameters = type.typeParameters.map(
+        (x) => new TypeParameter(x.name, convertVariance(x.variance))
+      );
+      const innerResolver: TypeResolver = (x) =>
+        typeParameters.find((p) => p.name === x) ?? typeResolver(x);
       return new ObjectDefinitionType(
         type.name,
-        type.base ? definitionTable[type.base].createType([]) : null,
-        type.typeParameters.map(
-          (x) => new TypeParameter(x.name, convertVariance(x.variance))
-        ),
-        () => type.members.map((m) => convertMember(m, definitionTable))
+        type.base
+          ? resolveDefinition(type.base, typeResolver).createType([])
+          : null,
+        typeParameters,
+        () => type.members.map((m) => convertMember(m, innerResolver))
       );
 
     case "Func":
       return new FuncType(
         type.parameters.map(
-          (p) => new FuncParameter(p.name, convertType(p.type, definitionTable))
+          (p) => new FuncParameter(p.name, convertType(p.type, typeResolver))
         ),
-        convertType(type.returnType, definitionTable)
+        convertType(type.returnType, typeResolver)
       );
 
     case "Object":
       return new ObjectType(
-        definitionTable[type.definitionName],
-        type.typeArguments.map((x) => convertType(x, definitionTable))
+        resolveDefinition(type.definitionName, typeResolver),
+        type.typeArguments.map((x) => convertType(x, typeResolver))
       );
 
     case "Literal":
       return new LiteralType(
         type.value,
-        convertType(type.valueType, definitionTable)
+        convertType(type.valueType, typeResolver)
       );
 
-    case "TypeParameter":
-      return new TypeParameter(type.name, convertVariance(type.variance));
+    case "TypeReference":
+      const referencedType = typeResolver(type.name);
+      if (!referencedType) {
+        throw new Error("Could not find referenced type: " + type.name);
+      }
+
+      return referencedType;
+
+    case "Union":
+      return createUnionType(
+        ...type.types.map((x) => convertType(x, typeResolver))
+      );
+
+    case "NeverDefinition":
+      return new NeverDefinitionType(type.name);
+
+    case "VoidDefinition":
+      return new VoidDefinitionType(type.name);
 
     default:
       throw new Error("Could not convert type");
   }
 }
 
-function convertMember(member: MemberData, definitionTable: DefinitionTable) {
+function convertMember(member: MemberData, typeResolver: TypeResolver) {
   return new Member(
     !member.settable,
     member.name,
-    convertType(member.type, definitionTable),
+    convertType(member.type, typeResolver),
     member.typeParameters.map(
       (x) => new TypeParameter(x.name, convertVariance(x.variance))
     )
@@ -160,4 +215,13 @@ function convertVariance(
     default:
       throw new Error("Unknown type parameter variance: " + data);
   }
+}
+
+function resolveDefinition(name: string, typeResolver: TypeResolver) {
+  const type = typeResolver(name);
+  if (!(type instanceof ObjectDefinitionType)) {
+    throw new Error("Type is not a definition type");
+  }
+
+  return type;
 }

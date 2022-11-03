@@ -26,6 +26,6 @@ public class TypeParameter : TybscriType
 
     public override TResult Visit<TResult>(TybscriTypeVisitor<TResult> visitor)
     {
-        return visitor.VisitParameter(this);
+        return visitor.VisitTypeParameter(this);
     }
 }

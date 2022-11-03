@@ -22,12 +22,9 @@ public enum TypeKind
     Union,
     Func,
     Literal,
-    Parameter,
-    Never,
-    Void,
+    TypeReference,
     VoidDefinition,
-    NeverDefinition,
-    TypeParameter
+    NeverDefinition
 }
 
 public record ObjectTypeDefinitionData(string Name,
@@ -69,14 +66,14 @@ public abstract record TypeData
             return VisitObjectStatic(objectType);
         }
 
-        public TypeData VisitParameter(TypeParameter typeParameter)
+        public TypeData VisitTypeParameter(TypeParameter typeParameter)
         {
-            return new ParameterTypeData(typeParameter.Name);
+            return new TypeReferenceData(typeParameter.Name);
         }
 
         public TypeData VisitNever(NeverType neverType)
         {
-            return new NeverTypeData();
+            return new TypeReferenceData(StandardTypes.NeverDefinition.Name);
         }
 
         public TypeData VisitTypeDefinition(ObjectDefinitionType definition)
@@ -99,17 +96,17 @@ public abstract record TypeData
 
         public TypeData VisitVoid(VoidType voidType)
         {
-            return new VoidTypeData();
+            return new TypeReferenceData(StandardTypes.VoidDefinition.Name);
         }
 
         public TypeData VisitVoidDefinition(VoidDefinitionType voidDefinitionType)
         {
-            return new VoidDefinitionTypeData();
+            return new VoidDefinitionTypeData(voidDefinitionType.Name);
         }
 
         public TypeData VisitNeverDefinition(NeverDefinitionType neverDefinitionType)
         {
-            return new NeverDefinitionTypeData();
+            return new NeverDefinitionTypeData(neverDefinitionType.Name);
         }
 
         private static ObjectTypeData VisitObjectStatic(ObjectType objectType)
@@ -132,29 +129,14 @@ public class TypeDataConverter : JsonConverter<TypeData>
     }
 }
 
-public record NeverDefinitionTypeData : TypeData
+public record NeverDefinitionTypeData(string Name) : TypeData
 {
     public override TypeKind Kind => TypeKind.NeverDefinition;
 }
 
-public record VoidDefinitionTypeData : TypeData
+public record VoidDefinitionTypeData(string Name) : TypeData
 {
     public override TypeKind Kind => TypeKind.VoidDefinition;
-}
-
-public record VoidTypeData : TypeData
-{
-    public override TypeKind Kind => TypeKind.Void;
-}
-
-internal record NeverTypeData : TypeData
-{
-    public override TypeKind Kind => TypeKind.Never;
-}
-
-public record ParameterTypeData(string Name) : TypeData
-{
-    public override TypeKind Kind => TypeKind.Parameter;
 }
 
 public record UnionTypeData(IReadOnlyCollection<TypeData> Types) : TypeData
@@ -186,9 +168,13 @@ public record MemberData(string Name,
 {
 }
 
-public record TypeParameterData(string Name, TypeVariance Variance) : TypeData
+public record TypeReferenceData(string Name) : TypeData
 {
-    public override TypeKind Kind => TypeKind.TypeParameter;
+    public override TypeKind Kind => TypeKind.TypeReference;
+}
+
+public record TypeParameterData(string Name, TypeVariance Variance)
+{
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

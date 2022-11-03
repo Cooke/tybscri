@@ -45,53 +45,116 @@ public class EnvironmentTests
             new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         _testOutputHelper.WriteLine(json);
         Assert.Equal(@"{
-  ""Symbols"": [
+  ""symbols"": [
     {
-      ""Name"": ""List"",
-      ""Type"": {
-        ""Kind"": ""ObjectDefinition""
+      ""name"": ""List"",
+      ""type"": {
+        ""name"": ""List"",
+        ""base"": null,
+        ""members"": [
+          {
+            ""name"": ""filter"",
+            ""settable"": false,
+            ""type"": {
+              ""parameters"": [
+                {
+                  ""name"": ""item"",
+                  ""type"": {
+                    ""name"": ""T"",
+                    ""kind"": ""TypeReference""
+                  }
+                }
+              ],
+              ""returnType"": {
+                ""definitionName"": ""Boolean"",
+                ""typeArguments"": [],
+                ""kind"": ""Object""
+              },
+              ""kind"": ""Func""
+            },
+            ""typeParameters"": []
+          }
+        ],
+        ""typeParameters"": [
+          {
+            ""name"": ""T"",
+            ""variance"": ""None""
+          }
+        ],
+        ""kind"": ""ObjectDefinition""
       }
     },
     {
-      ""Name"": ""Number"",
-      ""Type"": {
-        ""Kind"": ""ObjectDefinition""
+      ""name"": ""Number"",
+      ""type"": {
+        ""name"": ""Number"",
+        ""base"": null,
+        ""members"": [],
+        ""typeParameters"": [],
+        ""kind"": ""ObjectDefinition""
       }
     },
     {
-      ""Name"": ""Boolean"",
-      ""Type"": {
-        ""Kind"": ""ObjectDefinition""
+      ""name"": ""Boolean"",
+      ""type"": {
+        ""name"": ""Boolean"",
+        ""base"": null,
+        ""members"": [],
+        ""typeParameters"": [],
+        ""kind"": ""ObjectDefinition""
       }
     },
     {
-      ""Name"": ""Null"",
-      ""Type"": {
-        ""Kind"": ""ObjectDefinition""
+      ""name"": ""Null"",
+      ""type"": {
+        ""name"": ""Null"",
+        ""base"": null,
+        ""members"": [],
+        ""typeParameters"": [],
+        ""kind"": ""ObjectDefinition""
       }
     },
     {
-      ""Name"": ""String"",
-      ""Type"": {
-        ""Kind"": ""ObjectDefinition""
+      ""name"": ""String"",
+      ""type"": {
+        ""name"": ""String"",
+        ""base"": null,
+        ""members"": [
+          {
+            ""name"": ""length"",
+            ""settable"": false,
+            ""type"": {
+              ""definitionName"": ""Number"",
+              ""typeArguments"": [],
+              ""kind"": ""Object""
+            },
+            ""typeParameters"": []
+          }
+        ],
+        ""typeParameters"": [],
+        ""kind"": ""ObjectDefinition""
       }
     },
     {
-      ""Name"": ""Void"",
-      ""Type"": {
-        ""Kind"": ""VoidDefinition""
+      ""name"": ""Void"",
+      ""type"": {
+        ""name"": ""Void"",
+        ""kind"": ""VoidDefinition""
       }
     },
     {
-      ""Name"": ""Never"",
-      ""Type"": {
-        ""Kind"": ""VoidDefinition""
+      ""name"": ""Never"",
+      ""type"": {
+        ""name"": ""Never"",
+        ""kind"": ""NeverDefinition""
       }
     },
     {
-      ""Name"": ""input"",
-      ""Type"": {
-        ""Kind"": ""Object""
+      ""name"": ""input"",
+      ""type"": {
+        ""definitionName"": ""Number"",
+        ""typeArguments"": [],
+        ""kind"": ""Object""
       }
     }
   ]

@@ -10,7 +10,7 @@ public interface TybscriTypeVisitor<out TResult>
     
     TResult VisitObject(ObjectType objectType);
     
-    TResult VisitParameter(TypeParameter typeParameter);
+    TResult VisitTypeParameter(TypeParameter typeParameter);
     
     TResult VisitNever(NeverType neverType);
     

@@ -1,7 +1,7 @@
 import { DefinitionType } from ".";
 import { Type, Member, TypeParameterBinding, TypeParameter } from "./common";
 
-export class NeverDefinitionType implements DefinitionType {
+export class VoidDefinitionType implements DefinitionType {
   readonly typeParameters = [];
   readonly displayName: string;
   readonly members = [];
@@ -11,7 +11,7 @@ export class NeverDefinitionType implements DefinitionType {
   }
 
   createType(typeArguments: Type[]): Type {
-    return NeverType.instance;
+    return VoidType.instance;
   }
 
   isAssignableFrom(type: Type): boolean {
@@ -23,12 +23,12 @@ export class NeverDefinitionType implements DefinitionType {
   }
 }
 
-export class NeverType implements Type {
-  public static readonly instance = new NeverType();
+export class VoidType implements Type {
+  public static readonly instance = new VoidType();
 
   public readonly members: Array<Member> = [];
 
-  public readonly displayName = "never";
+  public readonly displayName = "void";
 
   private constructor() {}
 

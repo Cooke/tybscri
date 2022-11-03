@@ -46,7 +46,7 @@ public static class StandardTypes
 
     // If function never returns, a value will never be calculated etc.
     // Basically the empty set of values
-    public static readonly VoidDefinitionType NeverDefinition = new VoidDefinitionType("Never");
+    public static readonly NeverDefinitionType NeverDefinition = new NeverDefinitionType("Never");
     public static readonly TybscriType Never = NeverType.Instance;
 
     // A function that does not return anything useful returns void.
