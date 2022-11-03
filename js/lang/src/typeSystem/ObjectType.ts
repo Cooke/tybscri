@@ -35,8 +35,8 @@ export class ObjectDefinitionType implements DefinitionType {
     throw new Error("Method not implemented.");
   }
 
-  createType(typeArguments: Type[]): ObjectType {
-    return new ObjectType(this, typeArguments);
+  createType(typeArguments?: Type[]): ObjectType {
+    return new ObjectType(this, typeArguments ?? []);
   }
 }
 
