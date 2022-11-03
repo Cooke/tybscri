@@ -18,7 +18,7 @@ export class TybscriCompletionItemProvider
     var environment = getModelEnvironment(textModel);
 
     const scriptNode = parseScript(textModel.getValue(), {
-      scope: environment,
+      environment,
     }).tree;
 
     const offset = textModel.getOffsetAt(position);

@@ -104,8 +104,8 @@ interface TypeResolver {
   (name: string): Type | null | undefined;
 }
 
-export function deserialize(environmentJson: string) {
-  var env: EnvironmentData = JSON.parse(environmentJson);
+export function parseEnvironment(json: string): Environment {
+  var envData: EnvironmentData = JSON.parse(json);
   var definitionTable: { [name: string]: ObjectDefinitionType } = {};
   var typeResolver: TypeResolver = (name) => {
     if (!definitionTable[name]) {
@@ -114,7 +114,7 @@ export function deserialize(environmentJson: string) {
 
     return definitionTable[name];
   };
-  const symbols = env.symbols.map((symbol): EnvironmentSymbol => {
+  const symbols = envData.symbols.map((symbol): EnvironmentSymbol => {
     const type = convertType(symbol.type, typeResolver);
     if (type instanceof ObjectDefinitionType) {
       definitionTable[type.name] = type;
@@ -125,6 +125,7 @@ export function deserialize(environmentJson: string) {
       type: type,
     };
   });
+  return { symbols };
 }
 
 function convertType(type: TypeData, typeResolver: TypeResolver): Type {

@@ -1,33 +1,47 @@
 import { useRef } from "react";
-import { Member, ObjectDefinitionType, Scope, stringType } from "tybscri";
+import { Environment, parseEnvironment } from "tybscri";
 import { TybscriEditor } from "tybscri-react-editor";
 import { TybscriEditorRef } from "tybscri-react-editor/lib/TybscriEditor";
-import { ExternalSymbol } from "tybscri/lib/symbols";
 import "./App.css";
-
-const npcDefinitionType = new ObjectDefinitionType("Npc", null, [], () => [
-  new Member(true, "name", stringType),
-]);
-
-const environment = new Scope(null, [
-  new ExternalSymbol("npc", npcDefinitionType.createType()),
-]);
 
 function App() {
   const editorRef = useRef<TybscriEditorRef>(null);
+
+  const initEnvironmentJson = localStorage.getItem("editor.types") ?? "";
+  let initEnvironment: Environment = { symbols: [] };
+  try {
+    initEnvironment = parseEnvironment(initEnvironmentJson);
+  } catch (error) {}
 
   return (
     <div className="App">
       <h1>Tybscri Demo</h1>
       <button onClick={() => editorRef.current?.setValue("")}>Clear</button>
       <TybscriEditor
-        height="30vh"
+        height="40vh"
         className="Editor"
         ref={editorRef}
-        defaultEnvironment={environment}
+        defaultEnvironment={initEnvironment}
         defaultValue={localStorage.getItem("editor.value") ?? ""}
         onChange={(value) => localStorage.setItem("editor.value", value ?? "")}
       />
+      <label>Custom environment (JSON)</label>
+      <textarea
+        style={{ width: "100%" }}
+        rows={15}
+        defaultValue={initEnvironmentJson}
+        onChange={(ev) => {
+          const envJson = ev.currentTarget.value;
+          localStorage.setItem("editor.types", envJson);
+
+          try {
+            const env = parseEnvironment(envJson);
+            editorRef.current?.setEnvironment(env);
+          } catch (error) {
+            console.warn("Failed to parse environment", error);
+          }
+        }}
+      ></textarea>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { editor } from "monaco-editor";
-import { Scope } from "tybscri";
+import { Environment } from "tybscri";
 
 export function setEditorModelEnvironment(
   model: editor.ITextModel | null | undefined,
-  environment?: Scope | null
+  environment?: Environment | null
 ) {
   if (!model) {
     return;
@@ -15,8 +15,8 @@ export function setEditorModelEnvironment(
 
 export function getModelEnvironment(
   model: editor.ITextModel | null,
-  environment?: Scope | null
-): Scope | null | undefined {
+  environment?: Environment | null
+): Environment | null | undefined {
   const anyModel = model as any;
   return anyModel?.tybscriEnvironment;
 }

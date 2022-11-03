@@ -5,6 +5,7 @@ import { MarkerSeverity } from "monaco-editor";
 import { parseScript, printTree, Scope } from "tybscri";
 import { init } from "./init";
 import { setEditorModelEnvironment } from "./common";
+import { Environment } from "tybscri";
 
 export interface TybscriEditorProps {
   width?: string | number;
@@ -12,13 +13,13 @@ export interface TybscriEditorProps {
   className?: string;
   onChange?: (value: string | null | undefined) => void;
   defaultValue?: string;
-  defaultEnvironment?: Scope;
+  defaultEnvironment?: Environment;
 }
 
 export interface TybscriEditorRef {
   getValue(): string;
   setValue(value: string): void;
-  setEnvironment(scope: Scope): void;
+  setEnvironment(scope: Environment): void;
 }
 
 export const TybscriEditor = forwardRef(
@@ -66,7 +67,7 @@ export const TybscriEditor = forwardRef(
           editor.onDidChangeModelContent((ev) => {
             const output = parseScript(editor.getValue(), {
               reportTimings: true,
-              scope: environmentRef.current,
+              environment: environmentRef.current,
             });
             console.log(printTree(output.tree));
             console.log("Diagnostics", output.diagnosticMessages);

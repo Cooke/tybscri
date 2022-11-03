@@ -4,6 +4,7 @@ import {
   DiagnosticMessage,
   DiagnosticSeverity,
   Environment,
+  EnvironmentSymbol,
   Lexer,
 } from "./common";
 import { ExpressionNode } from "./nodes/expression";
@@ -19,13 +20,14 @@ export * from "./typeSystem";
 export { treeToString as printTree } from "./utils";
 export { Parser, Lexer };
 export { Scope };
+export { Environment, EnvironmentSymbol };
 
 export function createLexer(source: string) {
   return new Lexer(CharStreams.fromString(source));
 }
 
 export interface ExpressionParseOptions {
-  envrionment?: Environment;
+  environment?: Environment;
   expectedType?: Type;
 }
 
@@ -44,14 +46,7 @@ export function parseExpression(
   };
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseExpression();
-  const scope = options?.envrionment
-    ? new Scope(
-        null,
-        options?.envrionment.symbols.map(
-          (s) => new ExternalSymbol(s.name, s.type)
-        )
-      )
-    : new Scope();
+  const scope = createScopeFromEnvironment(options?.environment);
   exp.setupScopes(scope, context);
   const expectedType = options?.expectedType;
   exp.resolveTypes(context, expectedType);
@@ -72,12 +67,21 @@ export function parseExpression(
 
 export interface ScriptParseOptions {
   reportTimings?: boolean;
-  scope?: Scope | null;
+  environment?: Environment | null;
 }
 
 export interface ScriptParseResult {
   tree: ScriptNode;
   diagnosticMessages: DiagnosticMessage[];
+}
+
+function createScopeFromEnvironment(environment?: Environment | null) {
+  return environment
+    ? new Scope(
+        null,
+        environment.symbols.map((s) => new ExternalSymbol(s.name, s.type))
+      )
+    : new Scope();
 }
 
 export function parseScript(
@@ -107,7 +111,8 @@ export function parseScript(
   timeEnd("parse");
 
   time("setup scopes");
-  exp.setupScopes(options?.scope ?? new Scope(), context);
+  const scope = createScopeFromEnvironment(options?.environment);
+  exp.setupScopes(scope, context);
   timeEnd("setup scopes");
 
   time("resolve types");

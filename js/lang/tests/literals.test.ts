@@ -61,7 +61,7 @@ describe("Literals", function () {
       symbols: [{ name: "list", type: stringListType }],
     };
     const parseResult = parseExpression("list.map() { it.length }", {
-      envrionment: env,
+      environment: env,
     });
     assertTybscriType(parseResult.tree.valueType, numberListType);
   });
@@ -73,7 +73,7 @@ describe("Literals", function () {
       symbols: [{ name: "list", type: stringListType }],
     };
     const parseResult = parseExpression("list.map { it.length }", {
-      envrionment: env,
+      environment: env,
     });
     assertTybscriType(parseResult.tree.valueType, numberListType);
   });

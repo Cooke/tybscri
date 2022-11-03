@@ -11,3 +11,4 @@ export * from "./UnknownType";
 export * from "./LiteralType";
 export * from "./UnionType";
 export * from "./inference";
+export * from "./serialization";

@@ -25,7 +25,7 @@ describe("Identifiers", function () {
     const env: Environment = {
       symbols: [{ name: "data", type: stringType }],
     };
-    const parseResult = parseExpression("data", { envrionment: env });
+    const parseResult = parseExpression("data", { environment: env });
     assertTybscriType(parseResult.tree.valueType, stringType);
   });
 });
