@@ -5,6 +5,7 @@ import {
   DiagnosticSeverity,
   Environment,
 } from "../src/common";
+import { defaultEnvironment } from "../src/defaultEnvironment";
 import { Scope } from "../src/scope";
 import { ExternalSymbol } from "../src/symbols";
 import { stringType, unknownType } from "../src/typeSystem";
@@ -23,6 +24,7 @@ describe("Identifiers", function () {
 
   it("identifier type", function () {
     const env: Environment = {
+      ...defaultEnvironment,
       symbols: [{ name: "data", type: stringType }],
     };
     const parseResult = parseExpression("data", { environment: env });

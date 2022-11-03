@@ -1,4 +1,5 @@
 import assert from "assert";
+import { listDefinitionType } from "../src/defaultEnvironment/listType";
 import {
   createLiteralType,
   FuncParameter,
@@ -11,13 +12,11 @@ import {
   TypeParameter,
   UnionType,
 } from "../src/typeSystem";
-import { listDefinitionType } from "../src/typeSystem/listType";
 import {
   booleanType,
   neverType,
   nullType,
   numberType,
-  objectType,
   stringType,
 } from "../src/typeSystem/types";
 import { assertTybscriType } from "./utils";
@@ -75,9 +74,20 @@ describe("Types", function () {
     });
   });
 
+  const baseDefType = new ObjectDefinitionType("Base", null, [], () => []);
+  const baseType = baseDefType.createType();
+
+  const derivedDefType = new ObjectDefinitionType(
+    "Derived",
+    baseType,
+    [],
+    () => []
+  );
+  const derivedType = derivedDefType.createType();
+
   describe("hierarchy", function () {
     it("string assignable to object", function () {
-      assert.ok(objectType.isAssignableFrom(stringType));
+      assert.ok(baseType.isAssignableFrom(derivedType));
     });
   });
 
@@ -90,10 +100,10 @@ describe("Types", function () {
         [typeParameter],
         () => []
       );
-      const ofString = myType.createType([stringType]);
-      const ofObject = myType.createType([objectType]);
-      assert.ok(ofObject.isAssignableFrom(ofString));
-      assert.ok(!ofString.isAssignableFrom(ofObject));
+      const ofDerived = myType.createType([derivedType]);
+      const ofBase = myType.createType([baseType]);
+      assert.ok(ofBase.isAssignableFrom(ofDerived));
+      assert.ok(!ofDerived.isAssignableFrom(ofBase));
     });
 
     it("invariance", function () {
@@ -104,10 +114,10 @@ describe("Types", function () {
         [typeParameter],
         () => []
       );
-      const ofString = myType.createType([stringType]);
-      const ofObject = myType.createType([objectType]);
-      assert.ok(!isTypeAssignableToType(ofString, ofObject));
-      assert.ok(!isTypeAssignableToType(ofObject, ofString));
+      const ofDerived = myType.createType([derivedType]);
+      const ofBase = myType.createType([baseType]);
+      assert.ok(!isTypeAssignableToType(ofDerived, ofBase));
+      assert.ok(!isTypeAssignableToType(ofBase, ofDerived));
     });
 
     it("contravariance", function () {
@@ -118,10 +128,10 @@ describe("Types", function () {
         [typeParameter],
         () => []
       );
-      const ofString = myType.createType([stringType]);
-      const ofObject = myType.createType([objectType]);
-      assert.ok(!isTypeAssignableToType(ofString, ofObject));
-      assert.ok(isTypeAssignableToType(ofObject, ofString));
+      const ofDerived = myType.createType([derivedType]);
+      const ofBase = myType.createType([baseType]);
+      assert.ok(!isTypeAssignableToType(ofDerived, ofBase));
+      assert.ok(isTypeAssignableToType(ofBase, ofDerived));
     });
 
     it("infer type parameter directly", function () {

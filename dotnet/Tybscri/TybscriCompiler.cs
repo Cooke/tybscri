@@ -71,7 +71,8 @@ public class TybscriCompiler
         var envSymbols = CreateEnvironmentSymbols<TEnvironment>(envExpression, typeMapper);
         var typeSymbols = _defaultTypes.Concat(typeMapper.Definitions).Select(x =>
             new EnvironmentSymbol(x.Name, x, Expression.Constant(null, typeof(object))));
-        return new Environment(typeSymbols.Concat(envSymbols).ToArray(), envExpression);
+        return new Environment(typeSymbols.Concat(envSymbols).ToArray(), typeMapper.CollectionDefinition,
+            envExpression);
     }
 
     public Func<TResult> CompileExpression<TResult>(string script)

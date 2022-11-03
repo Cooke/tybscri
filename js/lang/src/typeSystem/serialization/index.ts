@@ -19,6 +19,7 @@ import { Environment, EnvironmentSymbol } from "../../common";
 
 interface EnvironmentData {
   symbols: EnvironmentSymbolData[];
+  collectionDefinition: string;
 }
 
 interface EnvironmentSymbolData {
@@ -125,7 +126,13 @@ export function parseEnvironment(json: string): Environment {
       type: type,
     };
   });
-  return { symbols };
+  return {
+    symbols,
+    collectionDefinition: resolveDefinition(
+      envData.collectionDefinition,
+      typeResolver
+    ),
+  };
 }
 
 function convertType(type: TypeData, typeResolver: TypeResolver): Type {

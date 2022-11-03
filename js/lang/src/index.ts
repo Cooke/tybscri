@@ -7,11 +7,12 @@ import {
   EnvironmentSymbol,
   Lexer,
 } from "./common";
+import { defaultEnvironment } from "./defaultEnvironment";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { Parser } from "./parser";
 import { Scope } from "./scope";
-import { ExternalSymbol, Symbol } from "./symbols";
+import { ExternalSymbol } from "./symbols";
 import { Type } from "./typeSystem";
 
 export { DiagnosticMessage } from "./common";
@@ -41,12 +42,14 @@ export function parseExpression(
   options?: ExpressionParseOptions
 ): ExpressionParseResult {
   const messages: DiagnosticMessage[] = [];
+  const environment = options?.environment ?? defaultEnvironment;
   const context: CompileContext = {
     onDiagnosticMessage: (msg) => messages.push(msg),
+    environment,
   };
   var parser = new Parser(expression, context ?? {});
   const exp = parser.parseExpression();
-  const scope = createScopeFromEnvironment(options?.environment);
+  const scope = createScopeFromEnvironment(environment);
   exp.setupScopes(scope, context);
   const expectedType = options?.expectedType;
   exp.resolveTypes(context, expectedType);
@@ -75,13 +78,11 @@ export interface ScriptParseResult {
   diagnosticMessages: DiagnosticMessage[];
 }
 
-function createScopeFromEnvironment(environment?: Environment | null) {
-  return environment
-    ? new Scope(
-        null,
-        environment.symbols.map((s) => new ExternalSymbol(s.name, s.type))
-      )
-    : new Scope();
+function createScopeFromEnvironment(environment: Environment) {
+  return new Scope(
+    null,
+    environment.symbols.map((s) => new ExternalSymbol(s.name, s.type))
+  );
 }
 
 export function parseScript(
@@ -101,8 +102,10 @@ export function parseScript(
   }
 
   const messages: DiagnosticMessage[] = [];
+  const environment = options?.environment ?? defaultEnvironment;
   const context: CompileContext = {
     onDiagnosticMessage: (msg) => messages.push(msg),
+    environment,
   };
 
   time("parse");
@@ -111,7 +114,7 @@ export function parseScript(
   timeEnd("parse");
 
   time("setup scopes");
-  const scope = createScopeFromEnvironment(options?.environment);
+  const scope = createScopeFromEnvironment(environment);
   exp.setupScopes(scope, context);
   timeEnd("setup scopes");
 

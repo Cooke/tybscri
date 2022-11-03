@@ -1,5 +1,5 @@
 import { CompileContext } from "../common";
-import { listDefinitionType, UnionType } from "../typeSystem";
+import { UnionType } from "../typeSystem";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
@@ -11,7 +11,9 @@ export class CollectionLiteralNode extends ExpressionNode {
 
     const itemType = UnionType.create(this.expressions.map((x) => x.valueType));
 
-    this.valueType = listDefinitionType.createType([itemType]);
+    this.valueType = context.environment.collectionDefinition.createType([
+      itemType,
+    ]);
   }
 
   constructor(

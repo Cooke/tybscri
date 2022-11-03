@@ -1,7 +1,7 @@
 import assert from "assert";
 import { createUnionType, parseExpression } from "../src";
 import { createLiteralType } from "../src/typeSystem/utils";
-import { listDefinitionType } from "../src/typeSystem/listType";
+import { listDefinitionType } from "../src/defaultEnvironment/listType";
 import { numberType, stringType } from "../src/typeSystem/types";
 import { assertTybscriType } from "./utils";
 

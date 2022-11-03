@@ -14,6 +14,8 @@ public interface ITypeMapper
     IEnumerable<TybscriMember> MapMembers(Type type);
 
     IReadOnlyCollection<ObjectDefinitionType> Definitions { get; }
+    
+    ObjectDefinitionType CollectionDefinition { get; }
 }
 
 public class TypeMapper : ITypeMapper
@@ -28,6 +30,8 @@ public class TypeMapper : ITypeMapper
     }
 
     public IReadOnlyCollection<ObjectDefinitionType> Definitions => _definitions;
+
+    public ObjectDefinitionType CollectionDefinition => StandardTypes.List;
 
     public TybscriType Map(Type clrType)
     {

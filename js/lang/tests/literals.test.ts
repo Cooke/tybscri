@@ -1,5 +1,6 @@
 import { createLiteralType, parseExpression } from "../src";
 import { Environment } from "../src/common";
+import { defaultEnvironment } from "../src/defaultEnvironment";
 import { Scope } from "../src/scope";
 import { ExternalSymbol } from "../src/symbols";
 import {
@@ -58,6 +59,7 @@ describe("Literals", function () {
     const stringListType = listDefinitionType.createType([stringType]);
     const numberListType = listDefinitionType.createType([numberType]);
     const env: Environment = {
+      ...defaultEnvironment,
       symbols: [{ name: "list", type: stringListType }],
     };
     const parseResult = parseExpression("list.map() { it.length }", {
@@ -70,6 +72,7 @@ describe("Literals", function () {
     const stringListType = listDefinitionType.createType([stringType]);
     const numberListType = listDefinitionType.createType([numberType]);
     const env: Environment = {
+      ...defaultEnvironment,
       symbols: [{ name: "list", type: stringListType }],
     };
     const parseResult = parseExpression("list.map { it.length }", {

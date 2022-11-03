@@ -1,5 +1,5 @@
 import { TybscriLexer } from "./generated/TybscriLexer";
-import { Type } from "./typeSystem";
+import { ObjectDefinitionType, Type } from "./typeSystem";
 
 export { TybscriLexer as Lexer };
 
@@ -26,6 +26,7 @@ export interface DiagnosticMessage {
 
 export interface Environment {
   readonly symbols: EnvironmentSymbol[];
+  readonly collectionDefinition: ObjectDefinitionType;
 }
 
 export interface EnvironmentSymbol {
@@ -41,4 +42,5 @@ export function assert(condition: any, msg?: string): asserts condition {
 
 export interface CompileContext {
   onDiagnosticMessage?: (msg: DiagnosticMessage) => void;
+  environment: Environment;
 }

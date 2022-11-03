@@ -5,6 +5,7 @@ import { parseEnvironment } from "../src/typeSystem/serialization";
 describe("Environment", function () {
   it("parse", function () {
     const env = parseEnvironment(`{
+        "collectionDefinition": "List",
         "symbols": [
           {
             "name": "List",

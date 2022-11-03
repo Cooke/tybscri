@@ -1,7 +1,7 @@
-import { Member, TypeParameter } from ".";
-import { FuncParameter, FuncType } from "./FuncType";
-import { ObjectDefinitionType, ObjectType } from "./ObjectType";
-import { booleanType, numberType, objectType } from "./types";
+import { Member, TypeParameter } from "../typeSystem";
+import { FuncParameter, FuncType } from "../typeSystem/FuncType";
+import { ObjectDefinitionType } from "../typeSystem/ObjectType";
+import { booleanType, numberType, objectType } from "../typeSystem/types";
 
 const itemType = new TypeParameter("TItem");
 const mapResultType = new TypeParameter("TResult");
