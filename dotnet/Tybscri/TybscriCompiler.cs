@@ -1,6 +1,9 @@
 ﻿using System.Linq.Expressions;
+using DotNext.Linq.Expressions;
+using DotNext.Metaprogramming;
 using Tybscri.Common;
 using Tybscri.LinqExpressions;
+using Tybscri.Nodes;
 using Tybscri.Symbols;
 using Tybscri.TypeMapping;
 
@@ -60,7 +63,7 @@ public class TybscriCompiler
         expressionNode.SetupScopes(scope);
         expressionNode.Resolve(new ResolveContext(expectedResultType));
 
-        var clrExpression = expressionNode.GenerateLinqExpression(new GenerateContext(Expression.Label()));
+        var clrExpression = expressionNode.GenerateLinqExpression(new GenerateContext(x => x, false));
         var lambda = Expression.Lambda<Func<TEnvironment, TResult>>(clrExpression, env.Expression);
         return lambda.Compile();
     }
@@ -149,12 +152,23 @@ public class TybscriCompiler
     }
 
     private TDelegate Compile<TDelegate, TEnvironment>(string script, TybscriType expectedType, ITypeMapper typeMapper)
-        where TEnvironment : class
+        where TEnvironment : class where TDelegate : Delegate
+    {
+        var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
+        var generateContext = new GenerateContext(x => x, false);
+        var clrExpression = CreateBody<TEnvironment>(envExpression, script, expectedType, typeMapper, generateContext);
+        return Expression.Lambda<TDelegate>(clrExpression, envExpression).Compile();
+    }
+
+    private Expression CreateBody<TEnvironment>(ParameterExpression envExpression,
+        string script,
+        TybscriType expectedType,
+        ITypeMapper typeMapper,
+        GenerateContext generateContext) where TEnvironment : class
     {
         var parser = new TybscriParser(script);
         var scriptNode = parser.ParseScript();
 
-        var envExpression = Expression.Parameter(typeof(TEnvironment), "environment");
         var envSymbols = CreateEnvironmentSymbols<TEnvironment>(envExpression, typeMapper);
         var typeSymbols = typeMapper.Definitions.Concat(_defaultTypes).Select(x =>
             new EnvironmentSymbol(x.Name, x, Expression.Constant(null, typeof(object))));
@@ -162,8 +176,7 @@ public class TybscriCompiler
             .Select(x => new ExternalSymbol(x.Expression, x.Type, x.Name)));
         scriptNode.SetupScopes(scope);
         scriptNode.Resolve(new ResolveContext(expectedType));
-        var clrExpression = scriptNode.GenerateLinqExpression(new GenerateContext(Expression.Label()));
-        return Expression.Lambda<TDelegate>(clrExpression, envExpression).Compile();
+        return scriptNode.GenerateLinqExpression(generateContext);
     }
 
     public TybscriType EvaluateType(string type)
@@ -189,5 +202,37 @@ public class TybscriCompiler
     public Environment CreateEnvironment<TEnvironment>() where TEnvironment : class
     {
         return CreateEnvironment<TEnvironment>(CreateTypeMapper());
+    }
+
+    public Task EvaluateScriptAsync<TEnvironment>(string script, TEnvironment environment) where TEnvironment : class
+    {
+        var asyncLambda = CodeGenerator.AsyncLambda<Func<TEnvironment, Task>>(context =>
+        {
+            var typeMapper = _typeMapperFactory();
+            var envExpression = context[0];
+            var generateContext = new GenerateContext(ExpressionUtils.CreateAsyncResult, true);
+            var clrExpression =
+                CreateBody<TEnvironment>(envExpression, script, StandardTypes.Void, typeMapper, generateContext);
+            CodeGenerator.Statement(clrExpression);
+        });
+        var lambda = asyncLambda.Compile();
+        return lambda(environment);
+    }
+
+    public Task<TResult> EvaluateScriptAsync<TResult, TEnvironment>(string script, TEnvironment environment)
+        where TEnvironment : class
+    {
+        var asyncLambda = CodeGenerator.AsyncLambda<Func<TEnvironment, Task<TResult>>>((context) =>
+        {
+            var typeMapper = _typeMapperFactory();
+            var envExpression = context[0];
+            var expectedType = typeMapper.Map(typeof(TResult));
+            var generateContext = new GenerateContext(ExpressionUtils.CreateAsyncResult, true);
+            var clrExpression =
+                CreateBody<TEnvironment>(envExpression, script, expectedType, typeMapper, generateContext);
+            CodeGenerator.Statement(clrExpression);
+        });
+        var lambda = asyncLambda.Compile();
+        return lambda(environment);
     }
 }

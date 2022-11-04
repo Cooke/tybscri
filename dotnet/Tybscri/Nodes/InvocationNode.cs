@@ -62,7 +62,9 @@ public class InvocationNode : IExpressionNode
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
+        var targetFunc = (FuncType)Target.ValueType;
+
         return new TybscriInvokeExpression(Target.GenerateLinqExpression(generateContext),
-            Arguments.Select((x) => x.GenerateLinqExpression(generateContext)));
+            Arguments.Select((x) => x.GenerateLinqExpression(generateContext)), targetFunc.Async);
     }
 }

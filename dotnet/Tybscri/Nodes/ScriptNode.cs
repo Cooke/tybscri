@@ -37,6 +37,6 @@ public class ScriptNode : IExpressionNode
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
-        return BodyUtils.GenerateLinqExpression(Statements, ValueType.ClrType);
+        return BodyUtils.GenerateLinqExpression(Statements, ValueType.ClrType, generateContext.Async);
     }
 }

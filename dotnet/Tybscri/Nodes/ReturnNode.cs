@@ -35,6 +35,6 @@ public class ReturnNode : IStatementNode
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
-        return Expression.Return(generateContext.ReturnLabel, ReturnValue?.GenerateLinqExpression(generateContext));
+        return generateContext.Return(ReturnValue?.GenerateLinqExpression(generateContext));
     }
 }

@@ -78,7 +78,7 @@ public class LambdaLiteralNode : IExpressionNode
             throw new InvalidOperationException("Cannot compile function");
         }
 
-        var body = BodyUtils.GenerateLinqExpression(Statements, funcType.ReturnType.ClrType);
+        var body = BodyUtils.GenerateLinqExpression(Statements, funcType.ReturnType.ClrType, generateContext.Async);
         var parameters = _itSymbol != null && funcType.Parameters.Count == 1
             ? new[] { _itSymbol.ParameterExpression }.ToList()
             : _parameters.Select(x => x.ToLinqExpression(generateContext)).ToList();

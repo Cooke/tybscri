@@ -127,10 +127,13 @@ public class TypeMapper : ITypeMapper
         if (mappedType != null) {
             return mappedType;
         }
+
+        var async = methodInfo.ReturnType.IsAssignableTo(typeof(Task));
+        var clrReturnType = async ? methodInfo.ReturnType.GetTaskType()! : methodInfo.ReturnType;
+        var returnType = Map(clrReturnType);
         
-        var returnType = Map(methodInfo.ReturnType);
         var parameters = new List<FuncParameter>();
-        var funcType = new FuncType(returnType, () => parameters);
+        var funcType = new FuncType(returnType, () => parameters, async);
         Add(methodInfo, funcType);
         parameters.AddRange(methodInfo.GetParameters()
             .Select((p, i) => new FuncParameter(p.Name ?? $"arg{i}", Map(p.ParameterType))));

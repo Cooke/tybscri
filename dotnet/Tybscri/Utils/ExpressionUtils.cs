@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using DotNext.Linq.Expressions;
 
 namespace Tybscri.Nodes;
 
@@ -30,5 +31,11 @@ internal static class ExpressionUtils
         }
 
         return exp;
+    }
+
+    public static Expression CreateAsyncResult(Expression? x)
+    {
+        var asyncResultExpression = x == null ? new AsyncResultExpression(false) : new AsyncResultExpression(x, false);
+        return Expression.Block(typeof(void), asyncResultExpression);
     }
 }

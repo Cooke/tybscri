@@ -85,7 +85,8 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
         _analyzeState = AnalyzeState.Analyzed;
 
         var returnType = BodyUtils.CalculateReturnType(Statements);
-        SymbolType = new FuncType(returnType, Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)).ToList);
+        SymbolType = new FuncType(returnType,
+            Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)).ToList);
         _parameterExpression = Expression.Parameter(SymbolType.ClrType, Name.Text);
     }
 
@@ -104,7 +105,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
             throw new InvalidOperationException("Cannot compile function");
         }
 
-        var body = BodyUtils.GenerateLinqExpression(Statements, funcType.ReturnType.ClrType);
+        var body = BodyUtils.GenerateLinqExpression(Statements, funcType.ReturnType.ClrType, generateContext.Async);
         var parameters = Parameters.Select(x => x.SymbolLinqExpression);
         var lambdaExpression = Expression.Lambda(body, parameters);
         return Expression.Assign(_parameterExpression, lambdaExpression);

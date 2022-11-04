@@ -1,20 +1,24 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using DotNext.Linq.Expressions;
 
 namespace Tybscri.LinqExpressions;
 
 public class TybscriInvokeExpression : Expression
 {
     public Expression Instance { get; }
-    
+
     public IEnumerable<Expression> Arguments { get; }
-    
+
+    public bool Await { get; }
+
     private readonly Expression _reduced;
 
-    public TybscriInvokeExpression(Expression instance, IEnumerable<Expression> arguments)
+    public TybscriInvokeExpression(Expression instance, IEnumerable<Expression> arguments, bool await)
     {
         Instance = instance;
         Arguments = arguments;
+        Await = await;
         _reduced = CreateReduced();
     }
 
@@ -29,22 +33,18 @@ public class TybscriInvokeExpression : Expression
 
     private Expression CreateReduced()
     {
-        if (Instance is TybscriMemberExpression { MemberInfo: MethodInfo methodInfo } memberExpression)
+        return Await ? GetInvokeExp().Await() : GetInvokeExp();
+
+        Expression GetInvokeExp()
         {
-            return EnsureValue(Call(memberExpression.Instance, methodInfo, Arguments));
-        }
+            if (Instance is TybscriMemberExpression { MemberInfo: MethodInfo methodInfo } memberExpression) {
+                return Call(memberExpression.Instance, methodInfo, Arguments);
+            }
 
-        return EnsureValue(Invoke(Instance, Arguments));
+            return Invoke(Instance, Arguments);
+        }
     }
 
-    private Expression EnsureValue(Expression exp)
-    {
-        if (exp.Type == typeof(void)) {
-            return Block(new[] { exp, Constant(null, typeof(object)) });
-        }
-
-        return exp;
-    }
 
     public override bool CanReduce => true;
 }

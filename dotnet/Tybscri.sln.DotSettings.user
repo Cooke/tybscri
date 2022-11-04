@@ -1,12 +1,34 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;Assembly Path="C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.0\System.Text.Json.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\henri\.nuget\packages\dotnext.metaprogramming\4.7.4\lib\net6.0\DotNext.Metaprogramming.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=213e89c0_002Db738_002D4b91_002D8ac0_002Dc6513d8c58e5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::97F1F24A-2E0E-49A3-8346-BE3D6967CC3E::net6.0::Tybscri.Test.AsyncTests.Test&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=414de396_002D2837_002D4384_002Da6d5_002D2b70c343105a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test #5" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::97F1F24A-2E0E-49A3-8346-BE3D6967CC3E::net6.0::Tybscri.Test.AsyncTests.Test&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=4e95cebf_002Dedee_002D4f0a_002D89dd_002D47a2b0a21fef/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="E:\dev\cooke\tybscri\dotnet\Tybscri.Test" Presentation="&amp;lt;Tybscri.Test&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=632ce5c4_002D6e93_002D42f1_002D88d1_002D39e302a60d04/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Tybscri.Test&amp;gt; #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5cd3cf70_002De7ca_002D416f_002Dbf06_002De872fa0c8080/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::97F1F24A-2E0E-49A3-8346-BE3D6967CC3E::net6.0::Tybscri.Test.AsyncTests.Test&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=632ce5c4_002D6e93_002D42f1_002D88d1_002D39e302a60d04/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Tybscri.Test&amp;gt; #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\development\tybscript\dotnet\Tybscri.Test" Presentation="&amp;lt;Tybscri.Test&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6db3c885_002Dab7e_002D4dee_002Db1e3_002D6d5bc5117966/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test #6" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::97F1F24A-2E0E-49A3-8346-BE3D6967CC3E::net6.0::Tybscri.Test.AsyncTests.Test&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::97F1F24A-2E0E-49A3-8346-BE3D6967CC3E::net6.0::Tybscri.Test.AsyncTests.Invoke&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=853d38cd_002D66a4_002D4ce4_002D80e9_002Dbf3aec054a60/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Tybscri.Test&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\development\tybscript\dotnet\Tybscri.Test" Presentation="&amp;lt;Tybscri.Test&amp;gt;" /&gt;&#xD;
@@ -18,11 +40,21 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=bc6e1421_002D4276_002D471e_002Db62e_002D40f63c58a561/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Return" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=bf9cf4a0_002D6446_002D4f12_002Db88b_002Dcabf9fadf26b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::97F1F24A-2E0E-49A3-8346-BE3D6967CC3E::net6.0::Tybscri.Test.AsyncTests.Test&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c3db0043_002D4438_002D4593_002Db654_002Dc6ecb226411b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Solution #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d69513c3_002Df6dd_002D4274_002Dab7b_002Dbb3860a19b6b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Tybscri.Test&amp;gt; #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d69513c3_002Df6dd_002D4274_002Dab7b_002Dbb3860a19b6b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Tybscri.Test&amp;gt; #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\development\tybscript\dotnet\Tybscri.Test" Presentation="&amp;lt;Tybscri.Test&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e66ac0c2_002D609c_002D47f6_002D8ddd_002D73fa545defe5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::97F1F24A-2E0E-49A3-8346-BE3D6967CC3E::net6.0::Tybscri.Test.AsyncTests.Test&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
 	

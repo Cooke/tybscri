@@ -2,4 +2,4 @@
 
 namespace Tybscri.Common;
 
-public record GenerateContext(LabelTarget ReturnLabel);
+public record GenerateContext(Func<Expression?, Expression> Return, bool Async);

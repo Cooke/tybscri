@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using DotNext.Linq.Expressions;
 using Tybscri.Common;
 using Tybscri.Symbols;
 
@@ -11,7 +12,7 @@ public static class BodyUtils
         foreach (var func in statements.OfType<FunctionNode>()) {
             scope = scope.WithSymbol(new SourceSymbol(func.Name.Text, func));
         }
-        
+
         foreach (var statement in statements) {
             statement.SetupScopes(scope);
             scope = statement.Scope;
@@ -29,7 +30,7 @@ public static class BodyUtils
         var allReturns = FindReturns(statements).Concat(new[] { implicitReturnType });
         return UnionType.Create(allReturns.ToArray());
     }
-    
+
     private static IEnumerable<TybscriType> FindReturns(IReadOnlyCollection<INode> nodes)
     {
         foreach (var child in nodes) {
@@ -46,7 +47,7 @@ public static class BodyUtils
         }
 
         if (node is ReturnNode nodeExpression) {
-            yield return nodeExpression.ReturnValue?.ValueType ?? UnknownType.Instance;
+            yield return nodeExpression.ReturnValue?.ValueType ?? VoidType.Instance;
         }
 
         foreach (var ret in FindReturns(node.Children)) {
@@ -54,16 +55,22 @@ public static class BodyUtils
         }
     }
 
-    public static BlockExpression GenerateLinqExpression(IReadOnlyCollection<IStatementNode> statements, Type clrReturnType)
+    public static BlockExpression GenerateLinqExpression(IReadOnlyCollection<IStatementNode> statements,
+        Type clrReturnType,
+        bool async)
     {
         var variables = statements.OfType<ISymbolDefinitionNode>().Select(x => x.SymbolLinqExpression);
         var returnLabel = Expression.Label(clrReturnType, "ReturnLabel");
-        var innerGenerateContext = new GenerateContext(returnLabel);
+        var innerGenerateContext =
+            new GenerateContext(async ? ExpressionUtils.CreateAsyncResult : x => Expression.Return(returnLabel, x),
+                async);
         var statementsWithReturnLabel = statements.OrderBy(x => x is FunctionNode ? 0 : 1)
             .Select(x => x.GenerateLinqExpression(innerGenerateContext)).Select((statement, i) =>
                 i < statements.Count - 1
                     ? statement
-                    : Expression.Label(returnLabel, ExpressionUtils.WrapVoid(statement, clrReturnType)));
+                    : (async
+                        ? (statement.Type != typeof(void) ? new AsyncResultExpression(statement, false) : statement)
+                        : Expression.Label(returnLabel, ExpressionUtils.WrapVoid(statement, clrReturnType))));
         return Expression.Block(variables, statementsWithReturnLabel);
     }
 }
