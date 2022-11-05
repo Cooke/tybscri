@@ -31,6 +31,23 @@ public static class BodyUtils
         return UnionType.Create(allReturns.ToArray());
     }
 
+    public static bool IsAsync(IEnumerable<INode> statements)
+    {
+        return statements.Any(IsAsync);
+    }
+
+    private static bool IsAsync(INode node)
+    {
+        return node switch
+        {
+            FunctionNode => false,
+            LambdaLiteralNode => false,
+            InvocationNode { Target.ValueType: FuncType { Async: true } } => true,
+            MemberInvocationNode { MemberType: FuncType { Async: true } } => true,
+            _ => IsAsync(node.Children)
+        };
+    }
+
     private static IEnumerable<TybscriType> FindReturns(IReadOnlyCollection<INode> nodes)
     {
         foreach (var child in nodes) {
@@ -64,13 +81,28 @@ public static class BodyUtils
         var innerGenerateContext =
             new GenerateContext(async ? ExpressionUtils.CreateAsyncResult : x => Expression.Return(returnLabel, x),
                 async);
-        var statementsWithReturnLabel = statements.OrderBy(x => x is FunctionNode ? 0 : 1)
-            .Select(x => x.GenerateLinqExpression(innerGenerateContext)).Select((statement, i) =>
-                i < statements.Count - 1
-                    ? statement
-                    : (async
-                        ? (statement.Type != typeof(void) ? new AsyncResultExpression(statement, false) : statement)
-                        : Expression.Label(returnLabel, ExpressionUtils.WrapVoid(statement, clrReturnType))));
-        return Expression.Block(variables, statementsWithReturnLabel);
+        var orderedStatements = statements.OrderBy(x => x is FunctionNode ? 0 : 1).ToArray();
+
+        var blockStatements = orderedStatements.Select((statement, i) =>
+            i < statements.Count - 1
+                ? statement.GenerateLinqExpression(innerGenerateContext)
+                : CreateImplicitReturn(statement));
+        return Expression.Block(variables, blockStatements);
+
+        Expression CreateImplicitReturn(IStatementNode statement)
+        {
+            var statementExp = statement.GenerateLinqExpression(innerGenerateContext);
+            if (!async) {
+                return Expression.Label(returnLabel, ExpressionUtils.WrapVoid(statementExp, clrReturnType));
+            }
+
+            var implicitReturn = statement is IExpressionNode exp && !exp.ValueType.Equals(NeverType.Instance) &&
+                                 !exp.ValueType.Equals(VoidType.Instance);
+            if (implicitReturn) {
+                return new AsyncResultExpression(statementExp, false);
+            }
+
+            return statementExp;
+        }
     }
 }

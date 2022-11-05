@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using DotNext.Linq.Expressions;
+using DotNext.Metaprogramming;
 
 namespace Tybscri.Nodes;
 
@@ -35,7 +36,17 @@ internal static class ExpressionUtils
 
     public static Expression CreateAsyncResult(Expression? x)
     {
-        var asyncResultExpression = x == null ? new AsyncResultExpression(false) : new AsyncResultExpression(x, false);
-        return Expression.Block(typeof(void), asyncResultExpression);
+        return x == null ? new AsyncResultExpression(false) : new AsyncResultExpression(x, false);
+    }
+
+    public static LambdaExpression CreateLambda(FuncType funcType, BlockExpression body, IEnumerable<ParameterExpression>? parameters)
+    {
+        if (!funcType.Async) {
+            return Expression.Lambda(body, parameters);
+        }
+
+        var innerLambda = CodeGenerator.AsyncLambda(Type.EmptyTypes, funcType.ReturnType.ClrType,
+            AsyncLambdaFlags.None, _ => CodeGenerator.Statement(body));
+        return Expression.Lambda(Expression.Invoke(innerLambda), parameters);
     }
 }

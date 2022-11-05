@@ -222,17 +222,16 @@ public class TybscriCompiler
     public Task<TResult> EvaluateScriptAsync<TResult, TEnvironment>(string script, TEnvironment environment)
         where TEnvironment : class
     {
-        var asyncLambda = CodeGenerator.AsyncLambda<Func<TEnvironment, Task<TResult>>>((context) =>
-        {
-            var typeMapper = _typeMapperFactory();
-            var envExpression = context[0];
-            var expectedType = typeMapper.Map(typeof(TResult));
-            var generateContext = new GenerateContext(ExpressionUtils.CreateAsyncResult, true);
-            var clrExpression =
-                CreateBody<TEnvironment>(envExpression, script, expectedType, typeMapper, generateContext);
-            CodeGenerator.Statement(clrExpression);
-        });
-        var lambda = asyncLambda.Compile();
+        var envExpression = Expression.Parameter(typeof(TEnvironment));
+        var typeMapper = _typeMapperFactory();
+        var expectedType = typeMapper.Map(typeof(TResult));
+        var generateContext = new GenerateContext(ExpressionUtils.CreateAsyncResult, true);
+        var clrExpression = CreateBody<TEnvironment>(envExpression, script, expectedType, typeMapper, generateContext);
+        var asyncLambda = CodeGenerator.AsyncLambda(Type.EmptyTypes, typeof(TResult), AsyncLambdaFlags.None,
+            _ => CodeGenerator.Statement(clrExpression));
+
+        var wrapperLambda = Expression.Lambda<Func<TEnvironment, Task<TResult>>>(asyncLambda.Invoke(), envExpression);
+        var lambda = wrapperLambda.Compile();
         return lambda(environment);
     }
 }

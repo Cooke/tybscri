@@ -17,8 +17,8 @@ public class FuncType : TybscriType
     public IReadOnlyList<FuncParameter> Parameters => _lazyParameters.Value;
 
 
-    public FuncType(TybscriType returnType, IReadOnlyList<FuncParameter> parameters, bool async = false) : this(returnType,
-        () => parameters, async)
+    public FuncType(TybscriType returnType, IReadOnlyList<FuncParameter> parameters, bool async = false) : this(
+        returnType, () => parameters, async)
     {
     }
 
@@ -27,9 +27,9 @@ public class FuncType : TybscriType
         ReturnType = returnType;
         Async = async;
         _lazyParameters = new Lazy<IReadOnlyList<FuncParameter>>(parametersThunk);
-        _lazyClrType = new Lazy<Type>(() =>
-            Expression.GetDelegateType(Parameters.Select(x => x.Type.ClrType).Concat(new[] { ReturnType.ClrType })
-                .ToArray()));
+        _lazyClrType = new Lazy<Type>(() => Expression.GetDelegateType(Parameters.Select(x => x.Type.ClrType)
+            .Concat(new[] { async ? typeof(Task<>).MakeGenericType(ReturnType.ClrType) : ReturnType.ClrType })
+            .ToArray()));
     }
 
     public override IReadOnlyCollection<TybscriMember> FindMembersByName(string memberName)

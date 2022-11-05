@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using DotNext.Linq.Expressions;
+using DotNext.Metaprogramming;
 using Xunit;
 
 namespace Tybscri.Test;
@@ -13,25 +17,66 @@ public class AsyncFunctionTests
         _compiler = new TybscriCompiler();
     }
 
+
     [Fact]
-    public void Invoke()
+    public void Playground()
     {
-        var output = _compiler.EvaluateScript<string>(@"
+        var left = Expression.Parameter(typeof(Arg), "left");
+        var right = Expression.Parameter(typeof(Arg), "right");
+        var body = Expression.New(typeof(Arg).GetConstructors()[0],
+            Expression.Add(Expression.Property(left, "Value"), Expression.Property(right, "Value")));
+        var asyncLambda = CodeGenerator.AsyncLambda(Type.EmptyTypes, typeof(Arg), AsyncLambdaFlags.None,
+            _ => CodeGenerator.Statement(Expression.Block(
+                Expression.Call(typeof(Task), "Delay", null, 1.Const()).Await(),
+                new AsyncResultExpression(body, false))));
+        var invokeAsyncLambda = Expression.Invoke(asyncLambda);
+        var lambda = Expression.Lambda<Func<Arg, Arg, Task<Arg>>>(invokeAsyncLambda, left, right);
+
+        var wrapper = CodeGenerator.AsyncLambda(new[] { typeof(Arg), typeof(Arg) }, typeof(Arg), AsyncLambdaFlags.None,
+            context => CodeGenerator.Statement(
+                new AsyncResultExpression(Expression.Invoke(lambda, context[0], context[1]).Await(), false)));
+
+        var add = (Func<Arg, Arg, Task<Arg>>)wrapper.Compile();
+        var result = add(new Arg(1), new Arg(2)).Result;
+        Assert.Equal(3, result.Value);
+    }
+
+    public record Arg(int Value);
+
+    [Fact]
+    public async Task Invoke()
+    {
+        var output = _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
+            fun hello() {
+                async()
+                ""hello""
+            }
+
+            hello()
+            ", new TestEnvironment());
+        Assert.Equal("hello", await output);
+    }
+    
+    [Fact]
+    public async Task SyncInAsyncContext()
+    {
+        var output = _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
             fun hello() {
                 ""hello""
             }
 
             hello()
-            ");
-        Assert.Equal("hello", output);
+            ", new TestEnvironment());
+        Assert.Equal("hello", await output);
     }
 
     [Fact]
-    public void Nesting()
+    public async Task Nesting()
     {
-        var output = _compiler.EvaluateScript<string>(@"
+        var output = await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
             fun foo() {
                 fun bar() {
+                    async()
                     ""hello""
                 }
 
@@ -39,94 +84,101 @@ public class AsyncFunctionTests
             }
 
             foo()
-            ");
+            ", new TestEnvironment());
         Assert.Equal("hello", output);
     }
 
 
     [Fact]
-    public void Hoisting()
+    public async Task Hoisting()
     {
-        var output = _compiler.EvaluateScript<string>(@"
+        var output = await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
             foo()
 
             fun foo() {
+                async()
                 ""hello""
             }
-            ");
+            ", new TestEnvironment());
         Assert.Equal("hello", output);
     }
 
     [Fact]
-    public void ImplicitReturn()
+    public async Task ImplicitReturn()
     {
-        var output = _compiler.EvaluateScript<double>(@"
+        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
             fun foo() {
+                async()
                 123
             }
 
             foo()
-            ");
+            ", new TestEnvironment());
         Assert.Equal(123, output);
     }
 
     [Fact]
-    public void Return()
+    public async Task Return()
     {
-        var output = _compiler.EvaluateScript<double>(@"
+        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
             fun foo() {
+                async()
                 return 123
             }
 
             foo()
-            ");
+            ", new TestEnvironment());
         Assert.Equal(123, output);
     }
 
     [Fact]
-    public void OneParameter()
+    public async Task OneParameter()
     {
-        var output = _compiler.EvaluateScript<double>(@"
+        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
             fun identity(value: Number) {
+                async()
                 value
             }
 
             identity(123)
-            ");
+            ", new TestEnvironment());
         Assert.Equal(123, output);
     }
 
     [Fact]
-    public void TwoParameters()
+    public async Task TwoParameters()
     {
-        var output = _compiler.EvaluateScript<double>(@"
+        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
             fun sub(val1: Number, val2: Number) {
+                async()
                 val1 - val2
             }
 
             sub(3, 1)
-            ");
+            ", new TestEnvironment());
         Assert.Equal(2, output);
     }
 
     [Fact]
-    public void ThreeParameters()
+    public async Task ThreeParameters()
     {
-        var output = _compiler.EvaluateScript<List<object>>(@"
+        var output = await _compiler.EvaluateScriptAsync<List<object>, TestEnvironment>(@"
             fun list3(val1: Number, val2: ""one"", val3: true) {
+                async()
                 [val1, val2, val3]
             }
 
             list3(1, ""one"", true)
-            ");
+            ", new TestEnvironment());
         Assert.Collection(output, x => Assert.Equal(1d, x), x => Assert.Equal("one", x), x => Assert.Equal(true, x));
     }
 
     [Fact]
-    public void SeveralReturns()
+    public async Task SeveralReturns()
     {
-        var output = _compiler.EvaluateScript<List<double>>(@"
+        var output = await _compiler.EvaluateScriptAsync<List<double>, TestEnvironment>(@"
             fun foo(cond: Number) {
+                async()
                 if (cond < 10) {
                     return 1
                 }
@@ -139,80 +191,74 @@ public class AsyncFunctionTests
             }
 
             [foo(1), foo(10), foo(100)]
-            ");
+            ", new TestEnvironment());
         Assert.Collection(output, x => Assert.Equal(1, x), x => Assert.Equal(2, x), x => Assert.Equal(3, x));
     }
 
     [Fact]
-    public void NestingWithHoisting()
+    public async Task NestingWithHoisting()
     {
-        var output = _compiler.EvaluateScript<double>(@"
+        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
             foo()
 
             fun foo() {
                 bar()
 
                 fun bar() {
+                    async()
                     123
                 }
             }
-            ");
+            ", new TestEnvironment());
         Assert.Equal(123, output);
     }
 
     [Fact]
-    public void NestingWithReturnWithHoisting()
+    public async Task NestingWithReturnWithHoisting()
     {
-        var output = _compiler.EvaluateScript<double>(@"
+        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
             foo()
 
             fun foo() {
                 return bar()
 
                 fun bar() {
+                    async()
                     return 123
                 }
             }
-            ");
+            ", new TestEnvironment());
         Assert.Equal(123, output);
     }
 
     [Fact]
-    public void UninitializedVariable()
+    public async Task UninitializedVariable()
     {
-        Assert.Throws<TybscriException>(() => _compiler.EvaluateScript<string>(@"
+        await Assert.ThrowsAsync<TybscriException>(async () =>
+            await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
             var result = foo()
             var hello = ""hello""
             result
 
             fun foo() {
+                async()
                 hello
             }
-            "));
+            ", new TestEnvironment()));
     }
 
     [Fact]
-    public void Closure()
+    public async Task Closure()
     {
-        var output = _compiler.EvaluateScript<string>(@"
+        var output = await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
             var hello = ""hello""
             foo()
 
             fun foo() {
                 hello
             }
-            ");
+            ", new TestEnvironment());
         Assert.Equal("hello", output);
-    }
-
-    [Fact]
-    public void TrailingLambda()
-    {
-        var env = new TestEnvironment();
-        _compiler.EvaluateScript(@"
-            eval { true }
-            ", env);
-        Assert.True(env.DidEval);
     }
 
     private class TestEnvironment
@@ -224,6 +270,11 @@ public class AsyncFunctionTests
         {
             DidEval = true;
             func();
+        }
+
+        public Task Async()
+        {
+            return Task.CompletedTask;
         }
     }
 }

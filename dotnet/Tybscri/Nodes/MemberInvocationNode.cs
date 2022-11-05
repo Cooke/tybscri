@@ -28,6 +28,8 @@ public class MemberInvocationNode : IExpressionNode
     public Scope Scope { get; private set; } = Scope.Empty;
 
     public TybscriType ValueType { get; private set; } = UnknownType.Instance;
+    
+    public TybscriType MemberType { get; set; } = UnknownType.Instance;
 
     public void SetupScopes(Scope scope)
     {
@@ -52,8 +54,15 @@ public class MemberInvocationNode : IExpressionNode
         }
 
         _member = matchingMembers.First();
-        ValueType = _member.Type;
+        MemberType = _member.Type;
+
+        if (MemberType is not FuncType funcType) {
+            throw new TybscriException("Cannot invoke member which is not a func type");
+        }
+
+        ValueType = funcType.ReturnType;
     }
+
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {

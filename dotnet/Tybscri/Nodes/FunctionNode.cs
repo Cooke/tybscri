@@ -1,4 +1,6 @@
 ﻿using System.Linq.Expressions;
+using CookeRpc.AspNetCore.Utils;
+using DotNext.Metaprogramming;
 using Tybscri.Common;
 using Tybscri.Symbols;
 
@@ -86,7 +88,7 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
 
         var returnType = BodyUtils.CalculateReturnType(Statements);
         SymbolType = new FuncType(returnType,
-            Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)).ToList);
+            Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)).ToList, BodyUtils.IsAsync(Statements));
         _parameterExpression = Expression.Parameter(SymbolType.ClrType, Name.Text);
     }
 
@@ -105,10 +107,10 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
             throw new InvalidOperationException("Cannot compile function");
         }
 
-        var body = BodyUtils.GenerateLinqExpression(Statements, funcType.ReturnType.ClrType, generateContext.Async);
+        var body = BodyUtils.GenerateLinqExpression(Statements, funcType.ReturnType.ClrType, funcType.Async);
         var parameters = Parameters.Select(x => x.SymbolLinqExpression);
-        var lambdaExpression = Expression.Lambda(body, parameters);
-        return Expression.Assign(_parameterExpression, lambdaExpression);
+        var lambda = ExpressionUtils.CreateLambda(funcType, body, parameters);
+        return Expression.Assign(_parameterExpression, lambda);
     }
 }
 
