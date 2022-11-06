@@ -17,6 +17,39 @@ public class AsyncFunctionTests
         _compiler = new TybscriCompiler();
     }
 
+    [Fact]
+    public void ClosureIssue()
+    {
+        var lambda = CodeGenerator.AsyncLambda<Func<Task<string>>>(_ =>
+        {
+            var hello = CodeGenerator.DeclareVariable<string>("hello");
+            var foo = CodeGenerator.DeclareVariable<Func<string>>("foo");
+            CodeGenerator.Statement(Expression.Assign(hello, Expression.Constant("hello")));
+            CodeGenerator.Statement(Expression.Assign(foo, Expression.Lambda<Func<string>>(hello)));
+            CodeGenerator.Return(Expression.Invoke(foo));
+        });
+
+        var compiled = lambda.Compile();
+
+        Assert.Equal("hello", compiled.Invoke().Result);
+    }
+
+    [Fact]
+    public void ClosureIssue2()
+    {
+        var hello = Expression.Parameter(typeof(string), "hello");
+        var foo = Expression.Parameter(typeof(Func<Task<string>>), "foo");
+        var fooDefine = CodeGenerator.AsyncLambda<Func<Task<string>>>(_ => CodeGenerator.Return(hello));
+
+        var lambda = CodeGenerator.AsyncLambda<Func<Task<string>>>(_ =>
+        {
+            CodeGenerator.Statement(Expression.Block(new[] { hello, foo },
+                Expression.Assign(hello, Expression.Constant("hello")), Expression.Assign(foo, fooDefine),
+                new AsyncResultExpression(Expression.Invoke(foo).Await(), false)));
+        });
+
+        Assert.Equal("hello", lambda.Compile().Invoke().Result);
+    }
 
     [Fact]
     public void Playground()
@@ -56,7 +89,7 @@ public class AsyncFunctionTests
             ", new TestEnvironment());
         Assert.Equal("hello", await output);
     }
-    
+
     [Fact]
     public async Task SyncInAsyncContext()
     {
