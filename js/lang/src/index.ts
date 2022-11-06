@@ -1,4 +1,4 @@
-import { CharStreams } from "antlr4ts";
+import antlr4 from "antlr4";
 import {
   CompileContext,
   DiagnosticMessage,
@@ -22,6 +22,8 @@ export { treeToString as printTree } from "./utils";
 export { Parser, Lexer };
 export { Scope };
 export { Environment, EnvironmentSymbol };
+
+const { CharStreams } = antlr4;
 
 export function createLexer(source: string) {
   return new Lexer(CharStreams.fromString(source));

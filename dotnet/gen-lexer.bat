@@ -1,1 +1,1 @@
-java -jar lib/antlr-4.9.2-complete.jar -Dlanguage=CSharp ../spec/TybscriLexer.g4 -o ./Tybscri/Generated
+java -jar ../lib/antlr-4.11.1-complete.jar -Dlanguage=CSharp ../spec/TybscriLexer.g4 -o ./Tybscri/Generated

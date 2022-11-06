@@ -1,6 +1,5 @@
-import assert from "assert";
-import { parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
+import { parseScript } from "../src/index.js";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
 import {
   createLiteralType,
@@ -9,6 +8,7 @@ import {
   UnionType,
 } from "../src/typeSystem";
 import { assertTybscriType, assertType } from "./utils";
+import assert from "assert";
 
 describe("Functions", function () {
   it("node", function () {

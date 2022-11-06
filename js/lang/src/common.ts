@@ -1,4 +1,4 @@
-import { TybscriLexer } from "./generated/TybscriLexer";
+import TybscriLexer from "./generated/TybscriLexer";
 import { ObjectDefinitionType, Type } from "./typeSystem";
 
 export { TybscriLexer as Lexer };

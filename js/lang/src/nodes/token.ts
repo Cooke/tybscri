@@ -29,7 +29,7 @@ export abstract class TokenNode extends Node {
       return "Newline";
     }
 
-    return Lexer.VOCABULARY.getDisplayName(this.tokenType);
+    return Lexer.literalNames[this.tokenType];
   }
 
   public abstract get text(): string;

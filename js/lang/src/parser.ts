@@ -1,11 +1,11 @@
-import { CharStreams, CommonTokenStream, Token } from "antlr4ts";
+import antlr4 from "antlr4";
 import {
   CompileContext,
   DiagnosticMessage,
   DiagnosticSeverity,
   SourceSpan,
 } from "./common";
-import { TybscriLexer } from "./generated/TybscriLexer";
+import TybscriLexer from "./generated/TybscriLexer";
 import { BlockNode } from "./nodes/block";
 import { CollectionLiteralNode } from "./nodes/collectionLiteral";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
@@ -42,6 +42,10 @@ import {
 import { LiteralType } from "./typeSystem/LiteralType";
 
 const L = TybscriLexer;
+
+type Token = antlr4.Token;
+type CommonTokenStream = antlr4.CommonTokenStream;
+const { CommonTokenStream, CharStreams, Token } = antlr4;
 
 export class Parser {
   private tokenStream: CommonTokenStream;
@@ -592,16 +596,16 @@ export class Parser {
   }
 
   private createSpan(token: Token): SourceSpan {
-    token.startIndex;
+    token.start;
     return {
       start: {
-        index: token.startIndex,
-        column: token.charPositionInLine + 1,
+        index: token.start,
+        column: token.column,
         line: token.line,
       },
       stop: {
-        index: token.stopIndex,
-        column: token.charPositionInLine + 1,
+        index: token.start,
+        column: token.column,
         line: token.line,
       },
     };
