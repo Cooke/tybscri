@@ -24,6 +24,7 @@
     "test:watch": "yarn test -w --watch-files 'tests/**/*.ts,src/**/*.*'"
   },
   "dependencies": {
-    "antlr4ts": "^0.5.0-alpha.4"
+    "antlr4ts": "^0.5.0-alpha.4",
+    "assert": "^2.0.0"
   }
 }

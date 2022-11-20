@@ -18,7 +18,7 @@ public class TybscriInvokeExpression : Expression
     {
         Instance = instance;
         Arguments = arguments;
-        Await = await;
+        Await = @await;
         _reduced = CreateReduced();
     }
 

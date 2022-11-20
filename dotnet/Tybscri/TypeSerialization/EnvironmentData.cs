@@ -4,10 +4,11 @@ using Tybscri.Common;
 
 namespace Tybscri.TypeSerialization;
 
-public record EnvironmentData(IReadOnlyCollection<EnvironmentSymbolData> Symbols)
+public record EnvironmentData(IReadOnlyCollection<EnvironmentSymbolData> Symbols, String CollectionDefinition)
 {
-    public EnvironmentData(Environment environment) : this(environment.Symbols.Select(s =>
-        new EnvironmentSymbolData(s.Name, TypeData.Create(s.Type))).ToArray())
+    public EnvironmentData(Environment environment) : this(
+        environment.Symbols.Select(s => new EnvironmentSymbolData(s.Name, TypeData.Create(s.Type))).ToArray(),
+        environment.CollectionDefinition.Name)
     {
     }
 }
@@ -111,7 +112,7 @@ public abstract record TypeData
 
         private static ObjectTypeData VisitObjectStatic(ObjectType objectType)
         {
-            return new ObjectTypeData(objectType.Definition.Name, ArraySegment<Type>.Empty);
+            return new ObjectTypeData(objectType.Definition.Name, ArraySegment<TypeData>.Empty);
         }
     }
 }
@@ -156,7 +157,7 @@ public record LiteralTypeData(object Value, ObjectTypeData ValueType) : TypeData
     public override TypeKind Kind => TypeKind.Literal;
 }
 
-public record ObjectTypeData(string DefinitionName, IReadOnlyCollection<Type> TypeArguments) : TypeData
+public record ObjectTypeData(string DefinitionName, IReadOnlyCollection<TypeData> TypeArguments) : TypeData
 {
     public override TypeKind Kind => TypeKind.Object;
 }

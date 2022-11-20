@@ -4,7 +4,10 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DotNext.Linq.Expressions;
 using DotNext.Metaprogramming;
+
 using Xunit;
+using static DotNext.Metaprogramming.CodeGenerator;
+using Assert = Xunit.Assert;
 
 namespace Tybscri.Test;
 
@@ -20,12 +23,12 @@ public class AsyncFunctionTests
     [Fact]
     public void ClosureIssue()
     {
-        var lambda = CodeGenerator.AsyncLambda<Func<Task<string>>>(_ =>
+        var lambda = AsyncLambda<Func<Task<string>>>(_ =>
         {
-            var hello = CodeGenerator.DeclareVariable<string>("hello");
-            var foo = CodeGenerator.DeclareVariable<Func<string>>("foo");
-            CodeGenerator.Statement(Expression.Assign(hello, Expression.Constant("hello")));
-            CodeGenerator.Statement(Expression.Assign(foo, Expression.Lambda<Func<string>>(hello)));
+            var hello = DeclareVariable<string>("hello");
+            var foo = DeclareVariable<Func<string>>("foo");
+            Statement(Expression.Assign(hello, Expression.Constant("hello")));
+            Statement(Expression.Assign(foo, Expression.Lambda<Func<string>>(hello)));
             CodeGenerator.Return(Expression.Invoke(foo));
         });
 
@@ -33,18 +36,33 @@ public class AsyncFunctionTests
 
         Assert.Equal("hello", compiled.Invoke().Result);
     }
+    
+    [Fact]
+    public static async Task ParameterClosure()
+    {
+        var lambda = AsyncLambda<Func<string, Task<string>>>(ctx =>
+        {
+            var hello = DeclareVariable<string>("hello");
+            var foo = DeclareVariable<Func<string>>("foo");
+            Assign(hello, "hello".Const());
+            Assign(foo, Expression.Lambda<Func<string>>(typeof(string).CallStatic(nameof(string.Concat), hello, ctx[0])));
+            Return(foo.Invoke());
+        });
+
+        Assert.Equal("hello, world", await lambda.Compile().Invoke(", world"));
+    }
 
     [Fact]
     public void ClosureIssue2()
     {
         var hello = Expression.Parameter(typeof(string), "hello");
         var foo = Expression.Parameter(typeof(Func<Task<string>>), "foo");
-        var fooDefine = CodeGenerator.AsyncLambda<Func<Task<string>>>(_ => CodeGenerator.Return(hello));
+        var fooLambda = AsyncLambda<Func<Task<string>>>(_ => Return(hello));
 
-        var lambda = CodeGenerator.AsyncLambda<Func<Task<string>>>(_ =>
+        var lambda = AsyncLambda<Func<Task<string>>>(_ =>
         {
-            CodeGenerator.Statement(Expression.Block(new[] { hello, foo },
-                Expression.Assign(hello, Expression.Constant("hello")), Expression.Assign(foo, fooDefine),
+            Statement(Expression.Block(new[] { hello, foo },
+                Expression.Assign(hello, Expression.Constant("hello")), Expression.Assign(foo, fooLambda),
                 new AsyncResultExpression(Expression.Invoke(foo).Await(), false)));
         });
 
@@ -58,15 +76,15 @@ public class AsyncFunctionTests
         var right = Expression.Parameter(typeof(Arg), "right");
         var body = Expression.New(typeof(Arg).GetConstructors()[0],
             Expression.Add(Expression.Property(left, "Value"), Expression.Property(right, "Value")));
-        var asyncLambda = CodeGenerator.AsyncLambda(Type.EmptyTypes, typeof(Arg), AsyncLambdaFlags.None,
-            _ => CodeGenerator.Statement(Expression.Block(
+        var asyncLambda = AsyncLambda(Type.EmptyTypes, typeof(Arg), AsyncLambdaFlags.None,
+            _ => Statement(Expression.Block(
                 Expression.Call(typeof(Task), "Delay", null, 1.Const()).Await(),
                 new AsyncResultExpression(body, false))));
         var invokeAsyncLambda = Expression.Invoke(asyncLambda);
         var lambda = Expression.Lambda<Func<Arg, Arg, Task<Arg>>>(invokeAsyncLambda, left, right);
 
-        var wrapper = CodeGenerator.AsyncLambda(new[] { typeof(Arg), typeof(Arg) }, typeof(Arg), AsyncLambdaFlags.None,
-            context => CodeGenerator.Statement(
+        var wrapper = AsyncLambda(new[] { typeof(Arg), typeof(Arg) }, typeof(Arg), AsyncLambdaFlags.None,
+            context => Statement(
                 new AsyncResultExpression(Expression.Invoke(lambda, context[0], context[1]).Await(), false)));
 
         var add = (Func<Arg, Arg, Task<Arg>>)wrapper.Compile();
@@ -151,7 +169,7 @@ public class AsyncFunctionTests
     }
 
     [Fact]
-    public async Task Return()
+    public async Task ExplicitReturn()
     {
         var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
             fun foo() {

@@ -142,13 +142,20 @@ public class TybscriCompiler
         return func(environment);
     }
 
-    private IEnumerable<EnvironmentSymbol> CreateEnvironmentSymbols<TEnvironment>(ParameterExpression envExpression,
+    private IReadOnlyCollection<EnvironmentSymbol> CreateEnvironmentSymbols<TEnvironment>(
+        ParameterExpression envExpression,
         ITypeMapper typeMapper) where TEnvironment : class
     {
-        foreach (var envTypeMember in typeMapper.MapMembers(typeof(TEnvironment))) {
+        var result = new List<EnvironmentSymbol>();
+        foreach (var envTypeMember in typeMapper.MapMembers(typeof(TEnvironment)).Where(member =>
+                     member.MemberInfo != typeof(IEquatable<TEnvironment>)
+                         .GetMember(nameof(IEquatable<TEnvironment>.Equals)).First() &&
+                     member.MemberInfo.DeclaringType != typeof(object))) {
             var getter = new TybscriMemberExpression(envExpression, envTypeMember.MemberInfo);
-            yield return new EnvironmentSymbol(envTypeMember.Name, envTypeMember.Type, getter);
+            result.Add(new EnvironmentSymbol(envTypeMember.Name, envTypeMember.Type, getter));
         }
+
+        return result;
     }
 
     private TDelegate Compile<TDelegate, TEnvironment>(string script, TybscriType expectedType, ITypeMapper typeMapper)

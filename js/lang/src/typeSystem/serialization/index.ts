@@ -105,8 +105,7 @@ interface TypeResolver {
   (name: string): Type | null | undefined;
 }
 
-export function parseEnvironment(json: string): Environment {
-  var envData: EnvironmentData = JSON.parse(json);
+export function createEnvironment(envData: EnvironmentData): Environment {
   var definitionTable: { [name: string]: ObjectDefinitionType } = {};
   var typeResolver: TypeResolver = (name) => {
     if (!definitionTable[name]) {
@@ -133,6 +132,11 @@ export function parseEnvironment(json: string): Environment {
       typeResolver
     ),
   };
+}
+
+export function parseEnvironment(json: string): Environment {
+  var envData: EnvironmentData = JSON.parse(json);
+  return createEnvironment(envData);
 }
 
 function convertType(type: TypeData, typeResolver: TypeResolver): Type {

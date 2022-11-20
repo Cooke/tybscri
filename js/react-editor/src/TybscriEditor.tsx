@@ -6,6 +6,7 @@ import { parseScript, printTree, Scope } from "tybscri";
 import { init } from "./init";
 import { setEditorModelEnvironment } from "./common";
 import { Environment } from "tybscri";
+import React from "react";
 
 export interface TybscriEditorProps {
   width?: string | number;
@@ -13,13 +14,12 @@ export interface TybscriEditorProps {
   className?: string;
   onChange?: (value: string | null | undefined) => void;
   defaultValue?: string;
-  defaultEnvironment?: Environment;
+  environment?: Environment;
 }
 
 export interface TybscriEditorRef {
   getValue(): string;
   setValue(value: string): void;
-  setEnvironment(scope: Environment): void;
 }
 
 export const TybscriEditor = forwardRef(
@@ -29,22 +29,31 @@ export const TybscriEditor = forwardRef(
     }, []);
 
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
-    const environmentRef = useRef(props.defaultEnvironment);
+    const environmentRef = useRef(props.environment);
 
     useImperativeHandle(
       ref,
       () => ({
         getValue: () => editorRef.current?.getValue() ?? "",
         setValue: (value) => editorRef.current?.setValue(value),
-        setEnvironment: (value) => {
-          environmentRef.current = value;
-          // Not verified that this works
-          editorRef.current?.setValue(editorRef.current?.getValue() ?? "");
-          setEditorModelEnvironment(editorRef.current?.getModel(), value);
-        },
       }),
       []
     );
+
+    useEffect(() => {
+      environmentRef.current = props.environment;
+
+      if (!editorRef.current) {
+        return;
+      }
+
+      // Not verified that this works
+      editorRef.current.setValue(editorRef.current?.getValue() ?? "");
+      setEditorModelEnvironment(
+        editorRef.current.getModel(),
+        props.environment
+      );
+    }, [props.environment]);
 
     return (
       <Editor

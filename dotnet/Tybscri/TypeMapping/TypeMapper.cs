@@ -11,10 +11,10 @@ public interface ITypeMapper
 
     TybscriType MapMethodInfo(MethodInfo methodInfo);
 
-    IEnumerable<TybscriMember> MapMembers(Type type);
+    IReadOnlyCollection<TybscriMember> MapMembers(Type type);
 
     IReadOnlyCollection<ObjectDefinitionType> Definitions { get; }
-    
+
     ObjectDefinitionType CollectionDefinition { get; }
 }
 
@@ -81,43 +81,39 @@ public class TypeMapper : ITypeMapper
         return objectType;
     }
 
-    public IEnumerable<TybscriMember> MapMembers(Type type)
+    public IReadOnlyCollection<TybscriMember> MapMembers(Type type)
     {
         var memberInfos = type.GetMembers(_options.MemberBindingFilter).Where(_options.MemberFilter);
 
-        var props = new List<TybscriMember>();
+        var members = new List<TybscriMember>();
 
         foreach (var memberInfo in memberInfos) {
             switch (memberInfo) {
                 case FieldInfo fieldInfo when _options.TypeFilter(fieldInfo.FieldType):
                 {
-                    props.Add(CreateMember(Map(fieldInfo.FieldType), fieldInfo));
+                    members.Add(CreateMember(Map(fieldInfo.FieldType), fieldInfo));
                     break;
                 }
 
                 case PropertyInfo propertyInfo when _options.TypeFilter(propertyInfo.PropertyType):
                 {
-                    props.Add(CreateMember(Map(propertyInfo.PropertyType), propertyInfo));
+                    members.Add(CreateMember(Map(propertyInfo.PropertyType), propertyInfo));
                     break;
                 }
 
-                case MethodInfo methodInfo:
+                case MethodInfo methodInfo when _options.TypeFilter(methodInfo.ReturnType):
                 {
-                    props.Add(CreateMember(MapMethodInfo(methodInfo), memberInfo));
+                    members.Add(CreateMember(MapMethodInfo(methodInfo), memberInfo));
                     break;
                 }
             }
         }
 
-        return props;
+        return members;
 
         TybscriMember CreateMember(TybscriType tybscriType, MemberInfo memberInfo)
         {
-            return new TybscriMember(_options.MemberNameFormatter(memberInfo),
-                // _options.IsMemberNullable(memberInfo)
-                //     ? new RpcUnionType(new[] { PrimitiveTypes.Null, propTypeRef })
-                //    : 
-                tybscriType, memberInfo);
+            return new TybscriMember(_options.MemberNameFormatter(memberInfo), tybscriType, memberInfo);
         }
     }
 
@@ -131,7 +127,7 @@ public class TypeMapper : ITypeMapper
         var async = methodInfo.ReturnType.IsAssignableTo(typeof(Task));
         var clrReturnType = async ? methodInfo.ReturnType.GetTaskType()! : methodInfo.ReturnType;
         var returnType = Map(clrReturnType);
-        
+
         var parameters = new List<FuncParameter>();
         var funcType = new FuncType(returnType, () => parameters, async);
         Add(methodInfo, funcType);

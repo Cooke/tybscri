@@ -1,17 +1,12 @@
-import { useRef } from "react";
-import { Environment, parseEnvironment } from "tybscri";
+import { useRef, useState } from "react";
+import { Environment, listDefinitionType, parseEnvironment } from "tybscri";
 import { TybscriEditor } from "tybscri-react-editor";
 import { TybscriEditorRef } from "tybscri-react-editor/lib/TybscriEditor";
 import "./App.css";
 
 function App() {
   const editorRef = useRef<TybscriEditorRef>(null);
-
-  const initEnvironmentJson = localStorage.getItem("editor.types") ?? "";
-  let initEnvironment: Environment = { symbols: [] };
-  try {
-    initEnvironment = parseEnvironment(initEnvironmentJson);
-  } catch (error) {}
+  const [environment, setEnvironment] = useState(() => getInitEnvironment());
 
   return (
     <div className="App">
@@ -21,7 +16,7 @@ function App() {
         height="40vh"
         className="Editor"
         ref={editorRef}
-        defaultEnvironment={initEnvironment}
+        environment={environment}
         defaultValue={localStorage.getItem("editor.value") ?? ""}
         onChange={(value) => localStorage.setItem("editor.value", value ?? "")}
       />
@@ -29,14 +24,14 @@ function App() {
       <textarea
         style={{ width: "100%" }}
         rows={15}
-        defaultValue={initEnvironmentJson}
+        defaultValue={localStorage.getItem("editor.types") ?? ""}
         onChange={(ev) => {
           const envJson = ev.currentTarget.value;
           localStorage.setItem("editor.types", envJson);
 
           try {
             const env = parseEnvironment(envJson);
-            editorRef.current?.setEnvironment(env);
+            setEnvironment(env);
           } catch (error) {
             console.warn("Failed to parse environment", error);
           }
@@ -47,3 +42,16 @@ function App() {
 }
 
 export default App;
+function getInitEnvironment() {
+  const initEnvironmentJson = localStorage.getItem("editor.types") ?? "";
+  let initEnvironment: Environment = {
+    symbols: [],
+    collectionDefinition: listDefinitionType,
+  };
+
+  try {
+    initEnvironment = parseEnvironment(initEnvironmentJson);
+  } catch (error) {}
+
+  return initEnvironment;
+}
