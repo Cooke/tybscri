@@ -14,7 +14,6 @@ public class EnvironmentLab
             
         var env2 = new Environment();
         var compiler2 = ScriptEngine.Create(env2);
-        compiler2.Compile("")();
     }
 
     public record Environment;
