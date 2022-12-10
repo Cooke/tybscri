@@ -4,18 +4,18 @@ namespace Tybscri.Test;
 
 public class MemberTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler<TestEnv> _compiler;
 
     public MemberTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Create<TestEnv>();
     }
 
     [Fact]
     public void ReadProperty()
     {
         var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<string, TestEnv>("entity.prop", input);
+        var output = _compiler.EvaluateExpression<string>("entity.prop", input);
         Assert.Equal("hello", output);
     }
 
@@ -23,7 +23,7 @@ public class MemberTests
     public void InvokeMember()
     {
         var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<double, TestEnv>("entity.execute()", input);
+        var output = _compiler.EvaluateExpression<double>("entity.execute()", input);
         Assert.Equal(1337, output);
     }
     
@@ -31,7 +31,7 @@ public class MemberTests
     public void InvokeMemberWithArguments()
     {
         var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<double, TestEnv>("entity.add(1, 2)", input);
+        var output = _compiler.EvaluateExpression<double>("entity.add(1, 2)", input);
         Assert.Equal(3, output);
     }
     
@@ -39,7 +39,7 @@ public class MemberTests
     public void ReadPropertyOfProperty()
     {
         var input = new TestEnv { entity = new Entity() };
-        var output = _compiler.EvaluateExpression<double, TestEnv>("entity.prop.length", input);
+        var output = _compiler.EvaluateExpression<double>("entity.prop.length", input);
         Assert.Equal(5, output);
     }
 

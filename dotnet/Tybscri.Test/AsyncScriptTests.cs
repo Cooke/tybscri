@@ -5,22 +5,22 @@ namespace Tybscri.Test;
 
 public class AsyncScriptTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler<TestEnvironment> _compiler;
 
     public AsyncScriptTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Create<TestEnvironment>();
     }
 
     [Fact]
     public void Invoke()
     {
-        var testEnv = new TestEnvironment();
+        var globals = new TestEnvironment();
         var scriptTask = _compiler.EvaluateScriptAsync(@"
             wait()
-            ", testEnv);
+            ", globals);
         Assert.False(scriptTask.IsCompleted);
-        testEnv.Signal();
+        globals.Signal();
         Assert.True(scriptTask.IsCompleted);
     }
 
@@ -28,7 +28,7 @@ public class AsyncScriptTests
     public void InvokeImplicitReturn()
     {
         var testEnv = new TestEnvironment();
-        var scriptTask = _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var scriptTask = _compiler.EvaluateScriptAsync<double>(@"
             nowait(1)
             ", testEnv);
         Assert.Equal(1, scriptTask.Result);
@@ -38,7 +38,7 @@ public class AsyncScriptTests
     public void ReturnValue()
     {
         var testEnv = new TestEnvironment();
-        var scriptTask = _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var scriptTask = _compiler.EvaluateScriptAsync<double>(@"
             return nowait(1)
             ", testEnv);
         Assert.True(scriptTask.IsCompleted);

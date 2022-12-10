@@ -6,11 +6,11 @@ namespace Tybscri.Test;
 
 public class FunctionTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler _compiler;
 
     public FunctionTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Default;
     }
 
     [Fact]
@@ -209,7 +209,8 @@ public class FunctionTests
     public void TrailingLambda()
     {
         var env = new TestEnvironment();
-        _compiler.EvaluateScript(@"
+        var compiler = Compiler.Create<TestEnvironment>();
+        compiler.EvaluateScript(@"
             eval { true }
             ", env);
         Assert.True(env.DidEval);

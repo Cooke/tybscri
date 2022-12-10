@@ -5,11 +5,11 @@ namespace Tybscri.Test;
 
 public class OperatorTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler _compiler;
 
     public OperatorTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Default;
     }
 
     [Fact]
@@ -74,9 +74,10 @@ public class OperatorTests
     public void AndLazy()
     {
         var env = new TestEnv();
-        _compiler.EvaluateExpression<bool, TestEnv>("false && getTrue()", env);
+        var compiler = Compiler.Create<TestEnv>();
+        compiler.EvaluateExpression<bool>("false && getTrue()", env);
         Assert.False(env.Called);
-        _compiler.EvaluateExpression<bool, TestEnv>("true && getTrue()", env);
+        compiler.EvaluateExpression<bool>("true && getTrue()", env);
         Assert.True(env.Called);
     }
 
@@ -93,9 +94,10 @@ public class OperatorTests
     public void OrShortCircuit()
     {
         var env = new TestEnv();
-        _compiler.EvaluateExpression<bool, TestEnv>("true || getTrue()", env);
+        var compiler = Compiler.Create<TestEnv>();
+        compiler.EvaluateExpression<bool>("true || getTrue()", env);
         Assert.False(env.Called);
-        _compiler.EvaluateExpression<bool, TestEnv>("false || getTrue()", env);
+        compiler.EvaluateExpression<bool>("false || getTrue()", env);
         Assert.True(env.Called);
     }
 

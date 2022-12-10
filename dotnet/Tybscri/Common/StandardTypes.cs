@@ -8,7 +8,7 @@ public static class StandardTypes
     private static readonly TypeParameter ItemTypeParameter =
         new TypeParameter("T", typeof(List<>).GetGenericArguments()[0]);
 
-    public static readonly ObjectDefinitionType List = new("List", typeof(List<>), new[] { ItemTypeParameter },
+    public static readonly ObjectDefinitionType ListDefinition = new("List", typeof(List<>), new[] { ItemTypeParameter },
         new Lazy<IReadOnlyCollection<TybscriMember>>(() => new[]
         {
             new TybscriMember("filter",
@@ -53,4 +53,8 @@ public static class StandardTypes
     // A variable may not be assigned to void.
     public static readonly VoidDefinitionType VoidDefinition = new VoidDefinitionType("Void");
     public static readonly TybscriType Void = VoidDefinition.CreateType();
+    
+    // Any value can be stored
+    public static readonly AnyDefinitionType AnyDefinition = new AnyDefinitionType("Any");
+    public static readonly TybscriType Any = AnyDefinition.CreateType();
 }

@@ -10,26 +10,26 @@ namespace Tybscri.Test;
 public class EnvironmentTests
 {
     private readonly ITestOutputHelper _testOutputHelper;
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler<TestEnv> _compiler;
 
     public EnvironmentTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Create<TestEnv>();
     }
 
     [Fact]
     public void Use()
     {
         var env = new TestEnv { Input = 123 };
-        var output = _compiler.EvaluateExpression<double, TestEnv>("input", env);
+        var output = _compiler.EvaluateExpression<double>("input", env);
         Assert.Equal(123, output);
     }
 
     [Fact]
     public void Inspect()
     {
-        var environment = _compiler.CreateEnvironment<TestEnv>();
+        var environment = _compiler.Environment;
         Assert.Collection(environment.Symbols, x => Assert.Equal("List", x.Name), x => Assert.Equal("Number", x.Name),
             x => Assert.Equal("Boolean", x.Name), x => Assert.Equal("Null", x.Name),
             x => Assert.Equal("String", x.Name), x => Assert.Equal("Void", x.Name), x => Assert.Equal("Never", x.Name),
@@ -39,7 +39,7 @@ public class EnvironmentTests
     [Fact]
     public void Serialize()
     {
-        var environment = _compiler.CreateEnvironment<TestEnv>();
+        var environment = _compiler.Environment;
         var environmentData = new EnvironmentData(environment);
         var json = JsonSerializer.Serialize(environmentData,
             new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });

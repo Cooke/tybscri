@@ -4,11 +4,11 @@ namespace Tybscri.Test;
 
 public class VariableTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler _compiler;
 
     public VariableTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Default;
     }
 
     [Fact]

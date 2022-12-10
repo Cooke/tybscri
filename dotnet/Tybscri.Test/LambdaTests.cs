@@ -6,11 +6,11 @@ namespace Tybscri.Test;
 
 public class LambdaTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler _compiler;
 
     public LambdaTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Default;
     }
     
     [Fact]

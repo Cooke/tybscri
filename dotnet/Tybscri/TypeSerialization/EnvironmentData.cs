@@ -8,7 +8,7 @@ public record EnvironmentData(IReadOnlyCollection<EnvironmentSymbolData> Symbols
 {
     public EnvironmentData(Environment environment) : this(
         environment.Symbols.Select(s => new EnvironmentSymbolData(s.Name, TypeData.Create(s.Type))).ToArray(),
-        environment.CollectionDefinition.Name)
+        environment.CollectionLiteralDefinition.Name)
     {
     }
 }
@@ -25,7 +25,8 @@ public enum TypeKind
     Literal,
     TypeReference,
     VoidDefinition,
-    NeverDefinition
+    NeverDefinition,
+    AnyDefinition
 }
 
 public record ObjectTypeDefinitionData(string Name,
@@ -110,12 +111,24 @@ public abstract record TypeData
             return new NeverDefinitionTypeData(neverDefinitionType.Name);
         }
 
+        public TypeData VisitAny(AnyType anyType)
+        {
+            return new TypeReferenceData(StandardTypes.AnyDefinition.Name);
+        }
+
+        public TypeData VisitAnyDefinition(AnyDefinitionType anyDefinitionType)
+        {
+            return new AnyDefinitionTypeData(anyDefinitionType.Name);
+        }
+
         private static ObjectTypeData VisitObjectStatic(ObjectType objectType)
         {
             return new ObjectTypeData(objectType.Definition.Name, ArraySegment<TypeData>.Empty);
         }
     }
 }
+
+
 
 public class TypeDataConverter : JsonConverter<TypeData>
 {
@@ -133,6 +146,11 @@ public class TypeDataConverter : JsonConverter<TypeData>
 public record NeverDefinitionTypeData(string Name) : TypeData
 {
     public override TypeKind Kind => TypeKind.NeverDefinition;
+}
+
+internal record AnyDefinitionTypeData(string Name) : TypeData
+{
+    public override TypeKind Kind => TypeKind.AnyDefinition;
 }
 
 public record VoidDefinitionTypeData(string Name) : TypeData

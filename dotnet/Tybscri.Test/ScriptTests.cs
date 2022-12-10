@@ -6,11 +6,11 @@ namespace Tybscri.Test;
 
 public class ScriptTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler _compiler;
 
     public ScriptTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Default;
     }
 
     [Fact]

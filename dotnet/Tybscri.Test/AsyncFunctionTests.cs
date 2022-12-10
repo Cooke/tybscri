@@ -13,11 +13,11 @@ namespace Tybscri.Test;
 
 public class AsyncFunctionTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler<TestEnvironment> _compiler;
 
     public AsyncFunctionTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Create<TestEnvironment>();
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task Invoke()
     {
-        var output = _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
+        var output = _compiler.EvaluateScriptAsync<string>(@"
             fun hello() {
                 async()
                 ""hello""
@@ -111,7 +111,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task SyncInAsyncContext()
     {
-        var output = _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
+        var output = _compiler.EvaluateScriptAsync<string>(@"
             fun hello() {
                 ""hello""
             }
@@ -124,7 +124,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task Nesting()
     {
-        var output = await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<string>(@"
             fun foo() {
                 fun bar() {
                     async()
@@ -143,7 +143,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task Hoisting()
     {
-        var output = await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<string>(@"
             foo()
 
             fun foo() {
@@ -157,7 +157,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task ImplicitReturn()
     {
-        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<double>(@"
             fun foo() {
                 async()
                 123
@@ -171,7 +171,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task ExplicitReturn()
     {
-        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<double>(@"
             fun foo() {
                 async()
                 return 123
@@ -185,7 +185,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task OneParameter()
     {
-        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<double>(@"
             fun identity(value: Number) {
                 async()
                 value
@@ -199,7 +199,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task TwoParameters()
     {
-        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<double>(@"
             fun sub(val1: Number, val2: Number) {
                 async()
                 val1 - val2
@@ -213,7 +213,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task ThreeParameters()
     {
-        var output = await _compiler.EvaluateScriptAsync<List<object>, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<List<object>>(@"
             fun list3(val1: Number, val2: ""one"", val3: true) {
                 async()
                 [val1, val2, val3]
@@ -227,7 +227,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task SeveralReturns()
     {
-        var output = await _compiler.EvaluateScriptAsync<List<double>, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<List<double>>(@"
             fun foo(cond: Number) {
                 async()
                 if (cond < 10) {
@@ -249,7 +249,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task NestingWithHoisting()
     {
-        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<double>(@"
             foo()
 
             fun foo() {
@@ -267,7 +267,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task NestingWithReturnWithHoisting()
     {
-        var output = await _compiler.EvaluateScriptAsync<double, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<double>(@"
             foo()
 
             fun foo() {
@@ -286,7 +286,7 @@ public class AsyncFunctionTests
     public async Task UninitializedVariable()
     {
         await Assert.ThrowsAsync<TybscriException>(async () =>
-            await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
+            await _compiler.EvaluateScriptAsync<string>(@"
             var result = foo()
             var hello = ""hello""
             result
@@ -301,7 +301,7 @@ public class AsyncFunctionTests
     [Fact]
     public async Task Closure()
     {
-        var output = await _compiler.EvaluateScriptAsync<string, TestEnvironment>(@"
+        var output = await _compiler.EvaluateScriptAsync<string>(@"
             var hello = ""hello""
             foo()
 

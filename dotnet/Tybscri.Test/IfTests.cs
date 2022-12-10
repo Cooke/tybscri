@@ -1,14 +1,15 @@
+using Tybscri.Common;
 using Xunit;
 
 namespace Tybscri.Test;
 
 public class IfTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler _compiler;
 
     public IfTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Default;
     }
 
     [Fact]
@@ -24,18 +25,20 @@ public class IfTests
         var output = _compiler.EvaluateExpression<double>("if (false) 33 else 44");
         Assert.Equal(44, output);
     }
-    
+
     [Fact]
     public void FalseIfWithoutElse()
     {
-        var output = _compiler.EvaluateExpression<object>("if (false) 33");
+        var output = _compiler.EvaluateExpression<object>("if (false) 33",
+            UnionType.Create(StandardTypes.Number, StandardTypes.Null));
         Assert.Null(output);
     }
-    
+
     [Fact]
     public void TrueIfWithoutElse()
     {
-        var output = _compiler.EvaluateExpression<object>("if (true) 33");
+        var expectedType = _compiler.EvaluateType("Number | Null");
+        var output = _compiler.EvaluateExpression<object>("if (true) 33", expectedType);
         Assert.Equal(33d, output);
     }
 }

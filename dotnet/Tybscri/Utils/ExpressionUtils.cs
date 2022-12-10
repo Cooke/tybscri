@@ -14,9 +14,9 @@ internal static class ExpressionUtils
             return exp;
         }
 
-        if (exp.Type.IsAssignableTo(type) && !exp.Type.IsValueType) {
-            return exp;
-        }
+        // if (exp.Type.IsAssignableTo(type) && !exp.Type.IsValueType) {
+        //     return exp;
+        // }
 
         if (exp.Type == typeof(void) && !type.IsValueType) {
             return Expression.Block(exp, Expression.Constant(null, type));

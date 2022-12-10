@@ -38,7 +38,7 @@ public class CollectionLiteralNode : IExpressionNode
         }
 
         ItemType = UnionType.Create(Expressions.Select(x => x.ValueType).ToArray());
-        ListType = StandardTypes.List.CreateType(ItemType);
+        ListType = StandardTypes.ListDefinition.CreateType(ItemType);
     }
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)

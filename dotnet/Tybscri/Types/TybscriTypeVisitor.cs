@@ -25,4 +25,8 @@ public interface TybscriTypeVisitor<out TResult>
     TResult VisitVoidDefinition(VoidDefinitionType voidDefinitionType);
     
     TResult VisitNeverDefinition(NeverDefinitionType neverDefinitionType);
+    
+    TResult VisitAny(AnyType anyType);
+    
+    TResult VisitAnyDefinition(AnyDefinitionType anyDefinitionType);
 }

@@ -5,11 +5,11 @@ namespace Tybscri.Test;
 
 public class ScenarioTests
 {
-    private readonly TybscriCompiler _compiler;
+    private readonly Compiler<TestEnvironment> _compiler;
 
     public ScenarioTests()
     {
-        _compiler = new TybscriCompiler();
+        _compiler = Compiler.Create<TestEnvironment>();
     }
 
     [Fact]

@@ -4,7 +4,10 @@
   &lt;Assembly Path="C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.0\System.Text.Json.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\henri\.nuget\packages\dotnext.metaprogramming\4.7.4\lib\net6.0\DotNext.Metaprogramming.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=03cb6744_002D3098_002D41ad_002Dbcea_002Df0deaa89c059/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=03cb6744_002D3098_002D41ad_002Dbcea_002Df0deaa89c059/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=9ed82d9a_002Dc1f3_002D4fce_002D9d5e_002Daf459540c92f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
