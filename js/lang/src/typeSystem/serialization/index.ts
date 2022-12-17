@@ -3,6 +3,7 @@ import {
   DefinitionType,
   FuncParameter,
   FuncType,
+  isDefinitionType,
   LiteralType,
   Member,
   NeverDefinitionType,
@@ -16,6 +17,7 @@ import {
   VoidDefinitionType,
 } from "..";
 import { Environment, EnvironmentSymbol } from "../../common";
+import { AnyDefinitionType } from "../AnyType";
 
 interface EnvironmentData {
   symbols: EnvironmentSymbolData[];
@@ -35,7 +37,8 @@ type TypeData =
   | TypeReferenceData
   | UnionTypeData
   | NeverTypeDefinitionData
-  | VoidTypeDefinitionData;
+  | VoidTypeDefinitionData
+  | AnyTypeDefinitionData;
 
 interface LiteralTypeData {
   kind: "Literal";
@@ -101,12 +104,17 @@ interface VoidTypeDefinitionData {
   name: string;
 }
 
+interface AnyTypeDefinitionData {
+  kind: "AnyDefinition";
+  name: string;
+}
+
 interface TypeResolver {
-  (name: string): Type | null | undefined;
+  (name: string): DefinitionType | null | undefined;
 }
 
 export function createEnvironment(envData: EnvironmentData): Environment {
-  var definitionTable: { [name: string]: ObjectDefinitionType } = {};
+  var definitionTable: { [name: string]: DefinitionType } = {};
   var typeResolver: TypeResolver = (name) => {
     if (!definitionTable[name]) {
       throw new Error("Unknown type: " + name);
@@ -116,7 +124,7 @@ export function createEnvironment(envData: EnvironmentData): Environment {
   };
   const symbols = envData.symbols.map((symbol): EnvironmentSymbol => {
     const type = convertType(symbol.type, typeResolver);
-    if (type instanceof ObjectDefinitionType) {
+    if (isDefinitionType(type)) {
       definitionTable[type.name] = type;
     }
 
@@ -182,7 +190,7 @@ function convertType(type: TypeData, typeResolver: TypeResolver): Type {
         throw new Error("Could not find referenced type: " + type.name);
       }
 
-      return referencedType;
+      return referencedType.createType([]);
 
     case "Union":
       return createUnionType(
@@ -194,6 +202,9 @@ function convertType(type: TypeData, typeResolver: TypeResolver): Type {
 
     case "VoidDefinition":
       return new VoidDefinitionType(type.name);
+
+    case "AnyDefinition":
+      return new AnyDefinitionType(type.name);
 
     default:
       throw new Error("Could not convert type");

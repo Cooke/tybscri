@@ -11,9 +11,11 @@ export interface Type {
 export interface DefinitionType extends Type {
   readonly name: string;
 
-  readonly typeParameters: TypeParameter[];
-
   createType(typeArguments: Type[]): Type;
+}
+
+export function isDefinitionType(type: Type): type is DefinitionType {
+  return "name" in type && "createType" in type;
 }
 
 export class Member {
@@ -32,11 +34,15 @@ export class Member {
 
 export type TypeParameterVariance = "in" | "out" | undefined;
 
-export class TypeParameter implements Type {
+export class TypeParameter implements DefinitionType {
   constructor(
     readonly name: string,
     readonly variance?: TypeParameterVariance
   ) {}
+
+  createType(typeArguments: Type[]): Type {
+    throw new Error("Method not implemented.");
+  }
 
   public readonly members: Array<Member> = [];
 

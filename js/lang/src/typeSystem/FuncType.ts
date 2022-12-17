@@ -1,4 +1,4 @@
-import { Type, Member, TypeParameterBinding } from "./common";
+import { Member, Type, TypeParameterBinding } from "./common";
 
 export class FuncParameter {
   constructor(readonly name: string, readonly type: Type) {}

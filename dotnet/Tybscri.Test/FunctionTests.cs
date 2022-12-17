@@ -215,10 +215,23 @@ public class FunctionTests
             ", env);
         Assert.True(env.DidEval);
     }
+    
+    [Fact]
+    public void TrailingLambdaOfMember()
+    {
+        var env = new TestEnvironment();
+        var compiler = Compiler.Create<TestEnvironment>();
+        compiler.EvaluateScript(@"
+            env.eval { true }
+            ", env);
+        Assert.True(env.DidEval);
+    }
 
     private class TestEnvironment
     {
         public bool DidEval;
+
+        public TestEnvironment Env => this;
 
         // ReSharper disable once UnusedMember.Local
         public void Eval(Func<bool> func)

@@ -374,7 +374,7 @@ public class TybscriParser
         AdvanceWhileNL();
         var memberName = ParseToken(L.Identifier);
 
-        if (Peek() == L.LPAREN) {
+        if (Peek() == L.LPAREN || Peek() == L.LCURL) {
             var callArgs = ParseValueArguments();
             return new MemberInvocationNode(expression, memberName, callArgs);
         }
@@ -384,10 +384,9 @@ public class TybscriParser
 
     private List<IExpressionNode> ParseValueArguments()
     {
-        // if (Peek() == L.LCURL) {
-        //     const lambdaLiteral = this.parseLambdaLiteral();
-        //     return [null, [], null, lambdaLiteral];
-        // }
+        if (Peek() == L.LCURL) {
+            return new List<IExpressionNode> { ParseLambdaLiteral() };
+        }
 
         var lparen = ParseToken(L.LPAREN);
         AdvanceWhileNL();
@@ -411,10 +410,9 @@ public class TybscriParser
 
         var rparen = ParseToken(L.RPAREN);
 
-        // if (Peek() == L.LCURL) {
-        //     var lambdaLiteral = ParseLambdaLiteral();
-        //     return [lparen, args, rparen, lambdaLiteral];
-        // }
+        if (Peek() == L.LCURL) {
+            args.Add(ParseLambdaLiteral());
+        }
 
         return args;
     }

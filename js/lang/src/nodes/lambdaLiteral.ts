@@ -1,6 +1,6 @@
 import { SourceSymbol, Symbol } from "../symbols";
 import { Scope } from "../scope";
-import { neverType, nullType, unknownType } from "../typeSystem";
+import { neverType, nullType, unknownType, VoidType } from "../typeSystem";
 import { Type, TypeParameter } from "../typeSystem/common";
 import { FuncType } from "../typeSystem/FuncType";
 import { UnionType } from "../typeSystem/UnionType";
@@ -66,7 +66,10 @@ export class LambdaLiteralNode extends ExpressionNode {
       allReturns
         .map((x) => x.expression?.valueType ?? nullType)
         .concat([
-          this.statements[this.statements.length - 1]?.valueType ?? neverType,
+          expectedType.returnType instanceof VoidType
+            ? VoidType.instance
+            : this.statements[this.statements.length - 1]?.valueType ??
+              neverType,
         ])
     );
 

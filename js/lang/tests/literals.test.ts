@@ -10,6 +10,7 @@ import {
   stringType,
   trueType,
   UnionType,
+  VoidType,
 } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
@@ -50,6 +51,20 @@ describe("Literals", function () {
         },
       ],
       numberType
+    );
+    const parseResult = parseExpression("{ it.length }", { expectedType });
+    assertTybscriType(parseResult.tree.valueType, expectedType);
+  });
+
+  it("void lambda ignore implicit return", function () {
+    const expectedType = new FuncType(
+      [
+        {
+          name: "str",
+          type: stringType,
+        },
+      ],
+      VoidType.instance
     );
     const parseResult = parseExpression("{ it.length }", { expectedType });
     assertTybscriType(parseResult.tree.valueType, expectedType);

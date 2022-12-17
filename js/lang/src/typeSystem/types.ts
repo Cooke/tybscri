@@ -1,4 +1,5 @@
 import { FuncType, Member } from ".";
+import { AnyType } from "./AnyType";
 import { LiteralType } from "./LiteralType";
 import { NeverType } from "./NeverType";
 import { ObjectDefinitionType } from "./ObjectType";
@@ -29,6 +30,8 @@ export const stringType = stringDefinitionType.createType([]);
 export const unknownType = UnknownType.instance;
 
 export const neverType = NeverType.instance;
+
+export const anyType = AnyType.instance;
 
 export const nullDefinitionType = new ObjectDefinitionType(
   "null",

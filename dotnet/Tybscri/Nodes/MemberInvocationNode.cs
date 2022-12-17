@@ -21,7 +21,7 @@ public class MemberInvocationNode : IExpressionNode
 
     public Token MemberName { get; }
 
-    public IReadOnlyCollection<IExpressionNode> Arguments { get; }
+    public IReadOnlyList<IExpressionNode> Arguments { get; }
 
     public IReadOnlyCollection<INode> Children { get; }
 
@@ -59,10 +59,14 @@ public class MemberInvocationNode : IExpressionNode
         if (MemberType is not FuncType funcType) {
             throw new TybscriException("Cannot invoke member which is not a func type");
         }
-
+        
         ValueType = funcType.ReturnType;
+        
+        for (var i = 0; i < Arguments.Count; i++) {
+            var expectedType = funcType.Parameters.ElementAtOrDefault(i)?.Type;
+            Arguments[i].Resolve(new ResolveContext(expectedType));
+        }
     }
-
 
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {

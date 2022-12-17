@@ -1,7 +1,7 @@
 import { DefinitionType } from ".";
 import { Type, Member, TypeParameterBinding, TypeParameter } from "./common";
 
-export class VoidDefinitionType implements DefinitionType {
+export class AnyDefinitionType implements DefinitionType {
   readonly typeParameters = [];
   readonly displayName: string;
   readonly members = [];
@@ -11,7 +11,7 @@ export class VoidDefinitionType implements DefinitionType {
   }
 
   createType(typeArguments: Type[]): Type {
-    return VoidType.instance;
+    return AnyType.instance;
   }
 
   isAssignableFrom(type: Type): boolean {
@@ -23,17 +23,17 @@ export class VoidDefinitionType implements DefinitionType {
   }
 }
 
-export class VoidType implements Type {
-  public static readonly instance = new VoidType();
+export class AnyType implements Type {
+  public static readonly instance = new AnyType();
 
   public readonly members: Array<Member> = [];
 
-  public readonly displayName = "void";
+  public readonly displayName = "any";
 
   private constructor() {}
 
   isAssignableFrom(type: Type): boolean {
-    return type instanceof VoidType;
+    return true;
   }
 
   public bind(bindings: TypeParameterBinding[]): Type {

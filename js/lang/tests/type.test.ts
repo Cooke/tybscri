@@ -12,7 +12,9 @@ import {
   TypeParameter,
   UnionType,
 } from "../src/typeSystem";
+import { AnyType } from "../src/typeSystem/AnyType";
 import {
+  anyType,
   booleanType,
   neverType,
   nullType,
@@ -30,6 +32,11 @@ describe("Types", function () {
     it("reduce never", function () {
       const union = createUnionType(stringType, neverType);
       assertTybscriType(union, stringType);
+    });
+
+    it("reduce any", function () {
+      const union = createUnionType(stringType, anyType, nullType);
+      assertTybscriType(union, anyType);
     });
 
     it("reduce literal", function () {
