@@ -2539,6 +2539,11 @@ ansi-styles@^5.0.0:
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-5.2.0.tgz#07449690ad45777d1924ac2abb2fc8895dba836b"
   integrity sha512-Cxwpt2SfTzTtXcfOlzGEee8O+c+MmUgGrNiBcXnuWxuFJHe6a5Hz7qwhwe5OgaSYI0IJvkLqWX1ASG+cJOkEiA==
 
+antlr4ts@^0.5.0-alpha.4:
+  version "0.5.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/antlr4ts/-/antlr4ts-0.5.0-alpha.4.tgz#71702865a87478ed0b40c0709f422cf14d51652a"
+  integrity sha512-WPQDt1B74OfPv/IMS2ekXAKkTZIHl88uMetg6q3OTqgFxZ/dxDXI0EWLyZid/1Pe6hTftyg5N7gel5wNAGxXyQ==
+
 anymatch@^3.0.3, anymatch@~3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/anymatch/-/anymatch-3.1.2.tgz#c0557c096af32f106198f4f4e2a383537e378716"
@@ -8484,13 +8489,22 @@ tsutils@^3.21.0:
   dependencies:
     tslib "^1.8.1"
 
-tybscri-react-editor@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/tybscri-react-editor/-/tybscri-react-editor-0.1.0.tgz#98b64f61a83a7d5d22d36b8ff35a9d2911482d8d"
-  integrity sha512-Jrt6r6OikGk1iVzYsAvd7dLHd9monK/C1Hf0y0JsgHDWlT9pP3ki2TE3Ba9lTS8RxP1//ReGopJD6trDLBkwkQ==
+tybscri-react-editor@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/tybscri-react-editor/-/tybscri-react-editor-0.4.0.tgz#af806204f9bbf3d1c5728174f6f60526e85761aa"
+  integrity sha512-n2tHjz1cayOXEoX0PQ/i9/pzDKASVK5lo+Nsk97TLdkZoI5LT50MY1DmtUYCLKShb7Efk4vAzJaHMYA5yr4NXg==
   dependencies:
     "@monaco-editor/react" "^4.4.5"
     monaco-editor "^0.34.0"
+    tybscri "^0.3.0"
+
+tybscri@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/tybscri/-/tybscri-0.3.0.tgz#5a33b2e5e6ec4637f13235306f2a37c8bceb5796"
+  integrity sha512-JFeOcBGjMvjUcYfmAx4MPf6vVni1E2JKdp9YtNyVTpLRB6dzdQpfKBSAZssMSTGaAXvA0vwFP8SAKyw31q5dGA==
+  dependencies:
+    antlr4ts "^0.5.0-alpha.4"
+    assert "^2.0.0"
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"

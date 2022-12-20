@@ -1,6 +1,6 @@
 # Tybscri
 
-An statically typed embeddable scripting language with an HTML editor.
+An statically typed embeddable scripting language with an HTML editor. The language is inspired by Kotlin and TypeScript.
 
 ## Syntax
 
@@ -24,7 +24,3 @@ creature.onSummoned {
 ## Status
 
 The project is currently in an early state.
-
-```
-
-```

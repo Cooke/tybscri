@@ -1,6 +1,6 @@
 {
   "name": "tybscri",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Embeddable statically typed scripting language for .NET",
   "main": "./lib",
   "types": "./lib",
