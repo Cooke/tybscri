@@ -1,6 +1,4 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
+name: Deploy demo pages
 
 # Controls when the workflow will run
 on:
@@ -21,10 +19,25 @@ defaults:
   run:
     working-directory: js/demo
     
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+    
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
   build:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -42,8 +55,22 @@ jobs:
         with:
           cmd: install # will run `yarn install` command
           dir: js/demo
+          
       - name: Build production bundle
         uses: borales/actions-yarn@v4
         with:
           cmd: build
           dir: js/demo
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # Upload entire repository
+          path: 'js/demo/build'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
