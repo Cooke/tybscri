@@ -2,6 +2,10 @@
 
 An statically typed embeddable scripting language with an HTML editor. The language is inspired by Kotlin and TypeScript.
 
+## Demo
+
+The HTML editor can be tested here: https://cooke.github.io/tybscri/
+
 ## Syntax
 
 ```kotlin
