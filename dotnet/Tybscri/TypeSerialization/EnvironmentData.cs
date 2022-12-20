@@ -4,11 +4,13 @@ using Tybscri.Common;
 
 namespace Tybscri.TypeSerialization;
 
-public record EnvironmentData(IReadOnlyCollection<EnvironmentSymbolData> Symbols, String CollectionDefinition)
+public record EnvironmentData(IReadOnlyCollection<EnvironmentSymbolData> Symbols,
+    String CollectionDefinition,
+    String BooleanDefinition)
 {
     public EnvironmentData(Environment environment) : this(
         environment.Symbols.Select(s => new EnvironmentSymbolData(s.Name, TypeData.Create(s.Type))).ToArray(),
-        environment.CollectionLiteralDefinition.Name)
+        environment.CollectionLiteralDefinition.Name, environment.BooleanDefinition.Name)
     {
     }
 }
@@ -123,12 +125,10 @@ public abstract record TypeData
 
         private static ObjectTypeData VisitObjectStatic(ObjectType objectType)
         {
-            return new ObjectTypeData(objectType.Definition.Name, ArraySegment<TypeData>.Empty);
+            return new ObjectTypeData(objectType.Definition.Name, objectType.TypeArguments.Select(Create).ToArray());
         }
     }
 }
-
-
 
 public class TypeDataConverter : JsonConverter<TypeData>
 {

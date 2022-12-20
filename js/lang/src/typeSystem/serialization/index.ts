@@ -22,6 +22,7 @@ import { AnyDefinitionType } from "../AnyType";
 interface EnvironmentData {
   symbols: EnvironmentSymbolData[];
   collectionDefinition: string;
+  booleanDefinition: string;
 }
 
 interface EnvironmentSymbolData {
@@ -137,6 +138,10 @@ export function createEnvironment(envData: EnvironmentData): Environment {
     symbols,
     collectionDefinition: resolveDefinition(
       envData.collectionDefinition,
+      typeResolver
+    ),
+    booleanDefinition: resolveDefinition(
+      envData.booleanDefinition,
       typeResolver
     ),
   };

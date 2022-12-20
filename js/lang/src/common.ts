@@ -27,6 +27,7 @@ export interface DiagnosticMessage {
 export interface Environment {
   readonly symbols: EnvironmentSymbol[];
   readonly collectionDefinition: ObjectDefinitionType;
+  readonly booleanDefinition: ObjectDefinitionType;
 }
 
 export interface EnvironmentSymbol {

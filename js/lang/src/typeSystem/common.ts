@@ -41,7 +41,7 @@ export class TypeParameter implements DefinitionType {
   ) {}
 
   createType(typeArguments: Type[]): Type {
-    throw new Error("Method not implemented.");
+    return this;
   }
 
   public readonly members: Array<Member> = [];

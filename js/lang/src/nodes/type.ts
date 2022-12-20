@@ -19,23 +19,16 @@ export class TypeNode extends Node {
   private typeSymbol: Symbol | null = null;
 
   public setupScopes(scope: Scope, context: CompileContext) {
-    if (this.node instanceof IdentifierNode) {
-      this.typeSymbol = scope.resolveLast(this.node.token.text);
-      // TODO report if not found
-    } else {
-      this._type = new LiteralType(
-        this.node.value,
-        typeof this.node.value === "string" ? stringType : numberType
-      );
-    }
-
     this.scope = scope;
   }
 
   public resolveTypes(context: CompileContext) {
-    if (this.typeSymbol) {
-      this.typeSymbol.resolveTypes(context);
-      this._type = this.typeSymbol.valueType;
+    if (this.node instanceof IdentifierNode) {
+      this.typeSymbol = this.scope.resolveLast(this.node.token.text);
+      this._type = this.typeSymbol?.valueType ?? unknownType;
+      // TODO report if not found
+    } else {
+      this._type = this.node.valueType;
     }
   }
 

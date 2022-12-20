@@ -22,6 +22,7 @@ export { treeToString as printTree } from "./utils";
 export { Parser, Lexer };
 export { Scope };
 export { Environment, EnvironmentSymbol };
+export { defaultEnvironment };
 
 export function createLexer(source: string) {
   return new Lexer(CharStreams.fromString(source));

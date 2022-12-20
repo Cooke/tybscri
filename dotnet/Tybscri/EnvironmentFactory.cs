@@ -27,7 +27,8 @@ public partial record Environment
         var symbols = typeMapper.Definitions.Select(x => new EnvironmentSymbol(x.Name, x)).Concat(globalSymbols)
             .ToList();
 
-        return new Environment(symbols, StandardTypes.ListDefinition, globalsExpression, typeMapper.ToTypeMappings());
+        return new Environment(symbols, StandardTypes.ListDefinition, StandardTypes.BooleanDefinition,
+            globalsExpression, typeMapper.ToTypeMappings());
 
         EnvironmentSymbol? MapMember(MemberInfo memberInfo)
         {
@@ -45,8 +46,8 @@ public partial record Environment
                     Expression.Field(globalsExpression, fieldInfo)),
                 PropertyInfo propertyInfo => new EnvironmentSymbol(symbolName,
                     typeMapper.Map(propertyInfo.PropertyType), Expression.Property(globalsExpression, propertyInfo)),
-                MethodInfo methodInfo => new EnvironmentSymbol(symbolName, typeMapper.MapMethodInfo(methodInfo),
-                    new TybscriMemberExpression(globalsExpression, methodInfo)),
+                MethodInfo { IsSpecialName: false } methodInfo => new EnvironmentSymbol(symbolName,
+                    typeMapper.MapMethodInfo(methodInfo), new TybscriMemberExpression(globalsExpression, methodInfo)),
                 _ => null
             };
         }

@@ -1,40 +1,73 @@
-import { useRef, useState } from "react";
-import { Environment, listDefinitionType, parseEnvironment } from "tybscri";
+import { useMemo, useRef, useState } from "react";
+import {
+  booleanDefinitionType,
+  Environment,
+  listDefinitionType,
+  parseEnvironment,
+} from "tybscri";
 import { TybscriEditor } from "tybscri-react-editor";
 import { TybscriEditorRef } from "tybscri-react-editor/lib/TybscriEditor";
 import "./App.css";
+import { demoEnvironmentJson } from "./demoEnvironmentJson";
+
+const emptyEnvironment: Environment = {
+  symbols: [],
+  collectionDefinition: listDefinitionType,
+  booleanDefinition: booleanDefinitionType,
+};
 
 function App() {
   const editorRef = useRef<TybscriEditorRef>(null);
-  const [environment, setEnvironment] = useState(() => getInitEnvironment());
+  const [jsonEnvironment, setJsonEnvironment] = useState(
+    () => localStorage.getItem("editor.env") ?? demoEnvironmentJson
+  );
+  const environment = useMemo(() => {
+    try {
+      const env = parseEnvironment(jsonEnvironment);
+      return env;
+    } catch (error) {
+      console.warn("Failed to parse environment", error);
+      return emptyEnvironment;
+    }
+  }, [jsonEnvironment]);
 
   return (
-    <div className="App">
+    <div
+      className="App"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "stretch",
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        padding: 8,
+      }}
+    >
       <h1>Tybscri Demo</h1>
-      <button onClick={() => editorRef.current?.setValue("")}>Clear</button>
+      <label>Script</label>
       <TybscriEditor
-        height="40vh"
+        height="50vh"
         className="Editor"
         ref={editorRef}
         environment={environment}
         defaultValue={localStorage.getItem("editor.value") ?? ""}
         onChange={(value) => localStorage.setItem("editor.value", value ?? "")}
       />
-      <label>Custom environment (JSON)</label>
+      <label htmlFor="env" style={{ marginTop: 16 }}>
+        Environment schema
+      </label>
       <textarea
-        style={{ width: "100%" }}
+        id="env"
+        style={{ flex: 1 }}
         rows={15}
-        defaultValue={localStorage.getItem("editor.types") ?? ""}
+        defaultValue={jsonEnvironment}
         onChange={(ev) => {
-          const envJson = ev.currentTarget.value;
-          localStorage.setItem("editor.types", envJson);
-
-          try {
-            const env = parseEnvironment(envJson);
-            setEnvironment(env);
-          } catch (error) {
-            console.warn("Failed to parse environment", error);
-          }
+          const json = ev.currentTarget.value;
+          localStorage.setItem("editor.env", json);
+          setJsonEnvironment(json);
         }}
       ></textarea>
     </div>
@@ -42,16 +75,3 @@ function App() {
 }
 
 export default App;
-function getInitEnvironment() {
-  const initEnvironmentJson = localStorage.getItem("editor.types") ?? "";
-  let initEnvironment: Environment = {
-    symbols: [],
-    collectionDefinition: listDefinitionType,
-  };
-
-  try {
-    initEnvironment = parseEnvironment(initEnvironmentJson);
-  } catch (error) {}
-
-  return initEnvironment;
-}

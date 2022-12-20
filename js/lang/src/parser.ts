@@ -409,15 +409,11 @@ export class Parser {
         span: missingToken.actualToken.span,
         severity: DiagnosticSeverity.Error,
       });
-      return new LiteralNode([missingToken], false, createLiteralType(false));
+      return new LiteralNode([missingToken], false);
     }
 
     const value = this.peekToken().text === "true";
-    return new LiteralNode(
-      [this.parseToken(L.Boolean)],
-      value,
-      new LiteralType(value, booleanType)
-    );
+    return new LiteralNode([this.parseToken(L.Boolean)], value);
   }
 
   private parseStringLiteral() {
@@ -427,8 +423,7 @@ export class Parser {
   private parseNumberLiteral() {
     const syntaxToken = this.parseToken(L.INT);
     const value = parseInt(syntaxToken.text);
-    const literalType: LiteralType = new LiteralType(value, numberType);
-    return new LiteralNode([syntaxToken], value, literalType);
+    return new LiteralNode([syntaxToken], value);
   }
 
   private parseLineStringLiteral() {
@@ -445,15 +440,7 @@ export class Parser {
       });
     }
 
-    const literalType: LiteralType = new LiteralType(
-      textToken.text,
-      stringType
-    );
-    return new LiteralNode(
-      [openQuote, textToken, closeQuote],
-      textToken.text,
-      literalType
-    );
+    return new LiteralNode([openQuote, textToken, closeQuote], textToken.text);
   }
 
   private parseIdentifier() {

@@ -89,7 +89,7 @@ public class TypeMapper : ITypeMapper
             return MapFuncType(clrType);
         }
 
-        if (clrType.IsClass) {
+        if (clrType.IsClass || clrType.IsInterface) {
             return DefineObject(clrType).CreateType();
         }
 

@@ -15,7 +15,14 @@ namespace CookeRpc.AspNetCore.Model
             type == typeof(Type) || type.Namespace?.StartsWith("System.Reflection") == true;
 
         public Func<MemberInfo, string> MemberNameFormatter { get; init; } = memberInfo =>
-            Char.ToLower(memberInfo.Name[0]) + memberInfo.Name.Substring(1);
+        {
+            var name = memberInfo switch
+            {
+                PropertyInfo pi => pi.Name,
+                _ => memberInfo.Name
+            };
+            return Char.ToLower(name[0]) + name.Substring(1);
+        };
 
         public Func<Type, string> TypeNameFormatter { get; init; } = type =>
             type.GetCustomAttribute<TybscriTypeAttribute>()?.Name ?? (type.IsInterface && type.Name.StartsWith("I")

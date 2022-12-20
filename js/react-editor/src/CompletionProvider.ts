@@ -1,6 +1,14 @@
 import { languages, Range, Uri } from "monaco-editor";
 import * as monaco from "monaco-editor";
-import { Node, parseScript, MemberNode, FuncType, widenType } from "tybscri";
+import {
+  Node,
+  parseScript,
+  MemberNode,
+  FuncType,
+  widenType,
+  ObjectType,
+  isDefinitionType,
+} from "tybscri";
 import { findNonTokenNode } from "./utils";
 import { getModelEnvironment } from "./common";
 
@@ -59,6 +67,8 @@ function calcSymbolSuggestions(
       kind:
         sug.valueType instanceof FuncType
           ? monaco.languages.CompletionItemKind.Function
+          : isDefinitionType(sug.valueType)
+          ? monaco.languages.CompletionItemKind.Class
           : monaco.languages.CompletionItemKind.Field,
       range: calcRangeFromCurrentWord(textModel, position),
       label: sug.name,
