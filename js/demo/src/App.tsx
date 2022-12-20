@@ -16,6 +16,14 @@ const emptyEnvironment: Environment = {
   booleanDefinition: booleanDefinitionType,
 };
 
+const defaultScript = `player.onAttacked {
+  it.attacker.say("I'm here to kill you...")
+}
+
+npcs.filter { true }
+npcs.filter({ true })
+`;
+
 function App() {
   const editorRef = useRef<TybscriEditorRef>(null);
   const [jsonEnvironment, setJsonEnvironment] = useState(
@@ -46,14 +54,15 @@ function App() {
         padding: 8,
       }}
     >
-      <h1>Tybscri Demo</h1>
+      <h1 style={{ margin: 0 }}>Tybscri Demo</h1>
+      <p>Currently no runtime is included</p>
       <label>Script</label>
       <TybscriEditor
-        height="50vh"
+        height="40vh"
         className="Editor"
         ref={editorRef}
         environment={environment}
-        defaultValue={localStorage.getItem("editor.value") ?? ""}
+        defaultValue={localStorage.getItem("editor.value") ?? defaultScript}
         onChange={(value) => localStorage.setItem("editor.value", value ?? "")}
       />
       <label htmlFor="env" style={{ marginTop: 16 }}>
