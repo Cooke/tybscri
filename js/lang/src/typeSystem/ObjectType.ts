@@ -103,7 +103,7 @@ export class ObjectType implements Type {
   }
 
   private isAssignableFromObject(from: ObjectType): boolean {
-    if (from.name !== this.name) {
+    if (from.definition !== this.definition) {
       return !!from.base && this.isAssignableFromObject(from.base);
     }
 

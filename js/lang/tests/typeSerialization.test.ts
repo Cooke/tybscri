@@ -6,6 +6,7 @@ describe("Environment", function () {
   it("parse", function () {
     const env = parseEnvironment(`{
         "collectionDefinition": "List",
+        "booleanDefinition": "Boolean",
         "symbols": [
           {
             "name": "List",

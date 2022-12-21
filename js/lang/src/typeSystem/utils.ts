@@ -16,7 +16,7 @@ export function widenType(type: Type) {
 }
 
 export function narrowTypeTruthy(type: Type) {
-  if (type === booleanType) {
+  if (areTypesEqual(type, booleanType)) {
     return trueType;
   }
 

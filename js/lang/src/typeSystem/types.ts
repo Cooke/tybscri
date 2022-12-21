@@ -1,4 +1,4 @@
-import { FuncType, Member } from ".";
+import { FuncType, Member, MemberFlag } from ".";
 import { AnyType } from "./AnyType";
 import { LiteralType } from "./LiteralType";
 import { NeverType } from "./NeverType";
@@ -7,7 +7,7 @@ import { UnknownType } from "./UnknownType";
 
 export const objectDefinitionType: ObjectDefinitionType =
   new ObjectDefinitionType("object", null, [], () => [
-    new Member(true, "toString", new FuncType([], stringType)),
+    new Member([MemberFlag.Const], "toString", new FuncType([], stringType)),
   ]);
 export const objectType = objectDefinitionType.createType([]);
 
@@ -23,7 +23,7 @@ export const stringDefinitionType = new ObjectDefinitionType(
   "string",
   objectType,
   [],
-  () => [new Member(true, "length", numberType)]
+  () => [new Member([MemberFlag.Const], "length", numberType)]
 );
 export const stringType = stringDefinitionType.createType([]);
 

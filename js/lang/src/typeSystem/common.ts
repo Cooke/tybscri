@@ -18,9 +18,14 @@ export function isDefinitionType(type: Type): type is DefinitionType {
   return "name" in type && "createType" in type;
 }
 
+export enum MemberFlag {
+  Const,
+  Operator,
+}
+
 export class Member {
   constructor(
-    readonly isConst: boolean,
+    readonly flags: MemberFlag[],
     readonly name: string,
     readonly type: Type,
     readonly typeParameters?: TypeParameter[]
@@ -28,7 +33,7 @@ export class Member {
 
   bindTypes(bindings: TypeParameterBinding[]): Member {
     const newType = this.type.bind(bindings);
-    return new Member(this.isConst, this.name, newType, this.typeParameters);
+    return new Member(this.flags, this.name, newType, this.typeParameters);
   }
 }
 

@@ -1,4 +1,5 @@
-import { booleanDefinitionType, Environment } from "..";
+import { Environment } from "../common";
+import { booleanDefinitionType } from "../typeSystem";
 import { listDefinitionType } from "./listType";
 
 export const defaultEnvironment: Environment = {

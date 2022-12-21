@@ -6,6 +6,7 @@ import {
   isDefinitionType,
   LiteralType,
   Member,
+  MemberFlag,
   NeverDefinitionType,
   NeverType,
   ObjectDefinitionType,
@@ -71,9 +72,14 @@ interface ObjectDefinitionData {
   typeParameters: TypeParameterData[];
 }
 
+enum MemberFlagData {
+  Const = "Const",
+  Operator = "Operator",
+}
+
 interface MemberData {
   name: string;
-  settable: boolean;
+  flags: MemberFlagData[];
   type: TypeData;
   typeParameters: TypeParameterData[];
 }
@@ -123,6 +129,7 @@ export function createEnvironment(envData: EnvironmentData): Environment {
 
     return definitionTable[name];
   };
+
   const symbols = envData.symbols.map((symbol): EnvironmentSymbol => {
     const type = convertType(symbol.type, typeResolver);
     if (isDefinitionType(type)) {
@@ -134,6 +141,7 @@ export function createEnvironment(envData: EnvironmentData): Environment {
       type: type,
     };
   });
+
   return {
     symbols,
     collectionDefinition: resolveDefinition(
@@ -216,9 +224,20 @@ function convertType(type: TypeData, typeResolver: TypeResolver): Type {
   }
 }
 
+function convertMemberFlag(flag: MemberFlagData) {
+  switch (flag) {
+    case MemberFlagData.Const:
+      return MemberFlag.Const;
+    case MemberFlagData.Operator:
+      return MemberFlag.Operator;
+    default:
+      throw new Error("Unknown member flag");
+  }
+}
+
 function convertMember(member: MemberData, typeResolver: TypeResolver) {
   return new Member(
-    !member.settable,
+    member.flags.map((f) => convertMemberFlag(f)),
     member.name,
     convertType(member.type, typeResolver),
     member.typeParameters.map(

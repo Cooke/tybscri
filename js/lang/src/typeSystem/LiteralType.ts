@@ -1,4 +1,5 @@
 import { Type, Member, TypeParameterBinding } from "./common";
+import { areTypesEqual } from "./utils";
 
 export class LiteralType implements Type {
   constructor(readonly value: any, readonly valueType: Type) {}
@@ -16,7 +17,7 @@ export class LiteralType implements Type {
   public isAssignableFrom(type: Type): boolean {
     return (
       type instanceof LiteralType &&
-      type.valueType === this.valueType &&
+      areTypesEqual(type.valueType, this.valueType) &&
       this.value === type.value
     );
   }

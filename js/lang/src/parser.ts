@@ -40,6 +40,7 @@ import {
   unknownType,
 } from "./typeSystem";
 import { LiteralType } from "./typeSystem/LiteralType";
+import { BinaryOperatorNode } from "./nodes/binaryOperatorNode";
 
 const L = TybscriLexer;
 
@@ -230,7 +231,20 @@ export class Parser {
   }
 
   parseExpression() {
-    return this.parseIsExpression();
+    return this.parseEqualityExpression();
+  }
+
+  parseEqualityExpression() {
+    let result = this.parseIsExpression();
+
+    while (this.peek() == L.EQEQ) {
+      const operatorToken = this.parseToken(L.EQEQ);
+      this.advanceWhileNL();
+      const right = this.parseIsExpression();
+      result = new BinaryOperatorNode(result, operatorToken, right);
+    }
+
+    return result;
   }
 
   public parseIsExpression() {

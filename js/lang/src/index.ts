@@ -7,13 +7,13 @@ import {
   EnvironmentSymbol,
   Lexer,
 } from "./common";
-import { defaultEnvironment } from "./defaultEnvironment";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { Parser } from "./parser";
 import { Scope } from "./scope";
 import { ExternalSymbol } from "./symbols";
 import { Type } from "./typeSystem";
+import { defaultEnvironment } from "./defaultEnvironment";
 
 export { DiagnosticMessage } from "./common";
 export * from "./nodes";

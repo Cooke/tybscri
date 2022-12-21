@@ -61,7 +61,10 @@ export class UnionType implements Type {
         if (
           members[member.name] &&
           (!members[member.name].type.isAssignableFrom(member.type) ||
-            members[member.name].isConst !== member.isConst)
+            !members[member.name].flags.every((f) =>
+              member.flags.includes(f)
+            ) ||
+            !member.flags.every((f) => members[member.name].flags.includes(f)))
         ) {
           delete members[member.name];
         }

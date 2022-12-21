@@ -23,6 +23,8 @@ export class TypeNode extends Node {
   }
 
   public resolveTypes(context: CompileContext) {
+    this.node.resolveTypes(context);
+
     if (this.node instanceof IdentifierNode) {
       this.typeSymbol = this.scope.resolveLast(this.node.token.text);
       this._type = this.typeSymbol?.valueType ?? unknownType;

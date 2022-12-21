@@ -1,4 +1,4 @@
-import { Member, TypeParameter } from "../typeSystem";
+import { Member, MemberFlag, TypeParameter } from "../typeSystem";
 import { FuncParameter, FuncType } from "../typeSystem/FuncType";
 import { ObjectDefinitionType } from "../typeSystem/ObjectType";
 import { booleanType, numberType, objectType } from "../typeSystem/types";
@@ -7,9 +7,9 @@ const itemType = new TypeParameter("TItem");
 const mapResultType = new TypeParameter("TResult");
 export const listDefinitionType: ObjectDefinitionType =
   new ObjectDefinitionType("List", objectType, [itemType], () => [
-    new Member(true, "length", numberType),
+    new Member([MemberFlag.Const], "length", numberType),
     new Member(
-      true,
+      [MemberFlag.Const],
       "filter",
       new FuncType(
         [
@@ -22,7 +22,7 @@ export const listDefinitionType: ObjectDefinitionType =
       )
     ),
     new Member(
-      true,
+      [MemberFlag.Const],
       "map",
       new FuncType(
         [
