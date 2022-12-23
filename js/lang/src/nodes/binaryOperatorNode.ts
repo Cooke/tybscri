@@ -19,7 +19,7 @@ export class BinaryOperatorNode extends ExpressionNode {
     const [operatorMemberName, operatorReturnType] =
       this.getOperatorInfo(context);
     if (!operatorMemberName) {
-      return;
+      throw new Error("Unknown operator: " + this.operator.text);
     }
 
     this.valueType = operatorReturnType;
@@ -27,7 +27,7 @@ export class BinaryOperatorNode extends ExpressionNode {
     const members = this.leftExpression.valueType.members;
     const matchingMembers = members.filter(
       (x) =>
-        x.flags.includes(MemberFlag.Operator) && x.name === this.operator.text
+        x.flags.includes(MemberFlag.Operator) && x.name === operatorMemberName
     );
 
     if (matchingMembers.length === 0) {
@@ -67,7 +67,7 @@ export class BinaryOperatorNode extends ExpressionNode {
       return;
     }
 
-    if (member.type.returnType !== operatorReturnType) {
+    if (!operatorReturnType.isAssignableFrom(member.type.returnType)) {
       context.onDiagnosticMessage?.({
         message: `The member operator must have return type '${operatorReturnType.displayName}'`,
         severity: DiagnosticSeverity.Error,

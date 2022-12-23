@@ -9,9 +9,11 @@ export class LiteralType implements Type {
   }
 
   public get displayName(): string {
-    return typeof this.value === "string"
-      ? '"' + this.value.toString() + '"'
-      : this.value.toString();
+    const literalName =
+      typeof this.value === "string"
+        ? '"' + this.value.toString() + '"'
+        : this.value.toString();
+    return literalName + ` (${this.valueType.displayName})`;
   }
 
   public isAssignableFrom(type: Type): boolean {

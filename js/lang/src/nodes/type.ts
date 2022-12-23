@@ -1,11 +1,9 @@
+import { CompileContext } from "../common";
 import { Scope } from "../scope";
 import { Symbol } from "../symbols";
 import { unknownType } from "../typeSystem";
-import { numberType, stringType } from "../typeSystem/types";
 import { Type } from "../typeSystem/common";
-import { LiteralType } from "../typeSystem/LiteralType";
 import { Node } from "./base";
-import { CompileContext } from "../common";
 import { IdentifierNode } from "./identifier";
 import { LiteralNode } from "./literal";
 

@@ -1,4 +1,4 @@
-import { FuncType, Member, MemberFlag } from ".";
+import { FuncParameter, FuncType, Member, MemberFlag } from ".";
 import { AnyType } from "./AnyType";
 import { LiteralType } from "./LiteralType";
 import { NeverType } from "./NeverType";
@@ -15,7 +15,13 @@ export const numberDefinitionType = new ObjectDefinitionType(
   "number",
   objectType,
   [],
-  () => []
+  () => [
+    new Member(
+      [MemberFlag.Const, MemberFlag.Operator],
+      "equals",
+      new FuncType([new FuncParameter("arg", anyType)], booleanType)
+    ),
+  ]
 );
 export const numberType = numberDefinitionType.createType([]);
 

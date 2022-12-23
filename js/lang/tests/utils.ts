@@ -1,5 +1,5 @@
 import assert from "assert";
-import { areTypesEqual, Type } from "../src";
+import { areTypesEqual, ExpressionParseResult, Type } from "../src";
 
 export function assertEqual<T>(val: any, expected: T): asserts val is T {
   assert.equal(val, expected);
@@ -24,4 +24,13 @@ export function assertTybscriType<T extends Type>(
     areTypesEqual(actual, expected),
     `Actual type '${actual.displayName}' but expected type '${expected.displayName}'`
   );
+}
+
+export function assertNoErrors(result: ExpressionParseResult) {
+  if (result.diagnosticMessages.length !== 0) {
+    assert.fail(
+      "Unexpected errors:\n" +
+        result.diagnosticMessages.map((it) => it.message).join("\n")
+    );
+  }
 }
