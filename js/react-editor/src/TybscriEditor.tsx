@@ -1,12 +1,16 @@
-import { forwardRef, Ref, useEffect, useImperativeHandle, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { MarkerSeverity } from "monaco-editor";
-import { parseScript, printTree, Scope } from "tybscri";
-import { init } from "./init";
+import React, {
+  forwardRef,
+  Ref,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from "react";
+import { Environment, parseScript, printTree } from "tybscri";
 import { setEditorModelEnvironment } from "./common";
-import { Environment } from "tybscri";
-import React from "react";
+import { init } from "./init";
 
 export interface TybscriEditorProps {
   width?: string | number;
