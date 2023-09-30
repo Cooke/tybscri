@@ -70,7 +70,7 @@ export class Parser {
     }
 
     this.advance();
-    let token = this.tokenStream.createToken();
+    let token = this.token();
     while (this.tokenType() === L.NL || this.tokenType() === L.SEMICOLON) {
       // This allocation can probably be optimized away
       token = this.token();
@@ -258,12 +258,12 @@ export class Parser {
         return this.parseIfExpression();
 
       case L.IDENTIFIER: {
-        let peekIndex = 0;
-        while (this.tokenType(++peekIndex) === L.NL) {}
-        if (
-          this.tokenType(peekIndex) === L.LPAREN ||
-          this.tokenType(peekIndex) === L.LCURL
-        ) {
+        const peeker = this.tokenStream.createChildLexer();
+        do {
+          peeker.advance();
+        } while (peeker.tokenType() === L.NL);
+
+        if (peeker.tokenType() === L.LPAREN || peeker.tokenType() === L.LCURL) {
           return this.parseIdentifierInvocation();
         } else {
           return this.parseIdentifier();
@@ -376,13 +376,13 @@ export class Parser {
     const thenStatement = this.parseBody();
 
     // Search for else
-    let i = 0;
-    while (this.tokenType(i) === L.NL) {
-      i++;
+    const peeker = this.tokenStream.createChildLexer();
+    while (peeker.tokenType() === L.NL) {
+      peeker.advance();
     }
 
     let elseStatement: ExpressionNode | null = null;
-    if (this.tokenType(i) === L.ELSE) {
+    if (peeker.tokenType() === L.ELSE) {
       this.advanceWhileNL();
       this.advance();
       this.advanceWhileNL();
@@ -470,12 +470,12 @@ export class Parser {
       }
 
       // Predict memberSuffix
-      let i = 0;
-      while (this.tokenType(i) === L.NL) {
-        i++;
+      const peeker = this.tokenStream.createChildLexer();
+      while (peeker.tokenType() === L.NL) {
+        peeker.advance();
       }
 
-      if (this.tokenType(i) === L.DOT) {
+      if (peeker.tokenType() === L.DOT) {
         exp = this.parseMemberSuffix(exp);
         continue;
       }
@@ -599,18 +599,16 @@ export class Parser {
     };
   }
 
-  private tokenType(offset: number = 0): TokenType {
-    return this.tokenStream.tokenType(offset);
+  private tokenType(): TokenType {
+    return this.tokenStream.tokenType();
   }
 
   private token() {
-    return this.tokenStream.createToken();
+    return this.tokenStream.token();
   }
 
-  private advance(num: number = 1) {
-    for (let i = 0; i < num; i++) {
-      this.tokenStream.advance();
-    }
+  private advance() {
+    this.tokenStream.advance();
   }
 
   private advanceWhileNL() {

@@ -49,6 +49,12 @@ export class Token {
   ) {}
 }
 
+export interface LexerState {
+  index: number;
+  line: number;
+  column: number;
+}
+
 export class Lexer {
   private _index: number = 0;
   private _line: number = 1;
@@ -60,22 +66,19 @@ export class Lexer {
     return this._index;
   }
 
-  constructor(public readonly input: string) {
+  constructor(public readonly input: string, initialState?: LexerState) {
+    if (initialState) {
+      this._index = initialState.index;
+      this._column = initialState.column;
+      this._line = initialState.line;
+    }
+
     while (this.isWhitespace(this._index)) {
       this._index++;
     }
   }
 
-  public tokenType(offset: number = 0): TokenType {
-    if (offset !== 0) {
-      let index = this._index;
-      for (let i = 0; i < offset; i++) {
-        index += this.tokenLength(this.tokenTypeAtIndex(index), index);
-      }
-
-      return this.tokenTypeAtIndex(index);
-    }
-
+  public tokenType(): TokenType {
     if (this._tokenType !== null) {
       return this._tokenType;
     }
@@ -105,7 +108,7 @@ export class Lexer {
     this._token = null;
   }
 
-  public createToken() {
+  public token() {
     if (this._token) {
       return this._token;
     }
@@ -121,6 +124,14 @@ export class Lexer {
       this._column
     );
     return this._token;
+  }
+
+  public createChildLexer() {
+    return new Lexer(this.input, {
+      index: this._index,
+      column: this._column,
+      line: this._line,
+    });
   }
 
   private tokenTypeAtIndex(index: number): TokenType {
