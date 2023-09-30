@@ -1,5 +1,5 @@
 import { CompileContext, SourceSpan } from "../common";
-import { TokenType, tokenTypeNames } from "../lexer";
+import { TokenType } from "../lexer";
 import { Type } from "../typeSystem/common";
 import { Node } from "./base";
 
@@ -29,7 +29,7 @@ export abstract class TokenNode extends Node {
       return "Newline";
     }
 
-    return tokenTypeNames[this.tokenType];
+    return this.tokenType;
   }
 
   public abstract get text(): string;

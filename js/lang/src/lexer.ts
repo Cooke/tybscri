@@ -1,42 +1,31 @@
 export const enum TokenType {
-  EOF,
-  IF,
-  IDENTIFIER,
-  DOT,
-  NL,
-  SEMICOLON,
-  FUN,
-  VAR,
-  VAL,
-  ASSIGNMENT,
-  EQEQ,
-  LPAREN,
-  RPAREN,
-  LCURL,
-  RCURL,
-  COMMA,
-  COLON,
-  QUOTE_OPEN,
-  INT,
-  IS,
-  TRUE,
-  FALSE,
-  RETURN,
-  LBRACKET,
-  RBRACKET,
-  ELSE,
+  EOF = "EOF",
+  IF = "IF",
+  IDENTIFIER = "IDENTIFIER",
+  DOT = "DOT",
+  NL = "NL",
+  SEMICOLON = "SEMICOLON",
+  FUN = "FUN",
+  VAR = "VAR",
+  VAL = "VAL",
+  ASSIGNMENT = "ASSIGNMENT",
+  EQEQ = "EQEQ",
+  LPAREN = "LPAREN",
+  RPAREN = "RPARSEN",
+  LCURL = "LCURL",
+  RCURL = "RCURL",
+  COMMA = "COMMA",
+  COLON = "COLON",
+  QUOTE_OPEN = "QUOTE_OPEN",
+  INT = "INT",
+  IS = "IS",
+  TRUE = "TRUE",
+  FALSE = "FALSE",
+  RETURN = "RETURN",
+  LBRACKET = "LBRACKET",
+  RBRACKET = "RBRACKET",
+  ELSE = "ELSE",
 }
-
-export const tokenTypeNames: any /*{ [P in TokenType]: string }*/ = {
-  [TokenType.IF]: "if",
-  [TokenType.ASSIGNMENT]: "=",
-  [TokenType.COLON]: ":",
-  [TokenType.COMMA]: ",",
-  [TokenType.DOT]: ".",
-  [TokenType.ELSE]: "else",
-  [TokenType.IDENTIFIER]: "<identifier>",
-  [TokenType.EOF]: "<EOF>",
-};
 
 export class Token {
   constructor(
@@ -59,11 +48,28 @@ export class Lexer {
   private _index: number = 0;
   private _line: number = 1;
   private _column: number = 1;
-  private _tokenType: TokenType | null = null;
+  private _tokenType: TokenType = TokenType.EOF;
+  private _tokenLength: number = 0;
   private _token: Token | null = null;
 
-  get index() {
-    return this._index;
+  get tokenType() {
+    return this._tokenType;
+  }
+
+  get token() {
+    if (this._token) {
+      return this._token;
+    }
+
+    this._token = new Token(
+      this._tokenType,
+      this.input.substring(this._index, this._tokenLength),
+      this._index,
+      this._tokenLength,
+      this._line,
+      this._column
+    );
+    return this._token;
   }
 
   constructor(public readonly input: string, initialState?: LexerState) {
@@ -73,57 +79,51 @@ export class Lexer {
       this._line = initialState.line;
     }
 
-    while (this.isWhitespace(this._index)) {
-      this._index++;
-    }
-  }
-
-  public tokenType(): TokenType {
-    if (this._tokenType !== null) {
-      return this._tokenType;
-    }
-
-    this._tokenType = this.tokenTypeAtIndex(this._index);
-    return this._tokenType;
+    this.advance();
   }
 
   public advance() {
-    const tokenType = this._token?.type ?? this.tokenType();
-    const length =
-      this._token?.length ?? this.tokenLength(tokenType, this._index);
-
-    this._index += length;
-    if (tokenType === TokenType.NL) {
+    this._index += this._tokenLength;
+    this._column += this._tokenLength;
+    if (this._tokenType === TokenType.NL) {
       this._line++;
       this._column = 0;
-    } else {
-      this._column += length;
     }
 
-    while (this.isWhitespace(this._index)) {
+    while (
+      this._index < this.input.length &&
+      isWhitespace(this.input[this._index])
+    ) {
       this._index++;
+      this._column++;
     }
 
-    this._tokenType = null;
+    const type = tokenType(this.input, this._index);
+    if (type === null) {
+      throw new Error(
+        `Unreconizable character at "${this.input.substring(
+          this._index,
+          this._index + 10
+        )}" at index ${this._index} (${this._line}:${this._column})`
+      );
+    }
+    this._tokenType = type;
+
+    const length = tokenLength(this.input, this._tokenType, this._index);
+    if (length === null) {
+      throw new Error(
+        `Unable to determine token length for token "${this.input.substring(
+          this._index,
+          this._index + 10
+        )}" of type ${this._tokenType} at index ${this._index} (${this._line}:${
+          this._column
+        })`
+      );
+    }
+
+    this._tokenLength = length;
+
     this._token = null;
-  }
-
-  public token() {
-    if (this._token) {
-      return this._token;
-    }
-
-    const tokenType = this.tokenType();
-    const length = this.tokenLength(tokenType, this._index);
-    this._token = new Token(
-      tokenType,
-      this.input.substring(this._index, length),
-      this._index,
-      length,
-      this._line,
-      this._column
-    );
-    return this._token;
   }
 
   public createChildLexer() {
@@ -133,165 +133,174 @@ export class Lexer {
       line: this._line,
     });
   }
+}
 
-  private tokenTypeAtIndex(index: number): TokenType {
-    if (this.isEof(index)) {
-      return TokenType.EOF;
-    }
-
-    switch (this.input[index]) {
-      case ".":
-        return TokenType.DOT;
-      case "e":
-        return this.isMatch(index, "else")
-          ? TokenType.ELSE
-          : TokenType.IDENTIFIER;
-      case "f":
-        return this.isMatch(index, "fun")
-          ? TokenType.FUN
-          : this.isMatch(index, "false")
-          ? TokenType.FALSE
-          : TokenType.IDENTIFIER;
-
-      case "i":
-        return this.isMatch(index, "if")
-          ? TokenType.IF
-          : this.isMatch(index, "is")
-          ? TokenType.IS
-          : TokenType.IDENTIFIER;
-      case "r":
-        return this.isMatch(index, "return")
-          ? TokenType.RETURN
-          : TokenType.IDENTIFIER;
-      case "t":
-        return this.isMatch(index, "true")
-          ? TokenType.TRUE
-          : TokenType.IDENTIFIER;
-      case "v":
-        return this.isMatch(index, "var")
-          ? TokenType.VAR
-          : this.isMatch(index, "val")
-          ? TokenType.VAL
-          : TokenType.IDENTIFIER;
-      case "\n":
-      case "\r":
-        return TokenType.NL;
-      case ";":
-        return TokenType.SEMICOLON;
-      case ",":
-        return TokenType.COMMA;
-      case ":":
-        return TokenType.COLON;
-      case '"':
-        return TokenType.QUOTE_OPEN;
-      case "=":
-        return this.isMatch(index, "==")
-          ? TokenType.EQEQ
-          : TokenType.ASSIGNMENT;
-      case "(":
-        return TokenType.LPAREN;
-      case ")":
-        return TokenType.RPAREN;
-      case "{":
-        return TokenType.LCURL;
-      case "}":
-        return TokenType.RCURL;
-      case "[":
-        return TokenType.LBRACKET;
-      case "]":
-        return TokenType.RBRACKET;
-    }
-
-    if (this.isLetter(index)) {
-      return TokenType.IDENTIFIER;
-    }
-
-    if (this.isDigit(index)) {
-      return TokenType.INT;
-    }
-
-    throw new Error("Unknown input character: " + this.input[index]);
+function tokenType(input: string, index: number) {
+  if (index >= input.length) {
+    return TokenType.EOF;
   }
 
-  private tokenLength(tokenType: TokenType, index: number) {
-    switch (tokenType) {
-      case TokenType.IDENTIFIER:
-        let end = index;
-        while (
-          end < this.input.length &&
-          (this.isLetter(end) || this.isDigit(end))
-        ) {
-          end++;
-        }
-        return end - index;
+  switch (input[index]) {
+    case ".":
+      return TokenType.DOT;
+    case "e":
+      return isWord(input, index, "else")
+        ? TokenType.ELSE
+        : TokenType.IDENTIFIER;
+    case "f":
+      return isWord(input, index, "fun")
+        ? TokenType.FUN
+        : isWord(input, index, "false")
+        ? TokenType.FALSE
+        : TokenType.IDENTIFIER;
 
-      case TokenType.VAL:
-      case TokenType.VAR:
-        return 3;
+    case "i":
+      return isWord(input, index, "if")
+        ? TokenType.IF
+        : isWord(input, index, "is")
+        ? TokenType.IS
+        : TokenType.IDENTIFIER;
+    case "r":
+      return isWord(input, index, "return")
+        ? TokenType.RETURN
+        : TokenType.IDENTIFIER;
+    case "t":
+      return isWord(input, index, "true")
+        ? TokenType.TRUE
+        : TokenType.IDENTIFIER;
+    case "v":
+      return isWord(input, index, "var")
+        ? TokenType.VAR
+        : isWord(input, index, "val")
+        ? TokenType.VAL
+        : TokenType.IDENTIFIER;
+    case "\n":
+    case "\r":
+      return TokenType.NL;
+    case ";":
+      return TokenType.SEMICOLON;
+    case ",":
+      return TokenType.COMMA;
+    case ":":
+      return TokenType.COLON;
+    case '"':
+      return TokenType.QUOTE_OPEN;
+    case "=":
+      return isWord(input, index, "==") ? TokenType.EQEQ : TokenType.ASSIGNMENT;
+    case "(":
+      return TokenType.LPAREN;
+    case ")":
+      return TokenType.RPAREN;
+    case "{":
+      return TokenType.LCURL;
+    case "}":
+      return TokenType.RCURL;
+    case "[":
+      return TokenType.LBRACKET;
+    case "]":
+      return TokenType.RBRACKET;
+  }
 
-      case TokenType.IF:
+  if (isLetter(input[index])) {
+    return TokenType.IDENTIFIER;
+  }
+
+  if (isDigit(input[index])) {
+    return TokenType.INT;
+  }
+
+  return null;
+}
+
+function tokenLength(input: string, tokenType: TokenType, index: number) {
+  switch (tokenType) {
+    case TokenType.VAL:
+    case TokenType.VAR:
+    case TokenType.FUN:
+      return 3;
+
+    case TokenType.IF:
+      return 2;
+
+    case TokenType.ELSE:
+    case TokenType.TRUE:
+      return 4;
+
+    case TokenType.RETURN:
+      return 6;
+
+    case TokenType.COLON:
+    case TokenType.DOT:
+    case TokenType.COMMA:
+    case TokenType.LBRACKET:
+    case TokenType.LCURL:
+    case TokenType.LPAREN:
+    case TokenType.RBRACKET:
+    case TokenType.RCURL:
+    case TokenType.RPAREN:
+    case TokenType.ASSIGNMENT:
+      return 1;
+
+    case TokenType.EOF:
+      return 0;
+
+    case TokenType.EQEQ:
+      return 2;
+
+    case TokenType.IDENTIFIER: {
+      let end = index + 1;
+      while (
+        end < input.length &&
+        (isLetter(input[end]) || isDigit(input[end]))
+      ) {
+        end++;
+      }
+      return end - index;
+    }
+
+    case TokenType.INT: {
+      let end = index + 1;
+      while (end < input.length && isDigit(input[end])) {
+        end++;
+      }
+      return end - index;
+    }
+
+    case TokenType.NL: {
+      if (index + 1 < input.length && input[index + 1] === "\r") {
         return 2;
+      }
 
-      case TokenType.TRUE:
-        return 4;
-
-      case TokenType.RETURN:
-        return 6;
-
-      case TokenType.COLON:
-      case TokenType.DOT:
-      case TokenType.COMMA:
-      case TokenType.LBRACKET:
-      case TokenType.LCURL:
-      case TokenType.LPAREN:
-      case TokenType.RBRACKET:
-      case TokenType.RCURL:
-      case TokenType.RPAREN:
-      case TokenType.ASSIGNMENT:
-        return 1;
+      return 1;
     }
-
-    throw new Error(
-      "Unknown token: " + tokenType + " name:" + tokenTypeNames[tokenType]
-    );
   }
 
-  private isMatch(index: number, token: string) {
-    return (
-      this.input.startsWith(token, index) &&
-      this.isSeparator(index + token.length)
-    );
+  return null;
+}
+
+function isWord(input: string, index: number, word: string) {
+  return (
+    input.startsWith(word, index) && isSeparator(input[index + word.length])
+  );
+}
+
+function isSeparator(ch: string | undefined) {
+  if (ch === undefined) {
+    return true;
   }
 
-  private isSeparator(index: number) {
-    if (this.isEof(index)) {
-      return true;
-    }
+  return !isDigit(ch) && !isLetter(ch);
+}
 
-    return !this.isDigit(index) && !this.isLetter(index);
-  }
+function isDigit(ch: string) {
+  return ch >= "0" && ch <= "9";
+}
 
-  private isEof(index: number) {
-    return index >= this.input.length;
-  }
+function isLetter(ch: string) {
+  const n = ch.charCodeAt(0);
+  return (n >= 65 && n < 91) || (n >= 97 && n < 123);
+}
 
-  private isDigit(index: number) {
-    return (
-      !this.isEof(index) && this.input[index] >= "0" && this.input[index] <= "9"
-    );
-  }
-
-  private isLetter(index: number) {
-    return (
-      !this.isEof(index) && this.input[index].match(/[\p{Letter}\p{Mark}]+/gu)
-    );
-  }
-
-  private isWhitespace(index: number) {
-    if (this.isEof(index)) {
-      return false;
-    }
-
-    return this.input[index] === " " || this.input[index] === "\t";
-  }
+function isWhitespace(ch: string) {
+  return ch === " " || ch === "\t";
 }

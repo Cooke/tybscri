@@ -261,9 +261,9 @@ export class Parser {
         const peeker = this.tokenStream.createChildLexer();
         do {
           peeker.advance();
-        } while (peeker.tokenType() === L.NL);
+        } while (peeker.tokenType === L.NL);
 
-        if (peeker.tokenType() === L.LPAREN || peeker.tokenType() === L.LCURL) {
+        if (peeker.tokenType === L.LPAREN || peeker.tokenType === L.LCURL) {
           return this.parseIdentifierInvocation();
         } else {
           return this.parseIdentifier();
@@ -377,12 +377,12 @@ export class Parser {
 
     // Search for else
     const peeker = this.tokenStream.createChildLexer();
-    while (peeker.tokenType() === L.NL) {
+    while (peeker.tokenType === L.NL) {
       peeker.advance();
     }
 
     let elseStatement: ExpressionNode | null = null;
-    if (peeker.tokenType() === L.ELSE) {
+    if (peeker.tokenType === L.ELSE) {
       this.advanceWhileNL();
       this.advance();
       this.advanceWhileNL();
@@ -471,11 +471,11 @@ export class Parser {
 
       // Predict memberSuffix
       const peeker = this.tokenStream.createChildLexer();
-      while (peeker.tokenType() === L.NL) {
+      while (peeker.tokenType === L.NL) {
         peeker.advance();
       }
 
-      if (peeker.tokenType() === L.DOT) {
+      if (peeker.tokenType === L.DOT) {
         exp = this.parseMemberSuffix(exp);
         continue;
       }
@@ -600,11 +600,11 @@ export class Parser {
   }
 
   private tokenType(): TokenType {
-    return this.tokenStream.tokenType();
+    return this.tokenStream.tokenType;
   }
 
   private token() {
-    return this.tokenStream.token();
+    return this.tokenStream.token;
   }
 
   private advance() {
@@ -612,7 +612,7 @@ export class Parser {
   }
 
   private advanceWhileNL() {
-    while (this.tokenStream.tokenType() === L.NL) {
+    while (this.tokenStream.tokenType === L.NL) {
       this.tokenStream.advance();
     }
   }
