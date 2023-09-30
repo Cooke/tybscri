@@ -1,8 +1,7 @@
-import { DiagnosticSeverity } from "../common";
+import { SourceSymbol } from "../SourceSymbol";
+import { CompileContext, DiagnosticSeverity } from "../common";
 import { Scope } from "../scope";
-import { SourceSymbol } from "../symbols";
 import { widenType } from "../typeSystem/utils";
-import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
@@ -44,7 +43,8 @@ export class VariableDeclarationNode extends StatementNode {
   constructor(
     public readonly kind: VariableKind,
     public readonly name: TokenNode,
-    public readonly value: ExpressionNode
+    public readonly value: ExpressionNode,
+    public readonly isConst = kind === VariableKind.Const
   ) {
     super([name, value]);
     this.symbol = new SourceSymbol(this.name.text, this);

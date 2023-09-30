@@ -1,9 +1,9 @@
-import { DiagnosticSeverity } from "../common";
-import { NarrowedSymbol, Symbol } from "../symbols";
+import { NarrowedSymbol } from "../NarrowedSymbol";
+import { Symbol } from "../Symbol";
+import { CompileContext, DiagnosticSeverity } from "../common";
 import { Scope } from "../scope";
 import { unknownType } from "../typeSystem";
 import { narrowTypeTruthy } from "../typeSystem/utils";
-import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 

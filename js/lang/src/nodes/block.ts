@@ -1,8 +1,8 @@
-import { Symbol } from "../symbols";
+import { Symbol } from "../Symbol";
+import { CompileContext } from "../common";
 import { Scope } from "../scope";
 import { unknownType } from "../typeSystem";
 import { Type } from "../typeSystem/common";
-import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { FunctionNode } from "./function";
 import { StatementNode } from "./statements";

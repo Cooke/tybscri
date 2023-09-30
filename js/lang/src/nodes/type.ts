@@ -1,6 +1,6 @@
 import { CompileContext } from "../common";
 import { Scope } from "../scope";
-import { Symbol } from "../symbols";
+import { Symbol } from "../Symbol";
 import { unknownType } from "../typeSystem";
 import { Type } from "../typeSystem/common";
 import { Node } from "./base";

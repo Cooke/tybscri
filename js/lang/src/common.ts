@@ -1,7 +1,7 @@
-import { TybscriLexer } from "./generated/TybscriLexer";
+import { Lexer } from "./lexer";
 import { ObjectDefinitionType, Type } from "./typeSystem";
 
-export { TybscriLexer as Lexer };
+export { Lexer };
 
 export interface SourceLocation {
   index: number;

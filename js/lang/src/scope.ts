@@ -1,4 +1,6 @@
-import { NarrowedSymbol, SourceSymbol, Symbol } from "./symbols";
+import { NarrowedSymbol } from "./NarrowedSymbol";
+import { SourceSymbol } from "./SourceSymbol";
+import { Symbol } from "./Symbol";
 
 export class Scope {
   public static empty = new Scope(null, []);

@@ -1,4 +1,5 @@
-import { NarrowedSymbol, Symbol } from "../symbols";
+import { NarrowedSymbol } from "../NarrowedSymbol";
+import { Symbol } from "../Symbol";
 import { booleanType, Type } from "../typeSystem";
 import { ExpressionNode } from "./expression";
 import { IdentifierNode } from "./identifier";

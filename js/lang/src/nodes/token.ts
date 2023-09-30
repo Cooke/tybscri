@@ -1,7 +1,7 @@
-import { Lexer, SourceSpan } from "../common";
+import { CompileContext, SourceSpan } from "../common";
+import { TokenType, tokenTypeNames } from "../lexer";
 import { Type } from "../typeSystem/common";
 import { Node } from "./base";
-import { CompileContext } from "../common";
 
 // TODO: should the tokens be nodes in the tree? Or could they be trivia in the nodes?
 export abstract class TokenNode extends Node {
@@ -19,17 +19,17 @@ export abstract class TokenNode extends Node {
     return this._span;
   }
 
-  constructor(private readonly tokenType: number, span: SourceSpan) {
+  constructor(private readonly tokenType: TokenType, span: SourceSpan) {
     super([]);
     this._span = span;
   }
 
   public get tokenDisplayName() {
-    if (this.tokenType === Lexer.NL) {
+    if (this.tokenType === TokenType.NL) {
       return "Newline";
     }
 
-    return Lexer.VOCABULARY.getDisplayName(this.tokenType);
+    return tokenTypeNames[this.tokenType];
   }
 
   public abstract get text(): string;
@@ -37,7 +37,7 @@ export abstract class TokenNode extends Node {
 
 export class ActualTokenNode extends TokenNode {
   constructor(
-    tokenType: number,
+    tokenType: TokenType,
     span: SourceSpan,
     public readonly text: string
   ) {
@@ -51,7 +51,7 @@ export class ActualTokenNode extends TokenNode {
 
 export class MissingTokenNode extends TokenNode {
   constructor(
-    tokenType: number,
+    tokenType: TokenType,
     span: SourceSpan,
     public readonly actualToken: ActualTokenNode
   ) {

@@ -1,4 +1,4 @@
-import { CharStreams } from "antlr4ts";
+import { ExternalSymbol } from "./ExternalSymbol";
 import {
   CompileContext,
   DiagnosticMessage,
@@ -7,25 +7,28 @@ import {
   EnvironmentSymbol,
   Lexer,
 } from "./common";
+import { defaultEnvironment } from "./defaultEnvironment";
 import { ExpressionNode } from "./nodes/expression";
 import { ScriptNode } from "./nodes/script";
 import { Parser } from "./parser";
 import { Scope } from "./scope";
-import { ExternalSymbol } from "./symbols";
 import { Type } from "./typeSystem";
-import { defaultEnvironment } from "./defaultEnvironment";
 
 export { DiagnosticMessage } from "./common";
 export * from "./nodes";
 export * from "./typeSystem";
 export { treeToString as printTree } from "./utils";
-export { Parser, Lexer };
-export { Scope };
-export { Environment, EnvironmentSymbol };
-export { defaultEnvironment };
+export {
+  Environment,
+  EnvironmentSymbol,
+  Lexer,
+  Parser,
+  Scope,
+  defaultEnvironment,
+};
 
 export function createLexer(source: string) {
-  return new Lexer(CharStreams.fromString(source));
+  return new Lexer(source);
 }
 
 export interface ExpressionParseOptions {

@@ -1,13 +1,7 @@
 import assert from "assert";
 import { parseExpression } from "../src";
-import {
-  DiagnosticMessage,
-  DiagnosticSeverity,
-  Environment,
-} from "../src/common";
+import { DiagnosticSeverity, Environment } from "../src/common";
 import { defaultEnvironment } from "../src/defaultEnvironment";
-import { Scope } from "../src/scope";
-import { ExternalSymbol } from "../src/symbols";
 import { stringType, unknownType } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 

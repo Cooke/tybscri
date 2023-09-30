@@ -1,18 +1,18 @@
-import { SourceSymbol, Symbol } from "../symbols";
+import { CompileContext, DiagnosticSeverity } from "../common";
 import { Scope } from "../scope";
+import { SourceSymbol } from "../SourceSymbol";
+import { Symbol } from "../Symbol";
 import { neverType, nullType, unknownType, VoidType } from "../typeSystem";
 import { Type, TypeParameter } from "../typeSystem/common";
 import { FuncType } from "../typeSystem/FuncType";
 import { UnionType } from "../typeSystem/UnionType";
 import { Node } from "./base";
-import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { FunctionNode } from "./function";
 import { ReturnNode } from "./return";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
 import { VariableDeclarationNode } from "./variableDeclaration";
-import { DiagnosticSeverity } from "../common";
 
 export class LambdaLiteralNode extends ExpressionNode {
   private itParameterType: Type = unknownType;
@@ -123,6 +123,7 @@ export class LambdaLiteralNode extends ExpressionNode {
       get valueType(): Type {
         return valueTypeGetter();
       },
+      isConst: true,
     });
   }
 }

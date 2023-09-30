@@ -1,25 +1,24 @@
-import { DiagnosticSeverity } from "../common";
-import { SourceSymbol } from "../symbols";
-import { Type } from "../typeSystem/common";
+import { SourceSymbol } from "../SourceSymbol";
+import { CompileContext, DiagnosticSeverity } from "../common";
+import { Scope } from "../scope";
+import { nullType, unknownType } from "../typeSystem";
 import { FuncType } from "../typeSystem/FuncType";
 import { UnionType } from "../typeSystem/UnionType";
-import { nullType } from "../typeSystem";
-import { unknownType } from "../typeSystem";
 import { Node } from "./base";
-import { CompileContext } from "../common";
 import { BlockNode } from "./block";
+import { LambdaLiteralNode } from "./lambdaLiteral";
 import { ReturnNode } from "./return";
 import { StatementNode } from "./statements";
 import { TokenNode } from "./token";
 import { TypeNode } from "./type";
-import { LambdaLiteralNode } from "./lambdaLiteral";
-import { Scope } from "../scope";
 
 export class FunctionNode extends StatementNode {
   private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" =
     "not-analyzed";
 
   public symbol: SourceSymbol;
+
+  public readonly isConst = true;
 
   public setupScopes(scope: Scope, context: CompileContext) {
     for (const par of this.parameters) {
@@ -125,7 +124,8 @@ export class ParameterNode extends Node {
   constructor(
     public readonly name: TokenNode,
     public readonly colon: TokenNode,
-    public readonly type: TypeNode
+    public readonly type: TypeNode,
+    public readonly isConst: true = true
   ) {
     super([name, colon, type]);
   }

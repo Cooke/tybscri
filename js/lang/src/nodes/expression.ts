@@ -1,6 +1,5 @@
-import { Symbol } from "../symbols";
-import { Type } from "../typeSystem";
-import { unknownType } from "../typeSystem";
+import { Symbol } from "../Symbol";
+import { Type, unknownType } from "../typeSystem";
 import { Node } from "./base";
 import { ActualTokenNode } from "./token";
 

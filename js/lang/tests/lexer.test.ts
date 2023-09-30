@@ -4,11 +4,54 @@ import { Lexer, TokenType } from "../src/lexer";
 describe("Lexer", function () {
   it("identifier token type", function () {
     const lexer = new Lexer("variable123");
-    assert.equal(lexer.peek(), TokenType.IDENTIFIER);
+    assert.equal(lexer.tokenType(), TokenType.IDENTIFIER);
+    lexer.advance();
+    assert.equal(lexer.tokenType(), TokenType.EOF);
+  });
+
+  it("token then token", function () {
+    const lexer = new Lexer("var var");
+    assert.equal(lexer.tokenType(), TokenType.VAR);
+    lexer.advance();
+    assert.equal(lexer.index, 4);
+    assert.equal(lexer.tokenType(), TokenType.VAR);
   });
 
   it("if token type", function () {
     const lexer = new Lexer("if");
-    assert.equal(lexer.peek(), TokenType.IF);
+    assert.equal(lexer.tokenType(), TokenType.IF);
+  });
+
+  it("lex", function () {
+    const lexer = new Lexer(mamaCode);
+    while (lexer.tokenType() != TokenType.EOF) {
+      lexer.advance();
+    }
   });
 });
+
+const mamaCode = `
+var foo = "bar"
+val bar = "bar"
+if (foo != "bar") {
+  fun print(bar) {
+    for (i in [0..10]) {
+      system.println(bar)
+    }
+  }
+
+  while (true) {
+    print(bar)
+  }
+} else {
+  fun print(bar) {
+    for (i in [0..10]) {
+      system.println(bar)
+    }
+  }
+
+  while (true) {
+    print(bar)
+  }
+}
+`;

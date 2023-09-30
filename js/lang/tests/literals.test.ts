@@ -1,16 +1,14 @@
 import { createLiteralType, parseExpression } from "../src";
 import { Environment } from "../src/common";
 import { defaultEnvironment } from "../src/defaultEnvironment";
-import { Scope } from "../src/scope";
-import { ExternalSymbol } from "../src/symbols";
 import {
   FuncType,
+  UnionType,
+  VoidType,
   listDefinitionType,
   numberType,
   stringType,
   trueType,
-  UnionType,
-  VoidType,
 } from "../src/typeSystem";
 import { assertTybscriType } from "./utils";
 
