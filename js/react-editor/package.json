@@ -2,8 +2,8 @@
   "name": "tybscri-react-editor",
   "version": "0.4.0",
   "description": "Statically typed scripting language for embedding.",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "main": "./lib",
+  "types": "./lib",
   "repository": "https://github.com/Cooke/tybscri",
   "author": "Henrik Cooke",
   "license": "UNLICENSED",
@@ -22,7 +22,7 @@
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
-    "build:watch": "yarn build --watch"
+    "build": "tsc",
+    "dev": "tsc --watch"
   }
 }

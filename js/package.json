@@ -1,0 +1,14 @@
+{
+  "name": "tybscri-root",
+  "version": "1.0.0",
+  "description": "",
+  "workspaces": {
+    "packages": [
+      "./*"
+    ]
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

@@ -8,13 +8,11 @@ import {
   Member,
   MemberFlag,
   NeverDefinitionType,
-  NeverType,
   ObjectDefinitionType,
   ObjectType,
   Type,
   TypeParameter,
   TypeParameterVariance,
-  UnionType,
   VoidDefinitionType,
 } from "..";
 import { Environment, EnvironmentSymbol } from "../../common";
@@ -237,7 +235,7 @@ function convertMemberFlag(flag: MemberFlagData) {
 
 function convertMember(member: MemberData, typeResolver: TypeResolver) {
   return new Member(
-    member.flags.map((f) => convertMemberFlag(f)),
+    member.flags?.map((f) => convertMemberFlag(f)) ?? [],
     member.name,
     convertType(member.type, typeResolver),
     member.typeParameters.map(

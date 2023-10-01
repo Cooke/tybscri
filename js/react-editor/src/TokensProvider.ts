@@ -1,5 +1,5 @@
 import monaco from "monaco-editor";
-import { createLexer, Lexer } from "tybscri";
+import { createLexer, TokenType } from "tybscri";
 
 export class TybscriTokensProvider implements monaco.languages.TokensProvider {
   public getInitialState(): monaco.languages.IState {
@@ -14,24 +14,23 @@ export class TybscriTokensProvider implements monaco.languages.TokensProvider {
     const tokens: monaco.languages.IToken[] = [];
 
     const lexer = createLexer(line);
-    lexer.removeErrorListeners();
-    lexer.addErrorListener({
-      syntaxError: (
-        _recognizer: any,
-        _offendingSymbol: any,
-        _line: number,
-        charPositionInLine: number
-      ) => tokens.push({ scopes: "invalid", startIndex: charPositionInLine }),
-    });
+    // lexer.removeErrorListeners();
+    // lexer.addErrorListener({
+    //   syntaxError: (
+    //     _recognizer: any,
+    //     _offendingSymbol: any,
+    //     _line: number,
+    //     charPositionInLine: number
+    //   ) => tokens.push({ scopes: "invalid", startIndex: charPositionInLine }),
+    // });
 
-    let token = lexer.nextToken();
-    while (token.type !== Lexer.EOF) {
+    while (lexer.tokenType !== TokenType.EOF) {
       const myToken = {
-        scopes: scopeMap[token.type] || "default",
-        startIndex: token.charPositionInLine,
+        scopes: scopeMap[lexer.tokenType] || "default",
+        startIndex: lexer.column - 1,
       };
       tokens.push(myToken);
-      token = lexer.nextToken();
+      lexer.advance();
     }
 
     return { tokens: tokens, endState: new TybscriState() };
@@ -48,30 +47,17 @@ class TybscriState implements monaco.languages.IState {
   }
 }
 
-const L = Lexer;
+import L = TokenType;
 
-function mapToScope(tokenTypes: number[], scope: string) {
+function mapToScope(tokenTypes: TokenType[], scope: string) {
   return tokenTypes.reduce((agg, c) => (agg[c] = scope) && agg, {} as any);
 }
 
-const scopeMap: { [key: number]: string } = {
+const scopeMap: { [key in TokenType]: string } = {
   ...mapToScope(
-    [
-      L.IF,
-      L.VAR,
-      L.VAL,
-      L.Boolean,
-      L.FOR,
-      L.WHILE,
-      L.NULL,
-      L.ELSE,
-      L.FUN,
-      L.IS,
-      L.RETURN,
-    ],
+    [L.IF, L.VAR, L.VAL, L.TRUE, L.FALSE, L.ELSE, L.FUN, L.IS, L.RETURN],
     "keyword"
   ),
-  ...mapToScope([L.Identifier], "identifier"),
-  ...mapToScope([L.WS], "white"),
-  ...mapToScope([L.LineString, L.QUOTE_OPEN, L.QUOTE_CLOSE], "string"),
+  ...mapToScope([L.IDENTIFIER], "identifier"),
+  ...mapToScope([L.LINE_STRING], "string"),
 };

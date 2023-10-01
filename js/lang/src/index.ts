@@ -6,6 +6,7 @@ import {
   Environment,
   EnvironmentSymbol,
   Lexer,
+  TokenType,
 } from "./common";
 import { defaultEnvironment } from "./defaultEnvironment";
 import { ExpressionNode } from "./nodes/expression";
@@ -24,6 +25,7 @@ export {
   Lexer,
   Parser,
   Scope,
+  TokenType,
   defaultEnvironment,
 };
 

@@ -1,12 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import {
-  booleanDefinitionType,
   Environment,
+  booleanDefinitionType,
   listDefinitionType,
   parseEnvironment,
 } from "tybscri";
-import { TybscriEditor } from "tybscri-react-editor";
-import { TybscriEditorRef } from "tybscri-react-editor/lib/TybscriEditor";
+import { TybscriEditor, TybscriEditorRef } from "tybscri-react-editor";
 import "./App.css";
 import { demoEnvironmentJson } from "./demoEnvironmentJson";
 

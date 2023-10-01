@@ -1,7 +1,5 @@
-import { Lexer } from "./lexer";
 import { ObjectDefinitionType, Type } from "./typeSystem";
-
-export { Lexer };
+export { Lexer, TokenType } from "./lexer";
 
 export interface SourceLocation {
   index: number;

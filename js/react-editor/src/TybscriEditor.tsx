@@ -1,13 +1,7 @@
 import Editor from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { MarkerSeverity } from "monaco-editor";
-import React, {
-  forwardRef,
-  Ref,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-} from "react";
+import { forwardRef, Ref, useEffect, useImperativeHandle, useRef } from "react";
 import { Environment, parseScript, printTree } from "tybscri";
 import { setEditorModelEnvironment } from "./common";
 import { init } from "./init";

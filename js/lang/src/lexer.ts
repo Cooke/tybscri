@@ -66,6 +66,14 @@ export class Lexer {
     return this._tokenType;
   }
 
+  get line() {
+    return this._line;
+  }
+
+  get column() {
+    return this._column;
+  }
+
   get token() {
     if (this._token) {
       return this._token;
