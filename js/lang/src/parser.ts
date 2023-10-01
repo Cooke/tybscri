@@ -257,10 +257,8 @@ export class Parser {
 
       case L.IDENTIFIER: {
         const peeker = this.tokenStream.createChildLexer();
-        console.log("HERE", peeker.tokenType);
         do {
           peeker.advance();
-          console.log("HERE!", peeker.tokenType);
         } while (peeker.tokenType === L.NL);
 
         if (peeker.tokenType === L.LPAREN || peeker.tokenType === L.LCURL) {

@@ -1,5 +1,5 @@
 import assert from "assert";
-import { parseScript, printTree } from "../src";
+import { parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
 import {
@@ -127,7 +127,6 @@ describe("Functions", function () {
     foo()
     `
     );
-    console.log(printTree(parseResult.tree));
 
     const resultNode =
       parseResult.tree.statements[parseResult.tree.statements.length - 1];
