@@ -1,16 +1,15 @@
-import { languages, Range, Uri } from "monaco-editor";
 import * as monaco from "monaco-editor";
+import { languages, Range } from "monaco-editor";
 import {
+  FuncType,
+  isDefinitionType,
+  MemberNode,
   Node,
   parseScript,
-  MemberNode,
-  FuncType,
   widenType,
-  ObjectType,
-  isDefinitionType,
 } from "tybscri";
-import { findNonTokenNode } from "./utils";
 import { getModelEnvironment } from "./common";
+import { findNonTokenNode } from "./utils";
 
 export class TybscriCompletionItemProvider
   implements languages.CompletionItemProvider
@@ -31,7 +30,7 @@ export class TybscriCompletionItemProvider
 
     const offset = textModel.getOffsetAt(position);
 
-    const currentNode = findNonTokenNode(scriptNode, offset - 1) ?? scriptNode;
+    const currentNode = findNonTokenNode(scriptNode, offset) ?? scriptNode;
     console.log("Completion node:", currentNode?.toString(), currentNode.scope);
 
     const suggestions = calcSuggestions(currentNode, textModel, position);
