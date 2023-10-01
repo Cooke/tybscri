@@ -77,9 +77,7 @@ export class Parser {
       this.advance();
     }
 
-    const result = this.createActualToken(token);
-    this.advance();
-    return result;
+    return this.createActualToken(token);
   }
 
   private parseStatement(): StatementNode {
@@ -199,7 +197,7 @@ export class Parser {
 
   parseSimpleType() {
     switch (this.tokenType()) {
-      case L.QUOTE_OPEN:
+      case L.LINE_STRING:
         return new TypeNode(this.parseLineStringLiteral());
 
       case L.INT:
@@ -259,8 +257,10 @@ export class Parser {
 
       case L.IDENTIFIER: {
         const peeker = this.tokenStream.createChildLexer();
+        console.log("HERE", peeker.tokenType);
         do {
           peeker.advance();
+          console.log("HERE!", peeker.tokenType);
         } while (peeker.tokenType === L.NL);
 
         if (peeker.tokenType === L.LPAREN || peeker.tokenType === L.LCURL) {
@@ -276,7 +276,7 @@ export class Parser {
       case L.TRUE:
         return this.parseBooleanLiteral(L.TRUE);
 
-      case L.QUOTE_OPEN:
+      case L.LINE_STRING:
         return this.parseStringLiteral();
 
       case L.RETURN:
@@ -432,20 +432,21 @@ export class Parser {
   }
 
   private parseLineStringLiteral() {
-    const openQuote = this.parseToken(L.QUOTE_OPEN);
-    const textToken = this.parseToken(L.EOF); // TODO
-    const closeQuote = this.parseToken(L.EOF); /// TODO
+    const lineString = this.parseToken(L.LINE_STRING);
 
-    if (closeQuote instanceof MissingTokenNode) {
+    if (lineString instanceof MissingTokenNode) {
       this.reportDiagnostic({
         message:
           "Unterminated string. Add a citation character '\"' to terminate the string literal.",
-        span: closeQuote.span,
+        span: lineString.span,
         severity: DiagnosticSeverity.Error,
       });
     }
 
-    return new LiteralNode([openQuote, textToken, closeQuote], textToken.text);
+    return new LiteralNode(
+      [lineString],
+      lineString.text.substring(1, lineString.text.length - 1)
+    );
   }
 
   private parseIdentifier() {

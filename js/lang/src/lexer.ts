@@ -16,7 +16,6 @@ export const enum TokenType {
   RCURL = "RCURL",
   COMMA = "COMMA",
   COLON = "COLON",
-  QUOTE_OPEN = "QUOTE_OPEN",
   INT = "INT",
   IS = "IS",
   TRUE = "TRUE",
@@ -25,6 +24,7 @@ export const enum TokenType {
   LBRACKET = "LBRACKET",
   RBRACKET = "RBRACKET",
   ELSE = "ELSE",
+  LINE_STRING = "LINE_STRING",
 }
 
 export class Token {
@@ -178,12 +178,16 @@ export class Lexer {
         return;
 
       case "\n":
-      case "\r":
-        if (index + 1 < input.length && input[index + 1] === "\r") {
-          this.update(TokenType.NL, 2);
-        }
-
         this.update(TokenType.NL, 1);
+        return;
+
+      case "\r":
+        if (this.input[index + 1] !== "\n") {
+          throw new Error(
+            "Unexpected character sequence: \\r not followed by \\n is currently not allowed"
+          );
+        }
+        this.update(TokenType.NL, 2);
         return;
 
       case ";":
@@ -198,10 +202,6 @@ export class Lexer {
         this.update(TokenType.COLON, 1);
         return;
 
-      case '"':
-        this.update(TokenType.QUOTE_OPEN, 1);
-        return;
-
       case "=":
         if (isWord(input, index, "==")) {
           this.update(TokenType.EQEQ, 2);
@@ -213,8 +213,10 @@ export class Lexer {
       case "(":
         this.update(TokenType.LPAREN, 1);
         return;
+
       case ")":
         this.update(TokenType.RPAREN, 1);
+        return;
 
       case "{":
         this.update(TokenType.LCURL, 1);
@@ -230,6 +232,14 @@ export class Lexer {
 
       case "]":
         this.update(TokenType.RBRACKET, 1);
+        return;
+
+      case '"':
+        let end = index;
+        do {
+          end++;
+        } while (this.input[end] !== '"' && this.input[end]);
+        this.update(TokenType.LINE_STRING, end - this._index + 1);
         return;
     }
 

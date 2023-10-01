@@ -1,12 +1,12 @@
 import assert from "assert";
-import { parseScript } from "../src";
+import { parseScript, printTree } from "../src";
 import { FunctionNode } from "../src/nodes/function";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
 import {
-  createLiteralType,
   FuncParameter,
   FuncType,
   UnionType,
+  createLiteralType,
 } from "../src/typeSystem";
 import { assertTybscriType, assertType } from "./utils";
 
@@ -127,6 +127,8 @@ describe("Functions", function () {
     foo()
     `
     );
+    console.log(printTree(parseResult.tree));
+
     const resultNode =
       parseResult.tree.statements[parseResult.tree.statements.length - 1];
     assertTybscriType(resultNode.valueType, createLiteralType("bar"));

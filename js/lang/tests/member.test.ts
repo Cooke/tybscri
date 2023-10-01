@@ -1,8 +1,8 @@
 import assert from "assert";
 import { createUnionType, parseExpression } from "../src";
-import { createLiteralType } from "../src/typeSystem/utils";
 import { listDefinitionType } from "../src/defaultEnvironment/listType";
 import { numberType, stringType } from "../src/typeSystem/types";
+import { createLiteralType } from "../src/typeSystem/utils";
 import { assertTybscriType } from "./utils";
 
 describe("Member", function () {
