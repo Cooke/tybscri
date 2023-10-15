@@ -266,7 +266,7 @@ export class Lexer {
     }
 
     throw new Error(
-      `Unreconizable character at "${this.input.substring(
+      `Unrecognizable character at "${this.input.substring(
         this._index,
         this._index + 10
       )}" at index ${this._index} (${this._line}:${this._column})`
