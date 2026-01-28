@@ -1,10 +1,11 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
-public class VariableDeclarationNode : IStatementNode, ISymbolDefinitionNode
+public class VariableDeclarationNode : IStatementNode, ISymbolDefinitionNode, IAsyncEvaluatable
 {
     private ParameterExpression? _linqExpression;
 
@@ -53,5 +54,16 @@ public class VariableDeclarationNode : IStatementNode, ISymbolDefinitionNode
         if (_linqExpression == null) {
             throw new TybscriException($"Variable {SymbolName} can not be used before initialization");
         }
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        var value = await ((IAsyncEvaluatable)Assignment).EvaluateAsync(context);
+        // Store the value in the context using this node's symbol
+        var symbol = Scope.ResolveLast(SymbolName);
+        if (symbol != null) {
+            context.Locals[symbol] = value;
+        }
+        return null;
     }
 }

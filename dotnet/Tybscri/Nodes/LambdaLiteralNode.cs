@@ -1,11 +1,12 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Nodes;
 using Tybscri.Symbols;
 
 namespace Tybscri;
 
-public class LambdaLiteralNode : IExpressionNode
+public class LambdaLiteralNode : IExpressionNode, IAsyncEvaluatable
 {
     public IReadOnlyCollection<IStatementNode> Statements { get; }
 
@@ -83,6 +84,71 @@ public class LambdaLiteralNode : IExpressionNode
             ? new[] { _itSymbol.ParameterExpression }.ToList()
             : _parameters.Select(x => x.ToLinqExpression(generateContext)).ToList();
         return Expression.Lambda(body, parameters);
+    }
+
+    public ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        if (ValueType is not FuncType funcType) {
+            throw new InvalidOperationException("Cannot evaluate lambda without function type");
+        }
+
+        // Get parameter symbols
+        var parameterSymbols = _itSymbol != null && funcType.Parameters.Count == 1
+            ? new List<ISymbol> { _itSymbol }
+            : _parameters.Cast<ISymbolDefinitionNode>()
+                .Select((p, i) => new SourceSymbol(p.SymbolName, p) as ISymbol).ToList();
+
+        // Create a delegate that captures the current context and evaluates the body
+        var lambdaDelegate = CreateLambdaDelegate(context, parameterSymbols, funcType);
+        return ValueTask.FromResult<object?>(lambdaDelegate);
+    }
+
+    private Delegate CreateLambdaDelegate(EvalContext capturedContext, List<ISymbol> parameterSymbols, FuncType funcType)
+    {
+        // Create a function that evaluates the lambda body with the provided arguments
+        Func<object?[], ValueTask<object?>> evaluator = async (args) =>
+        {
+            var lambdaContext = capturedContext.CreateChildScopeWithLocals();
+
+            // Bind parameters to arguments
+            for (int i = 0; i < parameterSymbols.Count && i < args.Length; i++) {
+                lambdaContext.Locals[parameterSymbols[i]] = args[i];
+            }
+
+            // Evaluate the body
+            try {
+                object? result = null;
+                foreach (var statement in Statements) {
+                    result = await ((IAsyncEvaluatable)statement).EvaluateAsync(lambdaContext);
+                }
+                return result;
+            }
+            catch (ReturnException returnEx) {
+                return returnEx.Value;
+            }
+        };
+
+        // Wrap it in the appropriate delegate type based on parameter count
+        return funcType.Parameters.Count switch
+        {
+            0 => new Func<object?>(() => evaluator(Array.Empty<object?>()).AsTask().Result),
+            1 => new Func<object?, object?>(a => evaluator(new[] { a }).AsTask().Result),
+            2 => new Func<object?, object?, object?>((a, b) => evaluator(new[] { a, b }).AsTask().Result),
+            3 => new Func<object?, object?, object?, object?>((a, b, c) => evaluator(new[] { a, b, c }).AsTask().Result),
+            _ => throw new NotSupportedException($"Lambdas with {funcType.Parameters.Count} parameters not supported in interpreter")
+        };
+    }
+
+    internal List<ISymbol> GetParameterSymbols()
+    {
+        if (ValueType is not FuncType funcType) {
+            return new List<ISymbol>();
+        }
+
+        return _itSymbol != null && funcType.Parameters.Count == 1
+            ? new List<ISymbol> { _itSymbol }
+            : _parameters.Cast<ISymbolDefinitionNode>()
+                .Select((p, i) => new SourceSymbol(p.SymbolName, p) as ISymbol).ToList();
     }
 
     private class ItSymbol : ISymbol

@@ -1,10 +1,12 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
-public class InvocationNode : IExpressionNode
+public class InvocationNode : IExpressionNode, IAsyncEvaluatable
 {
     public InvocationNode(IExpressionNode target, IReadOnlyList<IExpressionNode> arguments)
     {
@@ -66,5 +68,29 @@ public class InvocationNode : IExpressionNode
 
         return new TybscriInvokeExpression(Target.GenerateLinqExpression(generateContext),
             Arguments.Select((x) => x.GenerateLinqExpression(generateContext)), targetFunc.Async);
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        var target = await ((IAsyncEvaluatable)Target).EvaluateAsync(context);
+        var args = new object?[Arguments.Count];
+        for (int i = 0; i < Arguments.Count; i++) {
+            args[i] = await ((IAsyncEvaluatable)Arguments[i]).EvaluateAsync(context);
+        }
+
+        var result = ((Delegate)target!).DynamicInvoke(args);
+
+        // Handle async methods - await the Task if needed
+        if (result is Task task) {
+            await task;
+            var taskType = task.GetType();
+            if (taskType.IsGenericType) {
+                var resultProperty = taskType.GetProperty("Result");
+                return resultProperty?.GetValue(task);
+            }
+            return null;
+        }
+
+        return result;
     }
 }

@@ -1,10 +1,11 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 
 namespace Tybscri.Nodes;
 
-public class CollectionLiteralNode : IExpressionNode
+public class CollectionLiteralNode : IExpressionNode, IAsyncEvaluatable
 {
     public CollectionLiteralNode(IReadOnlyCollection<IExpressionNode> expressions)
     {
@@ -54,5 +55,27 @@ public class CollectionLiteralNode : IExpressionNode
 
         return Expression.ListInit(Expression.New(listConstructor),
             Expressions.Select(x => Expression.Convert(x.GenerateLinqExpression(generateContext), ItemType.ClrType)));
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        if (ListType == null || ItemType == null) {
+            throw new InvalidOperationException("No list type determined");
+        }
+
+        var listConstructor = ListType.ClrType.GetConstructor(Type.EmptyTypes);
+        if (listConstructor == null) {
+            throw new InvalidOperationException("Invalid list literal constructor");
+        }
+
+        var list = listConstructor.Invoke(null);
+        var addMethod = ListType.ClrType.GetMethod("Add");
+
+        foreach (var expression in Expressions) {
+            var value = await ((IAsyncEvaluatable)expression).EvaluateAsync(context);
+            addMethod!.Invoke(list, new[] { value });
+        }
+
+        return list;
     }
 }

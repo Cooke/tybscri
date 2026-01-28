@@ -1,11 +1,12 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.LinqExpressions;
 
 namespace Tybscri.Nodes;
 
-public class MemberInvocationNode : IExpressionNode
+public class MemberInvocationNode : IExpressionNode, IAsyncEvaluatable
 {
     private TybscriMember? _member;
 
@@ -76,5 +77,37 @@ public class MemberInvocationNode : IExpressionNode
 
         return Expression.Call(Instance.GenerateLinqExpression(generateContext), (MethodInfo)_member.MemberInfo,
             Arguments.Select(x => x.GenerateLinqExpression(generateContext)));
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        if (_member is null) {
+            throw new InvalidOperationException("Unknown member");
+        }
+
+        var instance = await ((IAsyncEvaluatable)Instance).EvaluateAsync(context);
+        var args = new object?[Arguments.Count];
+        for (int i = 0; i < Arguments.Count; i++) {
+            args[i] = await ((IAsyncEvaluatable)Arguments[i]).EvaluateAsync(context);
+        }
+
+        var result = _member.MemberInfo switch
+        {
+            MethodInfo mi => mi.Invoke(instance, args),
+            _ => throw new InvalidOperationException("Cannot invoke non-method member")
+        };
+
+        // Handle async methods - await the Task if needed
+        if (result is Task task) {
+            await task;
+            var taskType = task.GetType();
+            if (taskType.IsGenericType) {
+                var resultProperty = taskType.GetProperty("Result");
+                return resultProperty?.GetValue(task);
+            }
+            return null;
+        }
+
+        return result;
     }
 }

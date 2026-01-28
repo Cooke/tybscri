@@ -1,10 +1,11 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
-public class ScriptNode : IExpressionNode
+public class ScriptNode : IExpressionNode, IAsyncEvaluatable
 {
     public ScriptNode(IStatementNode[] statements)
     {
@@ -38,5 +39,24 @@ public class ScriptNode : IExpressionNode
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         return BodyUtils.GenerateLinqExpression(Statements, ValueType.ClrType, generateContext.Async);
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        object? result = null;
+
+        // Evaluate functions first (hoisting), then other statements
+        var orderedStatements = Statements.OrderBy(x => x is FunctionNode ? 0 : 1);
+
+        try {
+            foreach (var statement in orderedStatements) {
+                result = await ((IAsyncEvaluatable)statement).EvaluateAsync(context);
+            }
+        }
+        catch (ReturnException returnEx) {
+            return returnEx.Value;
+        }
+
+        return result;
     }
 }

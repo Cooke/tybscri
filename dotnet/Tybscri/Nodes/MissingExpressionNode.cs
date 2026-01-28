@@ -1,9 +1,10 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 
 namespace Tybscri.Nodes;
 
-public class MissingExpressionNode : IExpressionNode
+public class MissingExpressionNode : IExpressionNode, IAsyncEvaluatable
 {
     public Scope Scope { get; private set; } = Scope.Empty;
     
@@ -23,5 +24,10 @@ public class MissingExpressionNode : IExpressionNode
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         throw new NotImplementedException();
+    }
+
+    public ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        throw new TybscriException("Cannot evaluate missing expression");
     }
 }

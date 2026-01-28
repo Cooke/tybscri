@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 using DotNext.Metaprogramming;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Nodes;
 using Tybscri.Symbols;
 
@@ -147,5 +149,116 @@ public class Compiler<TGlobals>
     {
         var compiled = CompileScript<TResult>(script);
         return compiled(globals);
+    }
+
+    /// <summary>
+    /// Interprets a script asynchronously using the tree-walking interpreter.
+    /// This allows full async support including await in loops and conditionals.
+    /// </summary>
+    public async Task<TResult> InterpretScriptAsync<TResult>(string script, TGlobals globals)
+    {
+        var expectedType = Environment.TypeMappings.Map(typeof(TResult));
+        var scriptNode = PrepareScriptForInterpretation(script, expectedType);
+        var context = CreateEvalContext(globals);
+
+        var result = await scriptNode.EvaluateAsync(context);
+        return (TResult)result!;
+    }
+
+    /// <summary>
+    /// Interprets a script asynchronously using the tree-walking interpreter.
+    /// This allows full async support including await in loops and conditionals.
+    /// </summary>
+    public async Task InterpretScriptAsync(string script, TGlobals globals)
+    {
+        var scriptNode = PrepareScriptForInterpretation(script, StandardTypes.Void);
+        var context = CreateEvalContext(globals);
+
+        await scriptNode.EvaluateAsync(context);
+    }
+
+    /// <summary>
+    /// Interprets an expression asynchronously using the tree-walking interpreter.
+    /// </summary>
+    public async Task<TResult> InterpretExpressionAsync<TResult>(string expression, TGlobals globals)
+    {
+        var expectedType = Environment.TypeMappings.Map(typeof(TResult));
+        var parser = new TybscriParser(expression);
+        var expressionNode = parser.ParseExpression();
+        var scope = new Scope(Environment.Symbols.Select(x => new ExternalSymbol(x.Expression, x.Type, x.Name)));
+        expressionNode.SetupScopes(scope);
+        expressionNode.Resolve(new ResolveContext(expectedType));
+
+        var context = CreateEvalContext(globals);
+        var result = await ((IAsyncEvaluatable)expressionNode).EvaluateAsync(context);
+        return (TResult)result!;
+    }
+
+    private ScriptNode PrepareScriptForInterpretation(string script, TybscriType? expectedType)
+    {
+        var parser = new TybscriParser(script);
+        var scriptNode = parser.ParseScript();
+        var scope = new Scope(Environment.Symbols.Select(x => new ExternalSymbol(x.Expression, x.Type, x.Name)));
+        scriptNode.SetupScopes(scope);
+        scriptNode.Resolve(new ResolveContext(expectedType));
+        return scriptNode;
+    }
+
+    private EvalContext CreateEvalContext(TGlobals globals)
+    {
+        var context = new EvalContext { Globals = globals };
+
+        // Initialize external symbols in context by name (for lookup by IdentifierNode)
+        foreach (var symbol in Environment.Symbols) {
+            var value = GetSymbolValue(symbol, globals);
+            context.NamedValues[symbol.Name] = value;
+        }
+
+        return context;
+    }
+
+    private object? GetSymbolValue(EnvironmentSymbol symbol, TGlobals globals)
+    {
+        // Get the value from globals based on the symbol's expression
+        if (globals == null) return null;
+
+        var globalsType = typeof(TGlobals);
+
+        // Try to find a matching member
+        var member = globalsType.GetMember(symbol.Name,
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+            .FirstOrDefault();
+
+        if (member == null) {
+            // Try with PascalCase conversion (e.g., "wait" -> "Wait")
+            var pascalName = char.ToUpperInvariant(symbol.Name[0]) + symbol.Name.Substring(1);
+            member = globalsType.GetMember(pascalName, BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault();
+        }
+
+        return member switch
+        {
+            FieldInfo fi => fi.GetValue(globals),
+            PropertyInfo pi => pi.GetValue(globals),
+            MethodInfo mi => CreateMethodDelegate(mi, globals),
+            _ => null
+        };
+    }
+
+    private Delegate? CreateMethodDelegate(MethodInfo methodInfo, TGlobals globals)
+    {
+        var parameters = methodInfo.GetParameters();
+
+        // Create a delegate that invokes the method on globals
+        return parameters.Length switch
+        {
+            0 => methodInfo.ReturnType == typeof(void)
+                ? new Action(() => methodInfo.Invoke(globals, null))
+                : new Func<object?>(() => methodInfo.Invoke(globals, null)),
+            1 => new Func<object?, object?>(a => methodInfo.Invoke(globals, new[] { a })),
+            2 => new Func<object?, object?, object?>((a, b) => methodInfo.Invoke(globals, new[] { a, b })),
+            3 => new Func<object?, object?, object?, object?>((a, b, c) => methodInfo.Invoke(globals, new[] { a, b, c })),
+            _ => null
+        };
     }
 }

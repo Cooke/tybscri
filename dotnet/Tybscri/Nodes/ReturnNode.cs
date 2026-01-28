@@ -1,9 +1,10 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 
 namespace Tybscri.Nodes;
 
-public class ReturnNode : IStatementNode
+public class ReturnNode : IStatementNode, IAsyncEvaluatable
 {
     public ReturnNode(IExpressionNode? returnValue)
     {
@@ -36,5 +37,13 @@ public class ReturnNode : IStatementNode
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         return generateContext.Return(ReturnValue?.GenerateLinqExpression(generateContext));
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        var value = ReturnValue != null
+            ? await ((IAsyncEvaluatable)ReturnValue).EvaluateAsync(context)
+            : null;
+        throw new ReturnException(value);
     }
 }

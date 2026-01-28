@@ -2,6 +2,7 @@
 using CookeRpc.AspNetCore.Utils;
 using DotNext.Metaprogramming;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
@@ -13,7 +14,7 @@ enum AnalyzeState
     Analyzed
 }
 
-public class FunctionNode : IStatementNode, ISymbolDefinitionNode
+public class FunctionNode : IStatementNode, ISymbolDefinitionNode, IAsyncEvaluatable
 {
     private AnalyzeState _analyzeState;
     private ParameterExpression? _parameterExpression;
@@ -111,6 +112,59 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode
         var parameters = Parameters.Select(x => x.SymbolLinqExpression);
         var lambda = ExpressionUtils.CreateLambda(funcType, body, parameters);
         return Expression.Assign(_parameterExpression, lambda);
+    }
+
+    public ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        if (SymbolType is not FuncType funcType) {
+            throw new InvalidOperationException("Cannot evaluate function without type");
+        }
+
+        // Create parameter symbols for binding
+        var parameterSymbols = Parameters
+            .Select(p => new SourceSymbol(p.SymbolName, p) as ISymbol)
+            .ToList();
+
+        // Create a delegate that captures the current context and evaluates the body
+        Func<object?[], ValueTask<object?>> evaluator = async (args) =>
+        {
+            var funcContext = context.CreateChildScopeWithLocals();
+
+            // Bind parameters to arguments
+            for (int i = 0; i < parameterSymbols.Count && i < args.Length; i++) {
+                funcContext.Locals[parameterSymbols[i]] = args[i];
+            }
+
+            // Evaluate the body
+            try {
+                object? result = null;
+                foreach (var statement in Statements.OrderBy(x => x is FunctionNode ? 0 : 1)) {
+                    result = await ((IAsyncEvaluatable)statement).EvaluateAsync(funcContext);
+                }
+                return result;
+            }
+            catch (ReturnException returnEx) {
+                return returnEx.Value;
+            }
+        };
+
+        // Wrap in appropriate delegate type
+        Delegate funcDelegate = funcType.Parameters.Count switch
+        {
+            0 => new Func<object?>(() => evaluator(Array.Empty<object?>()).AsTask().Result),
+            1 => new Func<object?, object?>(a => evaluator(new[] { a }).AsTask().Result),
+            2 => new Func<object?, object?, object?>((a, b) => evaluator(new[] { a, b }).AsTask().Result),
+            3 => new Func<object?, object?, object?, object?>((a, b, c) => evaluator(new[] { a, b, c }).AsTask().Result),
+            _ => throw new NotSupportedException($"Functions with {funcType.Parameters.Count} parameters not supported in interpreter")
+        };
+
+        // Register the function in the context
+        var symbol = Scope.ResolveLast(SymbolName);
+        if (symbol != null) {
+            context.Locals[symbol] = funcDelegate;
+        }
+
+        return ValueTask.FromResult<object?>(null);
     }
 }
 

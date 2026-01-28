@@ -1,10 +1,11 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
-public class BlockNode : IExpressionNode
+public class BlockNode : IExpressionNode, IAsyncEvaluatable
 {
     public BlockNode(IStatementNode[] statements)
     {
@@ -54,5 +55,22 @@ public class BlockNode : IExpressionNode
         var variables = Statements.OfType<ISymbolDefinitionNode>().Select(x => x.SymbolLinqExpression);
         var statements = Statements.OrderBy(x => x is FunctionNode ? 0 : 1).Select(x => x.GenerateLinqExpression(generateContext));
         return Expression.Block(variables, statements);
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        // Create a child scope for block-local variables
+        var blockContext = context.CreateChildScopeWithLocals();
+
+        object? result = null;
+
+        // Evaluate functions first (hoisting), then other statements
+        var orderedStatements = Statements.OrderBy(x => x is FunctionNode ? 0 : 1);
+
+        foreach (var statement in orderedStatements) {
+            result = await ((IAsyncEvaluatable)statement).EvaluateAsync(blockContext);
+        }
+
+        return result;
     }
 }

@@ -1,10 +1,11 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
-public class IdentifierNode : IExpressionNode
+public class IdentifierNode : IExpressionNode, IAsyncEvaluatable
 {
     private ISymbol? _symbol;
 
@@ -44,4 +45,19 @@ public class IdentifierNode : IExpressionNode
 
         return _symbol.LinqExpression;
     }
+
+    public ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        if (_symbol == null) {
+            throw new TybscriException($"Unknown identifier: {Name}");
+        }
+
+        if (context.TryGetValue(_symbol, out var value)) {
+            return ValueTask.FromResult(value);
+        }
+
+        throw new TybscriException($"Symbol not found in context: {Name}");
+    }
+
+    internal ISymbol? Symbol => _symbol;
 }

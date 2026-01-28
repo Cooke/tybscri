@@ -1,10 +1,11 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 
 namespace Tybscri.Nodes;
 
-public class MemberAccessNode : IExpressionNode
+public class MemberAccessNode : IExpressionNode, IAsyncEvaluatable
 {
     public MemberAccessNode(IExpressionNode instance, Token memberName)
     {
@@ -60,7 +61,23 @@ public class MemberAccessNode : IExpressionNode
         // if (memberExpression.Type.IsAssignableTo(_member.Type.ClrType)) {
         //     return memberExpression;
         // }
-        
+
         return Expression.Convert(memberExpression, _member.Type.ClrType);
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        if (_member is null) {
+            throw new InvalidOperationException("Unknown member");
+        }
+
+        var instance = await ((IAsyncEvaluatable)Instance).EvaluateAsync(context);
+
+        return _member.MemberInfo switch
+        {
+            PropertyInfo pi => pi.GetValue(instance),
+            FieldInfo fi => fi.GetValue(instance),
+            _ => throw new InvalidOperationException("Cannot access non-property/field member")
+        };
     }
 }

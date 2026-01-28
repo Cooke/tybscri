@@ -1,10 +1,11 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 using Tybscri.Utils;
 
 namespace Tybscri.Nodes;
 
-internal class IfNode : IExpressionNode
+internal class IfNode : IExpressionNode, IAsyncEvaluatable
 {
     public IfNode(IExpressionNode condition, IExpressionNode then, IExpressionNode? @else)
     {
@@ -49,5 +50,17 @@ internal class IfNode : IExpressionNode
         var elseExp = ExpressionUtils.EnsureType(Else?.GenerateLinqExpression(generateContext) ?? Expression.Constant(null, typeof(object)), ValueType.ClrType);
         return Expression.Condition(Condition.GenerateLinqExpression(generateContext), thenExp, elseExp,
             ValueType.ClrType);
+    }
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        var condition = await ((IAsyncEvaluatable)Condition).EvaluateAsync(context);
+        if ((bool)condition!) {
+            return await ((IAsyncEvaluatable)Then).EvaluateAsync(context);
+        }
+        if (Else != null) {
+            return await ((IAsyncEvaluatable)Else).EvaluateAsync(context);
+        }
+        return null;
     }
 }

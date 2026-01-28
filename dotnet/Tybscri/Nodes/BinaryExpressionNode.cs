@@ -1,9 +1,10 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 
 namespace Tybscri.Nodes;
 
-public class BinaryExpressionNode : IExpressionNode
+public class BinaryExpressionNode : IExpressionNode, IAsyncEvaluatable
 {
     private readonly IExpressionNode _left;
     private readonly Token _comparisonToken;
@@ -58,4 +59,49 @@ public class BinaryExpressionNode : IExpressionNode
             "||" => ExpressionType.OrElse,
             _ => throw new TybscriException("Unknown binary operator")
         }, _left.GenerateLinqExpression(generateContext), _right.GenerateLinqExpression(generateContext));
+
+    public async ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        // Short-circuit evaluation for && and ||
+        if (_comparisonToken.Text == "&&") {
+            var leftVal = await ((IAsyncEvaluatable)_left).EvaluateAsync(context);
+            if (!(bool)leftVal!) return false;
+            return await ((IAsyncEvaluatable)_right).EvaluateAsync(context);
+        }
+
+        if (_comparisonToken.Text == "||") {
+            var leftVal = await ((IAsyncEvaluatable)_left).EvaluateAsync(context);
+            if ((bool)leftVal!) return true;
+            return await ((IAsyncEvaluatable)_right).EvaluateAsync(context);
+        }
+
+        var left = await ((IAsyncEvaluatable)_left).EvaluateAsync(context);
+        var right = await ((IAsyncEvaluatable)_right).EvaluateAsync(context);
+
+        return _comparisonToken.Text switch
+        {
+            "<" => Compare(left, right) < 0,
+            ">" => Compare(left, right) > 0,
+            ">=" => Compare(left, right) >= 0,
+            "<=" => Compare(left, right) <= 0,
+            "==" => Equals(left, right),
+            "!=" => !Equals(left, right),
+            "-" => ToDouble(left) - ToDouble(right),
+            "+" => ToDouble(left) + ToDouble(right),
+            "*" => ToDouble(left) * ToDouble(right),
+            "/" => ToDouble(left) / ToDouble(right),
+            "%" => ToDouble(left) % ToDouble(right),
+            _ => throw new TybscriException("Unknown binary operator")
+        };
+    }
+
+    private static double ToDouble(object? value) => Convert.ToDouble(value);
+
+    private static int Compare(object? left, object? right)
+    {
+        if (left is IComparable comparable) {
+            return comparable.CompareTo(right);
+        }
+        throw new TybscriException("Cannot compare values");
+    }
 }

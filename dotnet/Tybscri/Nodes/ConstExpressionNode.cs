@@ -1,9 +1,10 @@
 ﻿using System.Linq.Expressions;
 using Tybscri.Common;
+using Tybscri.Interpreter;
 
 namespace Tybscri.Nodes;
 
-public class ConstExpressionNode : IExpressionNode
+public class ConstExpressionNode : IExpressionNode, IAsyncEvaluatable
 {
     public ConstExpressionNode(object? value, TybscriType type)
     {
@@ -31,5 +32,10 @@ public class ConstExpressionNode : IExpressionNode
     public Expression GenerateLinqExpression(GenerateContext generateContext)
     {
         return Expression.Constant(Value, ValueType.ClrType);
+    }
+
+    public ValueTask<object?> EvaluateAsync(EvalContext context)
+    {
+        return ValueTask.FromResult(Value);
     }
 }
