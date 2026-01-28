@@ -109,3 +109,4 @@ out/
 obj/
 bin/
 .yarn
+.claude/settings.local.json
