@@ -3,6 +3,9 @@ using Xunit;
 
 namespace Tybscri.Test;
 
+/// <summary>
+/// Tests for async script execution that run against both execution modes.
+/// </summary>
 public class AsyncScriptTests
 {
     private readonly Compiler<TestEnvironment> _compiler;
@@ -12,58 +15,61 @@ public class AsyncScriptTests
         _compiler = Compiler.Create<TestEnvironment>();
     }
 
-    [Fact]
-    public void Invoke()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task Invoke(ExecutionMode mode)
     {
         var globals = new TestEnvironment();
-        var scriptTask = _compiler.EvaluateScriptAsync(@"
+        var scriptTask = _compiler.ExecuteScriptAsync(@"
             wait()
-            ", globals);
+            ", globals, mode);
         Assert.False(scriptTask.IsCompleted);
         globals.Signal();
+        await scriptTask;
         Assert.True(scriptTask.IsCompleted);
     }
 
-    [Fact]
-    public void InvokeImplicitReturn()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task InvokeImplicitReturn(ExecutionMode mode)
     {
         var testEnv = new TestEnvironment();
-        var scriptTask = _compiler.EvaluateScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             nowait(1)
-            ", testEnv);
-        Assert.Equal(1, scriptTask.Result);
+            ", testEnv, mode);
+        Assert.Equal(1, result);
     }
 
-    [Fact]
-    public void ReturnValue()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task ReturnValue(ExecutionMode mode)
     {
         var testEnv = new TestEnvironment();
-        var scriptTask = _compiler.EvaluateScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             return nowait(1)
-            ", testEnv);
-        Assert.True(scriptTask.IsCompleted);
-        Assert.Equal(1, scriptTask.Result);
+            ", testEnv, mode);
+        Assert.Equal(1, result);
     }
 
-    [Fact]
-    public void ReturnVoid()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task ReturnVoid(ExecutionMode mode)
     {
         var testEnv = new TestEnvironment();
-        var scriptTask = _compiler.EvaluateScriptAsync(@"
+        await _compiler.ExecuteScriptAsync(@"
             nowait(1)
             return
-            ", testEnv);
-        Assert.True(scriptTask.IsCompleted);
+            ", testEnv, mode);
     }
-    
-    [Fact]
-    public void IgnoreImplicitReturn()
+
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task IgnoreImplicitReturn(ExecutionMode mode)
     {
         var testEnv = new TestEnvironment();
-        var scriptTask = _compiler.EvaluateScriptAsync(@"
+        await _compiler.ExecuteScriptAsync(@"
             nowait(1)
-            ", testEnv);
-        Assert.True(scriptTask.IsCompleted);
+            ", testEnv, mode);
     }
 
     private class TestEnvironment

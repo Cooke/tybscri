@@ -152,6 +152,48 @@ public class Compiler<TGlobals>
     }
 
     /// <summary>
+    /// Executes a script asynchronously using the specified execution mode.
+    /// </summary>
+    public Task<TResult> ExecuteScriptAsync<TResult>(string script, TGlobals globals,
+        ExecutionMode mode = ExecutionMode.Compiled)
+    {
+        return mode switch
+        {
+            ExecutionMode.Compiled => EvaluateScriptAsync<TResult>(script, globals),
+            ExecutionMode.Interpreted => InterpretScriptAsync<TResult>(script, globals),
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
+    }
+
+    /// <summary>
+    /// Executes a script asynchronously using the specified execution mode.
+    /// </summary>
+    public Task ExecuteScriptAsync(string script, TGlobals globals,
+        ExecutionMode mode = ExecutionMode.Compiled)
+    {
+        return mode switch
+        {
+            ExecutionMode.Compiled => EvaluateScriptAsync(script, globals),
+            ExecutionMode.Interpreted => InterpretScriptAsync(script, globals),
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
+    }
+
+    /// <summary>
+    /// Executes an expression asynchronously using the specified execution mode.
+    /// </summary>
+    public async Task<TResult> ExecuteExpressionAsync<TResult>(string expression, TGlobals globals,
+        ExecutionMode mode = ExecutionMode.Compiled)
+    {
+        return mode switch
+        {
+            ExecutionMode.Compiled => EvaluateExpression<TResult>(expression, globals),
+            ExecutionMode.Interpreted => await InterpretExpressionAsync<TResult>(expression, globals),
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
+    }
+
+    /// <summary>
     /// Interprets a script asynchronously using the tree-walking interpreter.
     /// This allows full async support including await in loops and conditionals.
     /// </summary>

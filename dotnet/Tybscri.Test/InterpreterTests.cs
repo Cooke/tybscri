@@ -4,9 +4,9 @@ using Xunit;
 namespace Tybscri.Test;
 
 /// <summary>
-/// Tests for the tree-walking async interpreter.
-/// These tests exercise the InterpretScriptAsync methods which use
-/// the interpreter instead of LINQ Expression compilation.
+/// Unified tests for script execution that run against both execution modes:
+/// - Compiled (LINQ Expression compilation)
+/// - Interpreted (tree-walking interpreter)
 /// </summary>
 public class InterpreterTests
 {
@@ -17,245 +17,277 @@ public class InterpreterTests
         _compiler = Compiler.Create<TestEnvironment>();
     }
 
-    [Fact]
-    public async Task SimpleConstant()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task SimpleConstant(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>("123", new TestEnvironment());
+        var result = await _compiler.ExecuteScriptAsync<double>("123", new TestEnvironment(), mode);
         Assert.Equal(123, result);
     }
 
-    [Fact]
-    public async Task StringConstant()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task StringConstant(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<string>("\"hello\"", new TestEnvironment());
+        var result = await _compiler.ExecuteScriptAsync<string>("\"hello\"", new TestEnvironment(), mode);
         Assert.Equal("hello", result);
     }
 
-    [Fact]
-    public async Task BooleanConstant()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task BooleanConstant(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<bool>("true", new TestEnvironment());
+        var result = await _compiler.ExecuteScriptAsync<bool>("true", new TestEnvironment(), mode);
         Assert.True(result);
     }
 
-    [Fact]
-    public async Task ArithmeticExpression()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task ArithmeticExpression(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>("1 + 2 * 3", new TestEnvironment());
+        var result = await _compiler.ExecuteScriptAsync<double>("1 + 2 * 3", new TestEnvironment(), mode);
         Assert.Equal(7, result);
     }
 
-    [Fact]
-    public async Task ComparisonExpression()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task ComparisonExpression(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<bool>("5 > 3", new TestEnvironment());
+        var result = await _compiler.ExecuteScriptAsync<bool>("5 > 3", new TestEnvironment(), mode);
         Assert.True(result);
     }
 
-    [Fact]
-    public async Task VariableDeclaration()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task VariableDeclaration(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             var x = 10
             x
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(10, result);
     }
 
-    [Fact]
-    public async Task MultipleVariables()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task MultipleVariables(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             var x = 10
             var y = 20
             x + y
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(30, result);
     }
 
-    [Fact]
-    public async Task IfExpressionThen()
+    // ============================================================
+    // Interpreter-only tests for if expressions as return values
+    // DotNext doesn't support conditional expressions in async context
+    // ============================================================
+
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task IfExpressionThen(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             if (true) { 1 } else { 2 }
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(1, result);
     }
 
-    [Fact]
-    public async Task IfExpressionElse()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task IfExpressionElse(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             if (false) { 1 } else { 2 }
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(2, result);
     }
 
-    [Fact]
-    public async Task Return()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task Return(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             return 123
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(123, result);
     }
 
-    [Fact]
-    public async Task EarlyReturn()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task CallGlobalFunction(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
-            if (true) {
-                return 1
-            }
-            return 2
-        ", new TestEnvironment());
-        Assert.Equal(1, result);
-    }
-
-    [Fact]
-    public async Task CallGlobalFunction()
-    {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             add(3, 4)
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(7, result);
     }
 
-    [Fact]
-    public async Task CallAsyncFunction()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task CallAsyncFunction(ExecutionMode mode)
     {
         var testEnv = new TestEnvironment();
-        var task = _compiler.InterpretScriptAsync("wait()", testEnv);
+        var task = _compiler.ExecuteScriptAsync("wait()", testEnv, mode);
         Assert.False(task.IsCompleted);
         testEnv.Signal();
         await task;
         Assert.True(task.IsCompleted);
     }
 
-    [Fact]
-    public async Task CallAsyncFunctionWithReturn()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task CallAsyncFunctionWithReturn(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             asyncAdd(3, 4)
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(7, result);
     }
 
-    [Fact]
-    public async Task CollectionLiteral()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task CollectionLiteral(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<System.Collections.Generic.List<double>>(@"
+        var result = await _compiler.ExecuteScriptAsync<System.Collections.Generic.List<double>>(@"
             [1, 2, 3]
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(new System.Collections.Generic.List<double> { 1, 2, 3 }, result);
     }
 
-    [Fact]
-    public async Task MemberAccess()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task MemberAccess(ExecutionMode mode)
     {
-        // Note: String.length returns an int in .NET
-        var result = await _compiler.InterpretScriptAsync<int>(@"
+        // Member access as implicit return requires conditional in async context
+        var result = await _compiler.ExecuteScriptAsync<int>(@"
             ""hello"".length
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(5, result);
     }
 
-    [Fact]
-    public async Task AwaitInIfCondition()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task AwaitInIfCondition(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        // DotNext doesn't support conditional expressions in async context
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             if (asyncIsTrue()) {
                 1
             } else {
                 2
             }
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(1, result);
     }
 
-    [Fact]
-    public async Task AwaitInIfThenBranch()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task AwaitInIfThenBranch(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        // DotNext doesn't support conditional expressions in async context
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             if (true) {
                 asyncAdd(1, 2)
             } else {
                 0
             }
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(3, result);
     }
 
-    [Fact]
-    public async Task AwaitInIfElseBranch()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task AwaitInIfElseBranch(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        // DotNext doesn't support conditional expressions in async context
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             if (false) {
                 0
             } else {
                 asyncAdd(1, 2)
             }
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(3, result);
     }
 
-    [Fact]
-    public async Task NestedAwait()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task NestedAwait(ExecutionMode mode)
     {
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             asyncAdd(asyncAdd(1, 2), asyncAdd(3, 4))
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(10, result);
     }
 
-    [Fact]
-    public async Task ShortCircuitAnd()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task ShortCircuitAnd(ExecutionMode mode)
     {
         var testEnv = new TestEnvironment();
-        var result = await _compiler.InterpretScriptAsync<bool>(@"
+        var result = await _compiler.ExecuteScriptAsync<bool>(@"
             false && getSideEffect()
-        ", testEnv);
+        ", testEnv, mode);
         Assert.False(result);
         Assert.False(testEnv.SideEffectCalled);
     }
 
-    [Fact]
-    public async Task ShortCircuitOr()
+    [Theory]
+    [MemberData(nameof(TestModes.AllModes), MemberType = typeof(TestModes))]
+    public async Task ShortCircuitOr(ExecutionMode mode)
     {
         var testEnv = new TestEnvironment();
-        var result = await _compiler.InterpretScriptAsync<bool>(@"
+        var result = await _compiler.ExecuteScriptAsync<bool>(@"
             true || getSideEffect()
-        ", testEnv);
+        ", testEnv, mode);
         Assert.True(result);
         Assert.False(testEnv.SideEffectCalled);
     }
 
-    [Fact]
-    public async Task IfBlock()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task IfBlock(ExecutionMode mode)
     {
-        // Test block-like behavior via if expression
-        // (standalone blocks are parsed as lambda literals in Tybscri)
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        // DotNext doesn't support conditional expressions in async context
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             if (true) {
                 var x = 1
                 var y = 2
                 x + y
             } else { 0 }
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(3, result);
     }
 
     /// <summary>
     /// This test demonstrates what the tree-walking interpreter can do that
     /// the LINQ Expression compiler with DotNext cannot: multiple returns
-    /// in async functions.
+    /// in async functions with early exit.
     /// </summary>
-    [Fact]
-    public async Task MultipleReturnsInAsyncContext()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task EarlyReturn(ExecutionMode mode)
     {
-        // This pattern fails with the LINQ Expression + DotNext approach
-        // but works perfectly with the tree-walking interpreter
-        var result = await _compiler.InterpretScriptAsync<double>(@"
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
+            if (true) {
+                return 1
+            }
+            return 2
+        ", new TestEnvironment(), mode);
+        Assert.Equal(1, result);
+    }
+
+    /// <summary>
+    /// Multiple returns in async context - only works with interpreter.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task MultipleReturnsInAsyncContext(ExecutionMode mode)
+    {
+        var result = await _compiler.ExecuteScriptAsync<double>(@"
             if (1 < 10) {
                 return 1
             }
@@ -263,35 +295,36 @@ public class InterpreterTests
                 return 2
             }
             return 3
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(1, result);
     }
 
-    [Fact]
-    public async Task MultipleReturnsWithConditions()
+    [Theory]
+    [MemberData(nameof(TestModes.InterpretedOnly), MemberType = typeof(TestModes))]
+    public async Task MultipleReturnsWithConditions(ExecutionMode mode)
     {
-        var result1 = await _compiler.InterpretScriptAsync<double>(@"
+        var result1 = await _compiler.ExecuteScriptAsync<double>(@"
             var x = 1
             if (x < 10) { return 1 }
             if (x < 100) { return 2 }
             return 3
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(1, result1);
 
-        var result2 = await _compiler.InterpretScriptAsync<double>(@"
+        var result2 = await _compiler.ExecuteScriptAsync<double>(@"
             var x = 50
             if (x < 10) { return 1 }
             if (x < 100) { return 2 }
             return 3
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(2, result2);
 
-        var result3 = await _compiler.InterpretScriptAsync<double>(@"
+        var result3 = await _compiler.ExecuteScriptAsync<double>(@"
             var x = 500
             if (x < 10) { return 1 }
             if (x < 100) { return 2 }
             return 3
-        ", new TestEnvironment());
+        ", new TestEnvironment(), mode);
         Assert.Equal(3, result3);
     }
 

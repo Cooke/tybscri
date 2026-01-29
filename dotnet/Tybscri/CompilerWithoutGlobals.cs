@@ -1,4 +1,5 @@
-﻿using Tybscri.Common;
+using System.Threading.Tasks;
+using Tybscri.Common;
 using Tybscri.Symbols;
 
 namespace Tybscri;
@@ -58,6 +59,33 @@ public class Compiler
     public T EvaluateExpression<T>(string expression, TybscriType expectedType)
     {
         return _compiler.EvaluateExpression<T>(expression, null!, expectedType);
+    }
+
+    /// <summary>
+    /// Executes a script asynchronously using the specified execution mode.
+    /// </summary>
+    public Task<TResult> ExecuteScriptAsync<TResult>(string script,
+        ExecutionMode mode = ExecutionMode.Compiled)
+    {
+        return _compiler.ExecuteScriptAsync<TResult>(script, null!, mode);
+    }
+
+    /// <summary>
+    /// Executes a script asynchronously using the specified execution mode.
+    /// </summary>
+    public Task ExecuteScriptAsync(string script,
+        ExecutionMode mode = ExecutionMode.Compiled)
+    {
+        return _compiler.ExecuteScriptAsync(script, null!, mode);
+    }
+
+    /// <summary>
+    /// Executes an expression asynchronously using the specified execution mode.
+    /// </summary>
+    public Task<TResult> ExecuteExpressionAsync<TResult>(string expression,
+        ExecutionMode mode = ExecutionMode.Compiled)
+    {
+        return _compiler.ExecuteExpressionAsync<TResult>(expression, null!, mode);
     }
 
     public TybscriType EvaluateType(string typeString)
