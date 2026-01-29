@@ -3,7 +3,7 @@ import { CompileContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
-export class MemberNode extends ExpressionNode {
+export class MemberAccessNode extends ExpressionNode {
   public resolveTypes(context: CompileContext) {
     this.expression.resolveTypes(context);
 

@@ -1,2 +1,2 @@
 export { Node } from "./base";
-export { MemberNode } from "./member";
+export { MemberAccessNode } from "./memberAccess";

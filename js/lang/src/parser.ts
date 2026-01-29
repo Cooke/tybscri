@@ -5,7 +5,7 @@ import {
   SourceSpan,
 } from "./common";
 import { Lexer, Token, TokenType } from "./lexer";
-import { BinaryOperatorNode } from "./nodes/binaryOperatorNode";
+import { BinaryExpressionNode } from "./nodes/binaryExpression";
 import { BlockNode } from "./nodes/block";
 import { CollectionLiteralNode } from "./nodes/collectionLiteral";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
@@ -17,7 +17,7 @@ import { InvocationNode } from "./nodes/invocation";
 import { IsNode } from "./nodes/is";
 import { LambdaLiteralNode } from "./nodes/lambdaLiteral";
 import { LiteralNode } from "./nodes/literal";
-import { MemberNode } from "./nodes/member";
+import { MemberAccessNode } from "./nodes/memberAccess";
 import { MemberInvocationNode } from "./nodes/memberInvocation";
 import { ReturnNode } from "./nodes/return";
 import { ScriptNode } from "./nodes/script";
@@ -221,17 +221,47 @@ export class Parser {
     return this.parseEqualityExpression();
   }
 
-  parseEqualityExpression() {
-    let result = this.parseIsExpression();
+  private parseBinaryExpressionChain(
+    parseOperand: () => ExpressionNode,
+    ...tokenTypes: L[]
+  ): ExpressionNode {
+    let result = parseOperand();
 
-    while (this.tokenType() == L.EQEQ) {
-      const operatorToken = this.parseToken(L.EQEQ);
+    while (tokenTypes.includes(this.tokenTypeIgnoreNL())) {
       this.advanceWhileNL();
-      const right = this.parseIsExpression();
-      result = new BinaryOperatorNode(result, operatorToken, right);
+      const operatorToken = this.parseAnyToken();
+      this.advanceWhileNL();
+      const right = parseOperand();
+      result = new BinaryExpressionNode(result, operatorToken, right);
     }
 
     return result;
+  }
+
+  private tokenTypeIgnoreNL(): L {
+    let offset = 0;
+    while (this.peek(offset) === L.NL) {
+      offset++;
+    }
+    return this.peek(offset);
+  }
+
+  private peek(offset: number): L {
+    const lexer = this.tokenStream.createChildLexer();
+    for (let i = 0; i < offset; i++) {
+      lexer.advance();
+    }
+    return lexer.tokenType;
+  }
+
+  private parseAnyToken(): TokenNode {
+    const token = this.token();
+    this.advance();
+    return this.createActualToken(token);
+  }
+
+  parseEqualityExpression() {
+    return this.parseBinaryExpressionChain(() => this.parseIsExpression(), L.EQEQ);
   }
 
   public parseIsExpression() {
@@ -531,7 +561,7 @@ export class Parser {
     return [lparen, args, rparen, null];
   }
 
-  private parseMemberSuffix(expression: ExpressionNode): MemberNode {
+  private parseMemberSuffix(expression: ExpressionNode): MemberAccessNode {
     this.advanceWhileNL();
     this.parseToken(L.DOT);
     this.advanceWhileNL();
@@ -542,7 +572,7 @@ export class Parser {
       return new MemberInvocationNode(expression, token, ...callArgs);
     }
 
-    return new MemberNode(expression, token);
+    return new MemberAccessNode(expression, token);
   }
 
   private parseToken(tokenType: TokenType): TokenNode {

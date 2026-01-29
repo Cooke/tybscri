@@ -68,3 +68,6 @@ export interface TypeParameterBinding {
   parameter: TypeParameter;
   to: Type;
 }
+
+// Alias for consistency with .NET implementation naming
+export type TybscriType = Type;

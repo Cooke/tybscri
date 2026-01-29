@@ -3,7 +3,7 @@ import { FuncType, MemberFlag, Type, unknownType } from "../typeSystem";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
-export class BinaryOperatorNode extends ExpressionNode {
+export class BinaryExpressionNode extends ExpressionNode {
   constructor(
     public readonly leftExpression: ExpressionNode,
     public readonly operator: TokenNode,

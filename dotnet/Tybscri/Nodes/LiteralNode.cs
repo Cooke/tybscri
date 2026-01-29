@@ -4,9 +4,9 @@ using Tybscri.Interpreter;
 
 namespace Tybscri.Nodes;
 
-public class ConstExpressionNode : IExpressionNode, IAsyncEvaluatable
+public class LiteralNode : IExpressionNode, IAsyncEvaluatable
 {
-    public ConstExpressionNode(object? value, TybscriType type)
+    public LiteralNode(object? value, TybscriType type)
     {
         Value = value;
         ValueType = type;
