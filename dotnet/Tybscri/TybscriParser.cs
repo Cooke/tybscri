@@ -297,6 +297,14 @@ public class TybscriParser
         {
             case L.If:
                 return ParseIf();
+            case L.For:
+                return ParseFor();
+            case L.While:
+                return ParseWhile();
+            case L.Break:
+                return ParseBreak();
+            case L.Continue:
+                return ParseContinue();
             case L.True:
             case L.False:
                 return ParseBooleanLiteral();
@@ -521,6 +529,50 @@ public class TybscriParser
         {
             return new IfNode(exp, thenNode, null);
         }
+    }
+
+    private ForNode ParseFor()
+    {
+        ParseToken(L.For);
+        AdvanceWhileNL();
+        ParseToken(L.Lparen);
+        AdvanceWhileNL();
+        var itemName = ParseToken(L.Identifier);
+        AdvanceWhileNL();
+        ParseToken(L.In);
+        AdvanceWhileNL();
+        var collection = ParseExpression();
+        AdvanceWhileNL();
+        ParseToken(L.Rparen);
+        AdvanceWhileNL();
+        var body = ParseControlBody();
+        return new ForNode(itemName, collection, body);
+    }
+
+    private WhileNode ParseWhile()
+    {
+        ParseToken(L.While);
+        AdvanceWhileNL();
+        ParseToken(L.Lparen);
+        AdvanceWhileNL();
+        var condition = ParseExpression();
+        AdvanceWhileNL();
+        ParseToken(L.Rparen);
+        AdvanceWhileNL();
+        var body = ParseControlBody();
+        return new WhileNode(condition, body);
+    }
+
+    private BreakNode ParseBreak()
+    {
+        ParseToken(L.Break);
+        return new BreakNode();
+    }
+
+    private ContinueNode ParseContinue()
+    {
+        ParseToken(L.Continue);
+        return new ContinueNode();
     }
 
     private IExpressionNode ParseControlBody()

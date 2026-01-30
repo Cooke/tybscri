@@ -12,7 +12,11 @@ import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
 import { FunctionNode, FunctionParameterNode } from "./nodes/function";
 import { IdentifierNode } from "./nodes/identifier";
 import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
+import { ForNode } from "./nodes/for";
 import { IfNode } from "./nodes/if";
+import { WhileNode } from "./nodes/while";
+import { BreakNode } from "./nodes/break";
+import { ContinueNode } from "./nodes/continue";
 import { InvocationNode } from "./nodes/invocation";
 import { IsNode } from "./nodes/is";
 import { LambdaLiteralNode } from "./nodes/lambdaLiteral";
@@ -305,6 +309,18 @@ export class Parser {
       case L.IF:
         return this.parseIfExpression();
 
+      case L.FOR:
+        return this.parseForExpression();
+
+      case L.WHILE:
+        return this.parseWhileExpression();
+
+      case L.BREAK:
+        return this.parseBreakExpression();
+
+      case L.CONTINUE:
+        return this.parseContinueExpression();
+
       case L.IDENTIFIER: {
         const peeker = this.tokenStream.createChildLexer();
         do {
@@ -445,6 +461,78 @@ export class Parser {
       thenStatement,
       elseStatement
     );
+  }
+
+  private parseForExpression() {
+    const forKeyword = this.parseToken(L.FOR);
+    this.advanceWhileNL();
+    const lparen = this.parseToken(L.LPAREN);
+    this.advanceWhileNL();
+    const itemName = this.parseToken(L.IDENTIFIER);
+    this.advanceWhileNL();
+    const inToken = this.parseToken(L.IN);
+    this.advanceWhileNL();
+    const collection = this.parseExpression();
+    this.advanceWhileNL();
+    const rparen = this.parseToken(L.RPAREN);
+    if (rparen instanceof MissingTokenNode) {
+      this.reportDiagnostic({
+        message: "Expected ')'",
+        span: rparen.actualToken.span,
+        severity: DiagnosticSeverity.Error,
+      });
+    }
+
+    this.advanceWhileNL();
+    const body = this.parseBody();
+
+    return new ForNode(
+      forKeyword,
+      lparen,
+      itemName,
+      inToken,
+      collection,
+      rparen,
+      body
+    );
+  }
+
+  private parseWhileExpression() {
+    const whileKeyword = this.parseToken(L.WHILE);
+    this.advanceWhileNL();
+    const lparen = this.parseToken(L.LPAREN);
+    this.advanceWhileNL();
+    const condition = this.parseExpression();
+    this.advanceWhileNL();
+    const rparen = this.parseToken(L.RPAREN);
+    if (rparen instanceof MissingTokenNode) {
+      this.reportDiagnostic({
+        message: "Expected ')'",
+        span: rparen.actualToken.span,
+        severity: DiagnosticSeverity.Error,
+      });
+    }
+
+    this.advanceWhileNL();
+    const body = this.parseBody();
+
+    return new WhileNode(
+      whileKeyword,
+      lparen,
+      condition,
+      rparen,
+      body
+    );
+  }
+
+  private parseBreakExpression() {
+    const breakToken = this.parseToken(L.BREAK);
+    return new BreakNode(breakToken);
+  }
+
+  private parseContinueExpression() {
+    const continueToken = this.parseToken(L.CONTINUE);
+    return new ContinueNode(continueToken);
   }
 
   private parseBody() {
