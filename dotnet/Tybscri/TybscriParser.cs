@@ -71,6 +71,7 @@ public class TybscriParser
                 return ParseFunctionDeclaration();
 
             case L.Var:
+            case L.Val:
                 return ParseVariableDeclaration();
 
             case L.Return:
@@ -91,13 +92,14 @@ public class TybscriParser
 
     private IStatementNode ParseVariableDeclaration()
     {
-        ParseToken(L.Var);
+        var kind = Peek() == L.Val ? VariableKind.Const : VariableKind.Variable;
+        Advance(); // Consume var or val
         var name = ParseToken(L.Identifier);
         AdvanceWhileNL();
         ParseToken(L.Assignment);
         AdvanceWhileNL();
         var exp = ParseExpression();
-        return new VariableDeclarationNode(name, exp);
+        return new VariableDeclarationNode(kind, name, exp);
     }
 
     private FunctionNode ParseFunctionDeclaration()

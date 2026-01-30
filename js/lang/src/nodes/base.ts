@@ -1,4 +1,4 @@
-import { SourceSpan } from "../common";
+import { SourceSpan, ResolveContext, createResolveContext } from "../common";
 import { Scope } from "../scope";
 import { Type } from "../typeSystem/common";
 import { CompileContext } from "../common";
@@ -27,10 +27,15 @@ export abstract class Node {
     this._scope = scope;
   }
 
-  public resolveTypes(context: CompileContext, expectedType?: Type | null) {
+  public resolve(context: ResolveContext) {
     for (const child of this.children) {
-      child.resolveTypes(context);
+      child.resolve(context.withExpectedType(null));
     }
+  }
+
+  /** @deprecated Use resolve(context) instead */
+  public resolveTypes(context: CompileContext, expectedType?: Type | null) {
+    this.resolve(createResolveContext(context, expectedType ?? null));
   }
 
   public get span(): SourceSpan {

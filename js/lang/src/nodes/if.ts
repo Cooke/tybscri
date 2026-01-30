@@ -1,5 +1,5 @@
 import { Symbol } from "../Symbol";
-import { CompileContext } from "../common";
+import { CompileContext, ResolveContext } from "../common";
 import { Scope } from "../scope";
 import { nullType, unknownType } from "../typeSystem";
 import { UnionType } from "../typeSystem/UnionType";
@@ -17,13 +17,13 @@ export class IfNode extends ExpressionNode {
     this.scope = scope;
   }
 
-  public resolveTypes(context: CompileContext) {
-    this.condition.resolveTypes(context);
+  public resolve(context: ResolveContext) {
+    this.condition.resolve(context.withExpectedType(null));
     for (const sym of this.thenSymbols) {
-      sym.resolveTypes(context);
+      sym.resolve(context);
     }
-    this.thenBlock.resolveTypes(context);
-    this.elseBlock?.resolveTypes(context);
+    this.thenBlock.resolve(context.withExpectedType(null));
+    this.elseBlock?.resolve(context.withExpectedType(null));
     const unionType = UnionType.create(
       this.elseBlock
         ? [

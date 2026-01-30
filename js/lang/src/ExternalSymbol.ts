@@ -1,4 +1,4 @@
-import { CompileContext } from "./common";
+import { ResolveContext } from "./common";
 import { Symbol } from "./Symbol";
 import { Type } from "./typeSystem";
 
@@ -12,5 +12,5 @@ export class ExternalSymbol extends Symbol {
     super(name);
   }
 
-  public resolveTypes(context: CompileContext): void {}
+  public resolve(context: ResolveContext): void {}
 }

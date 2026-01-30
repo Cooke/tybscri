@@ -1,4 +1,4 @@
-import { CompileContext } from "../common";
+import { CompileContext, ResolveContext } from "../common";
 import { Scope } from "../scope";
 import { Symbol } from "../Symbol";
 import { unknownType } from "../typeSystem";
@@ -20,8 +20,8 @@ export class TypeNode extends Node {
     this.scope = scope;
   }
 
-  public resolveTypes(context: CompileContext) {
-    this.node.resolveTypes(context);
+  public resolve(context: ResolveContext) {
+    this.node.resolve(context.withExpectedType(null));
 
     if (this.node instanceof IdentifierNode) {
       this.typeSymbol = this.scope.resolveLast(this.node.token.text);

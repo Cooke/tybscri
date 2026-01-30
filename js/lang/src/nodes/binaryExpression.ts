@@ -1,4 +1,4 @@
-import { CompileContext, DiagnosticSeverity } from "../common";
+import { CompileContext, DiagnosticSeverity, ResolveContext } from "../common";
 import { FuncType, MemberFlag, Type, unknownType } from "../typeSystem";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
@@ -12,12 +12,12 @@ export class BinaryExpressionNode extends ExpressionNode {
     super([leftExpression, operator, rightExpression]);
   }
 
-  public resolveTypes(context: CompileContext) {
-    this.leftExpression.resolveTypes(context);
-    this.rightExpression.resolveTypes(context);
+  public resolve(context: ResolveContext) {
+    this.leftExpression.resolve(context.withExpectedType(null));
+    this.rightExpression.resolve(context.withExpectedType(null));
 
     const [operatorMemberName, operatorReturnType] =
-      this.getOperatorInfo(context);
+      this.getOperatorInfo(context.compileContext);
     if (!operatorMemberName) {
       throw new Error("Unknown operator: " + this.operator.text);
     }
@@ -31,7 +31,7 @@ export class BinaryExpressionNode extends ExpressionNode {
     );
 
     if (matchingMembers.length === 0) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `No operator member with name '${operatorMemberName}' exists on type '${this.leftExpression.valueType.displayName}'`,
         severity: DiagnosticSeverity.Error,
         span: this.operator.span,
@@ -40,7 +40,7 @@ export class BinaryExpressionNode extends ExpressionNode {
     }
 
     if (matchingMembers.length > 1) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `Ambiguous operator member '${operatorMemberName}' are currently not supported`,
         severity: DiagnosticSeverity.Error,
         span: this.operator.span,
@@ -49,7 +49,7 @@ export class BinaryExpressionNode extends ExpressionNode {
     }
 
     if (matchingMembers.length === 0) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `No operator member with name '${operatorMemberName}'`,
         severity: DiagnosticSeverity.Error,
         span: this.operator.span,
@@ -59,7 +59,7 @@ export class BinaryExpressionNode extends ExpressionNode {
 
     const member = matchingMembers[0];
     if (!(member.type instanceof FuncType)) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `The member operator cannot be invoked`,
         severity: DiagnosticSeverity.Error,
         span: this.operator.span,
@@ -68,7 +68,7 @@ export class BinaryExpressionNode extends ExpressionNode {
     }
 
     if (!operatorReturnType.isAssignableFrom(member.type.returnType)) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `The member operator must have return type '${operatorReturnType.displayName}'`,
         severity: DiagnosticSeverity.Error,
         span: this.operator.span,

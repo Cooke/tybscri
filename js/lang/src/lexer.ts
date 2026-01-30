@@ -1,30 +1,65 @@
 export const enum TokenType {
   EOF = "EOF",
+
+  // Keywords
   IF = "IF",
-  IDENTIFIER = "IDENTIFIER",
-  DOT = "DOT",
-  NL = "NL",
-  SEMICOLON = "SEMICOLON",
+  ELSE = "ELSE",
   FUN = "FUN",
   VAR = "VAR",
   VAL = "VAL",
-  ASSIGNMENT = "ASSIGNMENT",
-  EQEQ = "EQEQ",
-  LPAREN = "LPAREN",
-  RPAREN = "RPARSEN",
-  LCURL = "LCURL",
-  RCURL = "RCURL",
-  COMMA = "COMMA",
-  COLON = "COLON",
-  INT = "INT",
+  RETURN = "RETURN",
   IS = "IS",
+  FOR = "FOR",
+  WHILE = "WHILE",
+  BREAK = "BREAK",
+  CONTINUE = "CONTINUE",
+  IN = "IN",
+  NULL = "NULL",
   TRUE = "TRUE",
   FALSE = "FALSE",
-  RETURN = "RETURN",
+
+  // Identifiers and literals
+  IDENTIFIER = "IDENTIFIER",
+  INT = "INT",
+  FLOAT = "FLOAT",
+  LINE_STRING = "LINE_STRING",
+
+  // Symbols
+  DOT = "DOT",
+  COMMA = "COMMA",
+  COLON = "COLON",
+  SEMICOLON = "SEMICOLON",
+  LPAREN = "LPAREN",
+  RPAREN = "RPAREN",
   LBRACKET = "LBRACKET",
   RBRACKET = "RBRACKET",
-  ELSE = "ELSE",
-  LINE_STRING = "LINE_STRING",
+  LCURL = "LCURL",
+  RCURL = "RCURL",
+
+  // Operators
+  ASSIGNMENT = "ASSIGNMENT",
+  EQEQ = "EQEQ",
+  EXCLAM_EQ = "EXCLAM_EQ",
+  LT = "LT",
+  GT = "GT",
+  LT_EQ = "LT_EQ",
+  GT_EQ = "GT_EQ",
+  ADD = "ADD",
+  SUB = "SUB",
+  MULT = "MULT",
+  DIV = "DIV",
+  MOD = "MOD",
+  AND_AND = "AND_AND",
+  OR = "OR",
+  OR_OR = "OR_OR",
+  EXCLAM = "EXCLAM",
+  FAT_ARROW = "FAT_ARROW",
+  INCR = "INCR",
+  DECR = "DECR",
+  QUESTION = "QUESTION",
+
+  // Whitespace
+  NL = "NL",
 }
 
 export class Token {
@@ -126,9 +161,163 @@ export class Lexer {
       return;
     }
 
-    switch (input[index]) {
+    const ch = input[index];
+    switch (ch) {
       case ".":
         this.update(TokenType.DOT, 1);
+        return;
+
+      case ",":
+        this.update(TokenType.COMMA, 1);
+        return;
+
+      case ":":
+        this.update(TokenType.COLON, 1);
+        return;
+
+      case ";":
+        this.update(TokenType.SEMICOLON, 1);
+        return;
+
+      case "(":
+        this.update(TokenType.LPAREN, 1);
+        return;
+
+      case ")":
+        this.update(TokenType.RPAREN, 1);
+        return;
+
+      case "[":
+        this.update(TokenType.LBRACKET, 1);
+        return;
+
+      case "]":
+        this.update(TokenType.RBRACKET, 1);
+        return;
+
+      case "{":
+        this.update(TokenType.LCURL, 1);
+        return;
+
+      case "}":
+        this.update(TokenType.RCURL, 1);
+        return;
+
+      case "?":
+        this.update(TokenType.QUESTION, 1);
+        return;
+
+      case "!":
+        if (index + 1 < input.length && input[index + 1] === "=") {
+          this.update(TokenType.EXCLAM_EQ, 2);
+        } else {
+          this.update(TokenType.EXCLAM, 1);
+        }
+        return;
+
+      case "=":
+        if (index + 1 < input.length && input[index + 1] === "=") {
+          this.update(TokenType.EQEQ, 2);
+        } else if (index + 1 < input.length && input[index + 1] === ">") {
+          this.update(TokenType.FAT_ARROW, 2);
+        } else {
+          this.update(TokenType.ASSIGNMENT, 1);
+        }
+        return;
+
+      case "<":
+        if (index + 1 < input.length && input[index + 1] === "=") {
+          this.update(TokenType.LT_EQ, 2);
+        } else {
+          this.update(TokenType.LT, 1);
+        }
+        return;
+
+      case ">":
+        if (index + 1 < input.length && input[index + 1] === "=") {
+          this.update(TokenType.GT_EQ, 2);
+        } else {
+          this.update(TokenType.GT, 1);
+        }
+        return;
+
+      case "+":
+        if (index + 1 < input.length && input[index + 1] === "+") {
+          this.update(TokenType.INCR, 2);
+        } else {
+          this.update(TokenType.ADD, 1);
+        }
+        return;
+
+      case "-":
+        if (index + 1 < input.length && input[index + 1] === "-") {
+          this.update(TokenType.DECR, 2);
+        } else {
+          this.update(TokenType.SUB, 1);
+        }
+        return;
+
+      case "*":
+        this.update(TokenType.MULT, 1);
+        return;
+
+      case "/":
+        this.update(TokenType.DIV, 1);
+        return;
+
+      case "%":
+        this.update(TokenType.MOD, 1);
+        return;
+
+      case "&":
+        if (index + 1 < input.length && input[index + 1] === "&") {
+          this.update(TokenType.AND_AND, 2);
+        } else {
+          throw new Error(
+            `Unexpected character '&' at index ${index} (${this._line}:${this._column})`
+          );
+        }
+        return;
+
+      case "|":
+        if (index + 1 < input.length && input[index + 1] === "|") {
+          this.update(TokenType.OR_OR, 2);
+        } else {
+          this.update(TokenType.OR, 1);
+        }
+        return;
+
+      case "\n":
+        this.update(TokenType.NL, 1);
+        return;
+
+      case "\r":
+        if (index + 1 < input.length && input[index + 1] === "\n") {
+          this.update(TokenType.NL, 2);
+        } else {
+          this.update(TokenType.NL, 1);
+        }
+        return;
+
+      case '"':
+        this.parseString();
+        return;
+
+      // Keywords starting with specific letters
+      case "b":
+        if (isWord(input, index, "break")) {
+          this.update(TokenType.BREAK, 5);
+        } else {
+          this.parseIdentifier();
+        }
+        return;
+
+      case "c":
+        if (isWord(input, index, "continue")) {
+          this.update(TokenType.CONTINUE, 8);
+        } else {
+          this.parseIdentifier();
+        }
         return;
 
       case "e":
@@ -144,6 +333,8 @@ export class Lexer {
           this.update(TokenType.FUN, 3);
         } else if (isWord(input, index, "false")) {
           this.update(TokenType.FALSE, 5);
+        } else if (isWord(input, index, "for")) {
+          this.update(TokenType.FOR, 3);
         } else {
           this.parseIdentifier();
         }
@@ -154,6 +345,16 @@ export class Lexer {
           this.update(TokenType.IF, 2);
         } else if (isWord(input, index, "is")) {
           this.update(TokenType.IS, 2);
+        } else if (isWord(input, index, "in")) {
+          this.update(TokenType.IN, 2);
+        } else {
+          this.parseIdentifier();
+        }
+        return;
+
+      case "n":
+        if (isWord(input, index, "null")) {
+          this.update(TokenType.NULL, 4);
         } else {
           this.parseIdentifier();
         }
@@ -185,92 +386,65 @@ export class Lexer {
         }
         return;
 
-      case "\n":
-        this.update(TokenType.NL, 1);
-        return;
-
-      case "\r":
-        if (this.input[index + 1] !== "\n") {
-          throw new Error(
-            "Unexpected character sequence: \\r not followed by \\n is currently not allowed"
-          );
-        }
-        this.update(TokenType.NL, 2);
-        return;
-
-      case ";":
-        this.update(TokenType.SEMICOLON, 1);
-        return;
-
-      case ",":
-        this.update(TokenType.COMMA, 1);
-        return;
-
-      case ":":
-        this.update(TokenType.COLON, 1);
-        return;
-
-      case "=":
-        if (isWord(input, index, "==")) {
-          this.update(TokenType.EQEQ, 2);
+      case "w":
+        if (isWord(input, index, "while")) {
+          this.update(TokenType.WHILE, 5);
         } else {
-          this.update(TokenType.ASSIGNMENT, 1);
+          this.parseIdentifier();
         }
-        return;
-
-      case "(":
-        this.update(TokenType.LPAREN, 1);
-        return;
-
-      case ")":
-        this.update(TokenType.RPAREN, 1);
-        return;
-
-      case "{":
-        this.update(TokenType.LCURL, 1);
-        return;
-
-      case "}":
-        this.update(TokenType.RCURL, 1);
-        return;
-
-      case "[":
-        this.update(TokenType.LBRACKET, 1);
-        return;
-
-      case "]":
-        this.update(TokenType.RBRACKET, 1);
-        return;
-
-      case '"':
-        let end = index;
-        do {
-          end++;
-        } while (this.input[end] !== '"' && this.input[end]);
-        this.update(TokenType.LINE_STRING, end - this._index + 1);
         return;
     }
 
-    if (isLetter(input[index])) {
+    if (isLetter(ch) || ch === "_") {
       this.parseIdentifier();
       return;
     }
 
-    if (isDigit(input[index])) {
-      let end = index + 1;
-      while (end < input.length && isDigit(input[end])) {
-        end++;
-      }
-      this.update(TokenType.INT, end - index);
+    if (isDigit(ch)) {
+      this.parseNumber();
       return;
     }
 
     throw new Error(
-      `Unrecognizable character at "${this.input.substring(
-        this._index,
-        this._index + 10
-      )}" at index ${this._index} (${this._line}:${this._column})`
+      `Unrecognizable character '${ch}' at index ${this._index} (${this._line}:${this._column})`
     );
+  }
+
+  private parseString(): void {
+    let end = this._index + 1;
+    while (end < this.input.length && this.input[end] !== '"') {
+      // Handle escape sequences
+      if (this.input[end] === '\\' && end + 1 < this.input.length) {
+        end += 2;
+      } else {
+        end++;
+      }
+    }
+
+    if (end < this.input.length) {
+      end++; // Include closing quote
+    }
+
+    this.update(TokenType.LINE_STRING, end - this._index);
+  }
+
+  private parseNumber(): void {
+    let end = this._index + 1;
+    while (end < this.input.length && isDigit(this.input[end])) {
+      end++;
+    }
+
+    // Check for float
+    if (end < this.input.length && this.input[end] === '.' &&
+        end + 1 < this.input.length && isDigit(this.input[end + 1])) {
+      end++;
+      while (end < this.input.length && isDigit(this.input[end])) {
+        end++;
+      }
+      this.update(TokenType.FLOAT, end - this._index);
+    } else {
+      this.update(TokenType.INT, end - this._index);
+    }
   }
 
   private update(tokenType: TokenType, length: number) {
@@ -282,12 +456,11 @@ export class Lexer {
     let end = this._index + 1;
     while (
       end < this.input.length &&
-      (isLetter(this.input[end]) || isDigit(this.input[end]))
+      (isLetter(this.input[end]) || isDigit(this.input[end]) || this.input[end] === "_")
     ) {
       end++;
     }
-    const length = end - this._index;
-    this.update(TokenType.IDENTIFIER, length);
+    this.update(TokenType.IDENTIFIER, end - this._index);
   }
 }
 
@@ -302,7 +475,7 @@ function isSeparator(ch: string | undefined) {
     return true;
   }
 
-  return !isDigit(ch) && !isLetter(ch);
+  return !isDigit(ch) && !isLetter(ch) && ch !== "_";
 }
 
 function isDigit(ch: string) {

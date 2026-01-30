@@ -1,4 +1,4 @@
-import { CompileContext } from "./common";
+import { CompileContext, ResolveContext, createResolveContext } from "./common";
 import { Type } from "./typeSystem";
 
 export abstract class Symbol {
@@ -8,5 +8,10 @@ export abstract class Symbol {
 
   public abstract get valueType(): Type;
 
-  public abstract resolveTypes(context: CompileContext): void;
+  public abstract resolve(context: ResolveContext): void;
+
+  /** @deprecated Use resolve(context) instead */
+  public resolveTypes(context: CompileContext): void {
+    this.resolve(createResolveContext(context));
+  }
 }

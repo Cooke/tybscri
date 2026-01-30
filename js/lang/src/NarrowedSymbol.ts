@@ -1,4 +1,4 @@
-import { CompileContext } from "./common";
+import { ResolveContext } from "./common";
 import { Symbol } from "./Symbol";
 import { Type, unknownType } from "./typeSystem";
 
@@ -9,15 +9,15 @@ export class NarrowedSymbol extends Symbol {
 
   constructor(
     public readonly outerSymbol: Symbol,
-    private readonly narrower: (context: CompileContext) => Type
+    private readonly narrower: (context: ResolveContext) => Type
   ) {
     super(outerSymbol.name);
   }
 
   public valueType: Type = unknownType;
 
-  public resolveTypes(context: CompileContext): void {
-    this.outerSymbol.resolveTypes(context);
+  public resolve(context: ResolveContext): void {
+    this.outerSymbol.resolve(context);
     this.valueType = this.narrower(context);
   }
 }

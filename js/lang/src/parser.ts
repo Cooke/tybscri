@@ -218,7 +218,7 @@ export class Parser {
   }
 
   parseExpression() {
-    return this.parseEqualityExpression();
+    return this.parseOrExpression();
   }
 
   private parseBinaryExpressionChain(
@@ -260,8 +260,28 @@ export class Parser {
     return this.createActualToken(token);
   }
 
+  private parseOrExpression() {
+    return this.parseBinaryExpressionChain(() => this.parseAndExpression(), L.OR_OR);
+  }
+
+  private parseAndExpression() {
+    return this.parseBinaryExpressionChain(() => this.parseEqualityExpression(), L.AND_AND);
+  }
+
   parseEqualityExpression() {
-    return this.parseBinaryExpressionChain(() => this.parseIsExpression(), L.EQEQ);
+    return this.parseBinaryExpressionChain(() => this.parseComparisonExpression(), L.EQEQ, L.EXCLAM_EQ);
+  }
+
+  private parseComparisonExpression() {
+    return this.parseBinaryExpressionChain(() => this.parseAdditiveExpression(), L.LT, L.GT, L.LT_EQ, L.GT_EQ);
+  }
+
+  private parseAdditiveExpression() {
+    return this.parseBinaryExpressionChain(() => this.parseMultiplicativeExpression(), L.ADD, L.SUB);
+  }
+
+  private parseMultiplicativeExpression() {
+    return this.parseBinaryExpressionChain(() => this.parseIsExpression(), L.MULT, L.DIV, L.MOD);
   }
 
   public parseIsExpression() {

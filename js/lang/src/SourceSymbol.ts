@@ -1,4 +1,4 @@
-import { CompileContext } from "./common";
+import { ResolveContext } from "./common";
 import { Symbol } from "./Symbol";
 import { Type } from "./typeSystem";
 
@@ -10,7 +10,7 @@ export class SourceSymbol extends Symbol {
   constructor(
     name: string,
     public readonly node: {
-      resolveTypes(context: CompileContext): void;
+      resolve(context: ResolveContext): void;
       valueType: Type;
       isConst: boolean;
     }
@@ -22,7 +22,7 @@ export class SourceSymbol extends Symbol {
     return this.node.valueType;
   }
 
-  public resolveTypes(context: CompileContext): void {
-    this.node.resolveTypes(context);
+  public resolve(context: ResolveContext): void {
+    this.node.resolve(context);
   }
 }

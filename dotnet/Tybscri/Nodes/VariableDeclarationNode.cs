@@ -5,16 +5,27 @@ using Tybscri.Symbols;
 
 namespace Tybscri.Nodes;
 
+public enum VariableKind
+{
+    Variable,
+    Const,
+}
+
 public class VariableDeclarationNode : IStatementNode, ISymbolDefinitionNode, IAsyncEvaluatable
 {
     private ParameterExpression? _linqExpression;
 
-    public VariableDeclarationNode(Token name, IExpressionNode assignment)
+    public VariableDeclarationNode(VariableKind kind, Token name, IExpressionNode assignment)
     {
+        Kind = kind;
         Name = name;
         Assignment = assignment;
         Children = new[] { assignment };
     }
+
+    public VariableKind Kind { get; }
+
+    public bool IsConst => Kind == VariableKind.Const;
 
     public Token Name { get; }
 

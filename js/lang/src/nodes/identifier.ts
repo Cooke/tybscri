@@ -1,6 +1,6 @@
 import { NarrowedSymbol } from "../NarrowedSymbol";
 import { Symbol } from "../Symbol";
-import { CompileContext, DiagnosticSeverity } from "../common";
+import { CompileContext, DiagnosticSeverity, ResolveContext } from "../common";
 import { Scope } from "../scope";
 import { unknownType } from "../typeSystem";
 import { narrowTypeTruthy } from "../typeSystem/utils";
@@ -27,9 +27,9 @@ export class IdentifierNode extends ExpressionNode {
     this.scope = scope;
   }
 
-  public resolveTypes(context: CompileContext) {
+  public resolve(context: ResolveContext) {
     if (!this.symbol) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `Cannot find name '${this.token.text}'`,
         severity: DiagnosticSeverity.Error,
         span: this.token.span,
@@ -37,7 +37,7 @@ export class IdentifierNode extends ExpressionNode {
       return;
     }
 
-    this.symbol.resolveTypes(context);
+    this.symbol.resolve(context);
     this.valueType = this.symbol.valueType;
   }
 

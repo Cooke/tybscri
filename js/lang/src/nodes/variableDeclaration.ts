@@ -1,5 +1,5 @@
 import { SourceSymbol } from "../SourceSymbol";
-import { CompileContext, DiagnosticSeverity } from "../common";
+import { CompileContext, DiagnosticSeverity, ResolveContext } from "../common";
 import { Scope } from "../scope";
 import { widenType } from "../typeSystem/utils";
 import { ExpressionNode } from "./expression";
@@ -27,8 +27,8 @@ export class VariableDeclarationNode extends StatementNode {
     this.scope = scope;
   }
 
-  public resolveTypes(context: CompileContext) {
-    this.value.resolveTypes(context);
+  public resolve(context: ResolveContext) {
+    this.value.resolve(context.withExpectedType(null));
 
     if (!this.value.valueType) {
       return;

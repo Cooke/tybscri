@@ -1,16 +1,15 @@
 import { FuncType } from "..";
-import { DiagnosticSeverity } from "../common";
-import { CompileContext } from "../common";
+import { DiagnosticSeverity, ResolveContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class InvocationNode extends ExpressionNode {
-  public resolveTypes(context: CompileContext) {
-    this.target.resolveTypes(context);
+  public resolve(context: ResolveContext) {
+    this.target.resolve(context.withExpectedType(null));
 
     if (!(this.target.valueType instanceof FuncType)) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `The expression cannot be invoked`,
         severity: DiagnosticSeverity.Error,
         span: this.target.span,
@@ -26,10 +25,10 @@ export class InvocationNode extends ExpressionNode {
       const arg = args[i];
       const parameter = this.target.valueType.parameters[i];
       const expectedType = parameter?.type;
-      arg.resolveTypes(context, expectedType);
+      arg.resolve(context.withExpectedType(expectedType));
 
       if (!expectedType.isAssignableFrom(arg.valueType)) {
-        context.onDiagnosticMessage?.({
+        context.compileContext.onDiagnosticMessage?.({
           message: `Argument of type '${arg.valueType.displayName}' is not assignable to '${expectedType.displayName}'`,
           severity: DiagnosticSeverity.Error,
           span: arg.span,

@@ -1,5 +1,5 @@
 import { SourceSymbol } from "../SourceSymbol";
-import { CompileContext, DiagnosticSeverity } from "../common";
+import { CompileContext, DiagnosticSeverity, ResolveContext } from "../common";
 import { Scope } from "../scope";
 import { nullType, unknownType } from "../typeSystem";
 import { FuncType } from "../typeSystem/FuncType";
@@ -36,7 +36,7 @@ export class FunctionNode extends StatementNode {
     this.scope = scope;
   }
 
-  public resolveTypes(context: CompileContext) {
+  public resolve(context: ResolveContext) {
     if (this._analyzeState === "analyzed") {
       return;
     }
@@ -44,7 +44,7 @@ export class FunctionNode extends StatementNode {
     if (this._analyzeState === "analyzing") {
       this._analyzeState = "analyzed";
 
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: "Circular reference in function is currently not allowed",
         severity: DiagnosticSeverity.Error,
         span: this.span,
@@ -62,9 +62,9 @@ export class FunctionNode extends StatementNode {
 
     this._analyzeState = "analyzing";
     for (const par of this.parameters) {
-      par.resolveTypes(context);
+      par.resolve(context.withExpectedType(null));
     }
-    this.body.resolveTypes(context);
+    this.body.resolve(context.withExpectedType(null));
 
     if (this._analyzeState !== "analyzing") {
       // Analyzed already done in a circular analyze

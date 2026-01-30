@@ -1,17 +1,17 @@
-import { CompileContext } from "../common";
+import { ResolveContext } from "../common";
 import { UnionType } from "../typeSystem";
 import { ExpressionNode } from "./expression";
 import { TokenNode } from "./token";
 
 export class CollectionLiteralNode extends ExpressionNode {
-  public resolveTypes(context: CompileContext): void {
+  public resolve(context: ResolveContext): void {
     for (const exp of this.expressions) {
-      exp.resolveTypes(context);
+      exp.resolve(context.withExpectedType(null));
     }
 
     const itemType = UnionType.create(this.expressions.map((x) => x.valueType));
 
-    this.valueType = context.environment.collectionDefinition.createType([
+    this.valueType = context.compileContext.environment.collectionDefinition.createType([
       itemType,
     ]);
   }

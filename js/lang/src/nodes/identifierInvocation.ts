@@ -1,20 +1,19 @@
 import { FuncType } from "..";
-import { DiagnosticSeverity } from "../common";
-import { CompileContext } from "../common";
+import { DiagnosticSeverity, ResolveContext } from "../common";
 import { ExpressionNode } from "./expression";
 import { LambdaLiteralNode } from "./lambdaLiteral";
 import { TokenNode } from "./token";
 
 export class IdentifierInvocationNode extends ExpressionNode {
-  public resolveTypes(context: CompileContext) {
+  public resolve(context: ResolveContext) {
     const potentialTargets = this.scope.resolveAll(this.name.text);
 
     for (const t of potentialTargets) {
-      t.resolveTypes(context);
+      t.resolve(context);
     }
 
     if (potentialTargets.length > 1) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `Ambiguous identifier '${this.name.text}' are currently not supported`,
         severity: DiagnosticSeverity.Error,
         span: this.name.span,
@@ -23,7 +22,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
     }
 
     if (potentialTargets.length === 0) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `Unknown name '${this.name.text}'`,
         severity: DiagnosticSeverity.Error,
         span: this.name.span,
@@ -33,7 +32,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
 
     const target = potentialTargets[0];
     if (!(target.valueType instanceof FuncType)) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `The expression cannot be invoked`,
         severity: DiagnosticSeverity.Error,
         span: this.name.span,
@@ -48,7 +47,7 @@ export class IdentifierInvocationNode extends ExpressionNode {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       const expectedType = target.valueType.parameters[i]?.type;
-      arg.resolveTypes(context, expectedType);
+      arg.resolve(context.withExpectedType(expectedType));
     }
 
     this.valueType = target.valueType.returnType;

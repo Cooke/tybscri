@@ -1,5 +1,5 @@
-import { CompileContext } from "../common";
-import { numberType, stringType, Type } from "../typeSystem";
+import { CompileContext, ResolveContext } from "../common";
+import { numberType, stringType } from "../typeSystem";
 import { LiteralType } from "../typeSystem/LiteralType";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";
@@ -9,11 +9,8 @@ export class LiteralNode extends ExpressionNode {
     super(tokens);
   }
 
-  public resolveTypes(
-    context: CompileContext,
-    expectedType?: Type | null | undefined
-  ): void {
-    this.valueType = this.calculateType(context);
+  public resolve(context: ResolveContext): void {
+    this.valueType = this.calculateType(context.compileContext);
   }
 
   private calculateType(context: CompileContext) {

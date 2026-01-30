@@ -1,4 +1,4 @@
-import { CompileContext, DiagnosticSeverity } from "../common";
+import { CompileContext, DiagnosticSeverity, ResolveContext } from "../common";
 import { Scope } from "../scope";
 import { SourceSymbol } from "../SourceSymbol";
 import { Symbol } from "../Symbol";
@@ -38,9 +38,10 @@ export class LambdaLiteralNode extends ExpressionNode {
     this.scope = blockScope;
   }
 
-  public resolveTypes(context: CompileContext, expectedType?: Type | null) {
+  public resolve(context: ResolveContext) {
+    const expectedType = context.expectedType;
     if (!expectedType || !(expectedType instanceof FuncType)) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message:
           "Lambda literals are currently only supported when a function type is expected",
         severity: DiagnosticSeverity.Error,
@@ -55,7 +56,7 @@ export class LambdaLiteralNode extends ExpressionNode {
     this.itParameterType = expectedType.parameters[0]?.type ?? neverType;
 
     for (const stat of this.statements) {
-      stat.resolveTypes(context);
+      stat.resolve(context.withExpectedType(null));
     }
 
     const allReturns = this.statements.reduce<ReturnNode[]>(
@@ -77,7 +78,7 @@ export class LambdaLiteralNode extends ExpressionNode {
       !(expectedType.returnType instanceof TypeParameter) &&
       !expectedType.returnType.isAssignableFrom(returnType)
     ) {
-      context.onDiagnosticMessage?.({
+      context.compileContext.onDiagnosticMessage?.({
         message: `Return type '${returnType.displayName}' is not compatible with the expected return type '${expectedType.returnType.displayName}'`,
         span: this.span,
         severity: DiagnosticSeverity.Error,
@@ -119,7 +120,7 @@ export class LambdaLiteralNode extends ExpressionNode {
 
     const valueTypeGetter = () => this.itParameterType;
     this.itParameterSymbol = new SourceSymbol("it", {
-      resolveTypes: () => {},
+      resolve: () => {},
       get valueType(): Type {
         return valueTypeGetter();
       },
