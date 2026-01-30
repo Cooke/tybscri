@@ -130,15 +130,73 @@ export class Lexer {
     this._column += this._tokenLength;
     if (this._tokenType === TokenType.NL) {
       this._line++;
-      this._column = 0;
+      this._column = 1;
     }
 
+    // Skip whitespace
     while (
       this._index < this.input.length &&
       isWhitespace(this.input[this._index])
     ) {
       this._index++;
       this._column++;
+    }
+
+    // Skip comments
+    while (this._index < this.input.length) {
+      if (
+        this._index + 1 < this.input.length &&
+        this.input[this._index] === "/" &&
+        this.input[this._index + 1] === "/"
+      ) {
+        // Line comment - skip to end of line
+        while (
+          this._index < this.input.length &&
+          this.input[this._index] !== "\n" &&
+          this.input[this._index] !== "\r"
+        ) {
+          this._index++;
+          this._column++;
+        }
+      } else if (
+        this._index + 1 < this.input.length &&
+        this.input[this._index] === "/" &&
+        this.input[this._index + 1] === "*"
+      ) {
+        // Block comment - skip to */
+        this._index += 2;
+        this._column += 2;
+        while (
+          this._index + 1 < this.input.length &&
+          !(
+            this.input[this._index] === "*" &&
+            this.input[this._index + 1] === "/"
+          )
+        ) {
+          if (this.input[this._index] === "\n") {
+            this._line++;
+            this._column = 1;
+          } else if (this.input[this._index] !== "\r") {
+            this._column++;
+          }
+          this._index++;
+        }
+        if (this._index + 1 < this.input.length) {
+          this._index += 2;
+          this._column += 2;
+        }
+      } else {
+        break;
+      }
+
+      // Skip whitespace after comment
+      while (
+        this._index < this.input.length &&
+        isWhitespace(this.input[this._index])
+      ) {
+        this._index++;
+        this._column++;
+      }
     }
 
     this.parse();

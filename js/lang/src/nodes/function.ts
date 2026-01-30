@@ -107,7 +107,7 @@ export class FunctionNode extends StatementNode {
 
   constructor(
     public readonly name: TokenNode,
-    public readonly parameters: ParameterNode[],
+    public readonly parameters: FunctionParameterNode[],
     // public readonly returnType: TypeSyntax | null,
     public readonly body: BlockNode
   ) {
@@ -116,7 +116,7 @@ export class FunctionNode extends StatementNode {
   }
 }
 
-export class ParameterNode extends Node {
+export class FunctionParameterNode extends Node {
   public get valueType() {
     return this.type.type;
   }

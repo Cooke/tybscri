@@ -9,7 +9,7 @@ import { BinaryExpressionNode } from "./nodes/binaryExpression";
 import { BlockNode } from "./nodes/block";
 import { CollectionLiteralNode } from "./nodes/collectionLiteral";
 import { ExpressionNode, MissingExpressionNode } from "./nodes/expression";
-import { FunctionNode, ParameterNode } from "./nodes/function";
+import { FunctionNode, FunctionParameterNode } from "./nodes/function";
 import { IdentifierNode } from "./nodes/identifier";
 import { IdentifierInvocationNode } from "./nodes/identifierInvocation";
 import { IfNode } from "./nodes/if";
@@ -161,7 +161,7 @@ export class Parser {
     this.parseToken(L.LPAREN);
     this.advanceWhileNL();
 
-    const valueParams: ParameterNode[] = [];
+    const valueParams: FunctionParameterNode[] = [];
     while (this.tokenType() !== L.RPAREN && this.tokenType() !== L.EOF) {
       valueParams.push(this.parseParameter());
       this.advanceWhileNL();
@@ -188,7 +188,7 @@ export class Parser {
     const colon = this.parseToken(L.COLON);
     this.advanceWhileNL();
     const type = this.parseType();
-    return new ParameterNode(ident, colon, type);
+    return new FunctionParameterNode(ident, colon, type);
   }
 
   parseType() {
