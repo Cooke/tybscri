@@ -1,8 +1,16 @@
 import assert from "assert";
 import { parseScript } from "../src";
+import { Environment } from "../src/common";
+import { defaultEnvironment } from "../src/defaultEnvironment";
 import { FunctionNode } from "../src/nodes/function";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
-import { FuncParameter, FuncType, UnionType, createLiteralType } from "../src/typeSystem";
+import {
+  FuncParameter,
+  FuncType,
+  UnionType,
+  createLiteralType,
+  numberType,
+} from "../src/typeSystem";
 import { assertNoErrors, assertTybscriType, assertType } from "./utils";
 
 describe("Functions", function () {
@@ -190,5 +198,23 @@ describe("Functions", function () {
       m.message.includes("Cannot find name 'Void'")
     );
     assert.equal(voidError, undefined);
+  });
+
+  it("custom environment includes built-in types", function () {
+    // Create a custom environment with only custom symbols
+    const customEnv: Environment = {
+      ...defaultEnvironment,
+      symbols: [{ name: "myVar", type: numberType }],
+    };
+    // Built-in types like Null should still be available
+    const result = parseScript(
+      `
+    fun returnsNull(): Null {
+      return null
+    }
+    `,
+      { environment: customEnv }
+    );
+    assertNoErrors(result);
   });
 });

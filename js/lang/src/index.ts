@@ -77,9 +77,15 @@ export interface ScriptParseResult {
 }
 
 function createScopeFromEnvironment(environment: Environment) {
+  // Merge custom environment symbols with default built-in types
+  // Custom symbols take precedence over defaults with the same name
+  const customSymbolNames = new Set(environment.symbols.map((s) => s.name));
+  const defaultSymbols = defaultEnvironment.symbols.filter((s) => !customSymbolNames.has(s.name));
+  const mergedSymbols = [...defaultSymbols, ...environment.symbols];
+
   return new Scope(
     null,
-    environment.symbols.map((s) => new ExternalSymbol(s.name, s.type))
+    mergedSymbols.map((s) => new ExternalSymbol(s.name, s.type))
   );
 }
 
