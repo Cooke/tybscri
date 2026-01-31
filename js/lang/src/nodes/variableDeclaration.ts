@@ -35,9 +35,7 @@ export class VariableDeclarationNode extends StatementNode {
     }
 
     this.valueType =
-      this.kind === VariableKind.Const
-        ? this.value.valueType
-        : widenType(this.value.valueType);
+      this.kind === VariableKind.Const ? this.value.valueType : widenType(this.value.valueType);
   }
 
   constructor(

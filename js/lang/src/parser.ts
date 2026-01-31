@@ -1,9 +1,4 @@
-import {
-  CompileContext,
-  DiagnosticMessage,
-  DiagnosticSeverity,
-  SourceSpan,
-} from "./common";
+import { CompileContext, DiagnosticMessage, DiagnosticSeverity, SourceSpan } from "./common";
 import { Lexer, Token, TokenType } from "./lexer";
 import { BinaryExpressionNode } from "./nodes/binaryExpression";
 import { BlockNode } from "./nodes/block";
@@ -25,17 +20,10 @@ import { MemberAccessNode } from "./nodes/memberAccess";
 import { MemberInvocationNode } from "./nodes/memberInvocation";
 import { ReturnNode } from "./nodes/return";
 import { ScriptNode } from "./nodes/script";
-import {
-  ExpressionStatementNode,
-  MissingStatementNode,
-  StatementNode,
-} from "./nodes/statements";
+import { ExpressionStatementNode, MissingStatementNode, StatementNode } from "./nodes/statements";
 import { ActualTokenNode, MissingTokenNode, TokenNode } from "./nodes/token";
 import { TypeNode } from "./nodes/type";
-import {
-  VariableDeclarationNode,
-  VariableKind,
-} from "./nodes/variableDeclaration";
+import { VariableDeclarationNode, VariableKind } from "./nodes/variableDeclaration";
 
 import L = TokenType;
 
@@ -64,7 +52,7 @@ export class Parser {
   }
 
   private parseStatementEnd() {
-    let tokenType = this.tokenType();
+    const tokenType = this.tokenType();
     if (tokenType === L.EOF) {
       return this.createActualToken(this.token());
     }
@@ -103,14 +91,10 @@ export class Parser {
   }
 
   private parseVariableDeclaration() {
-    const varOrVal =
-      this.tokenType() === L.VAL
-        ? this.parseToken(L.VAL)
-        : this.parseToken(L.VAR);
+    const varOrVal = this.tokenType() === L.VAL ? this.parseToken(L.VAL) : this.parseToken(L.VAR);
     const def = this.parseVariableDefinition();
 
-    const kind =
-      varOrVal.text === "var" ? VariableKind.Variable : VariableKind.Const;
+    const kind = varOrVal.text === "var" ? VariableKind.Variable : VariableKind.Const;
     const varDec = new VariableDeclarationNode(kind, def.name, def.value);
     return varDec;
   }
@@ -211,7 +195,7 @@ export class Parser {
       case L.IDENTIFIER:
         return new TypeNode(this.parseIdentifier());
 
-      default:
+      default: {
         const ident = this.parseIdentifier();
         this.reportDiagnostic({
           message: `Expected a type.`,
@@ -219,6 +203,7 @@ export class Parser {
           span: ident.span,
         });
         return new TypeNode(ident);
+      }
     }
   }
 
@@ -274,15 +259,29 @@ export class Parser {
   }
 
   parseEqualityExpression() {
-    return this.parseBinaryExpressionChain(() => this.parseComparisonExpression(), L.EQEQ, L.EXCLAM_EQ);
+    return this.parseBinaryExpressionChain(
+      () => this.parseComparisonExpression(),
+      L.EQEQ,
+      L.EXCLAM_EQ
+    );
   }
 
   private parseComparisonExpression() {
-    return this.parseBinaryExpressionChain(() => this.parseAdditiveExpression(), L.LT, L.GT, L.LT_EQ, L.GT_EQ);
+    return this.parseBinaryExpressionChain(
+      () => this.parseAdditiveExpression(),
+      L.LT,
+      L.GT,
+      L.LT_EQ,
+      L.GT_EQ
+    );
   }
 
   private parseAdditiveExpression() {
-    return this.parseBinaryExpressionChain(() => this.parseMultiplicativeExpression(), L.ADD, L.SUB);
+    return this.parseBinaryExpressionChain(
+      () => this.parseMultiplicativeExpression(),
+      L.ADD,
+      L.SUB
+    );
   }
 
   private parseMultiplicativeExpression() {
@@ -454,14 +453,7 @@ export class Parser {
       elseStatement = this.parseBody();
     }
 
-    return new IfNode(
-      ifkeyword,
-      lparen,
-      expression,
-      rparen,
-      thenStatement,
-      elseStatement
-    );
+    return new IfNode(ifkeyword, lparen, expression, rparen, thenStatement, elseStatement);
   }
 
   private parseForExpression() {
@@ -487,15 +479,7 @@ export class Parser {
     this.advanceWhileNL();
     const body = this.parseBody();
 
-    return new ForNode(
-      forKeyword,
-      lparen,
-      itemName,
-      inToken,
-      collection,
-      rparen,
-      body
-    );
+    return new ForNode(forKeyword, lparen, itemName, inToken, collection, rparen, body);
   }
 
   private parseWhileExpression() {
@@ -517,13 +501,7 @@ export class Parser {
     this.advanceWhileNL();
     const body = this.parseBody();
 
-    return new WhileNode(
-      whileKeyword,
-      lparen,
-      condition,
-      rparen,
-      body
-    );
+    return new WhileNode(whileKeyword, lparen, condition, rparen, body);
   }
 
   private parseBreakExpression() {
@@ -580,10 +558,7 @@ export class Parser {
       });
     }
 
-    return new LiteralNode(
-      [lineString],
-      lineString.text.substring(1, lineString.text.length - 1)
-    );
+    return new LiteralNode([lineString], lineString.text.substring(1, lineString.text.length - 1));
   }
 
   private parseIdentifier() {
@@ -633,7 +608,7 @@ export class Parser {
     TokenNode | null,
     ExpressionNode[],
     TokenNode | null,
-    LambdaLiteralNode | null
+    LambdaLiteralNode | null,
   ] {
     if (this.tokenType() === L.LCURL) {
       const lambdaLiteral = this.parseLambdaLiteral();
@@ -714,15 +689,10 @@ export class Parser {
   }
 
   private createActualToken(token: Token) {
-    return new ActualTokenNode(
-      token.type,
-      this.createSpan(token),
-      token.text ?? ""
-    );
+    return new ActualTokenNode(token.type, this.createSpan(token), token.text ?? "");
   }
 
   private createSpan(token: Token): SourceSpan {
-    token.index;
     return {
       start: {
         index: token.index,

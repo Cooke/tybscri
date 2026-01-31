@@ -23,16 +23,10 @@ export function narrowTypeTruthy(type: Type) {
   return type;
 }
 
-export function createLiteralType(
-  value: string | number | boolean
-): LiteralType {
+export function createLiteralType(value: string | number | boolean): LiteralType {
   return new LiteralType(
     value,
-    typeof value === "string"
-      ? stringType
-      : typeof value === "boolean"
-      ? booleanType
-      : numberType
+    typeof value === "string" ? stringType : typeof value === "boolean" ? booleanType : numberType
   );
 }
 

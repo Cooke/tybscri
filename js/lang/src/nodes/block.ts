@@ -11,9 +11,7 @@ import { VariableDeclarationNode } from "./variableDeclaration";
 
 export class BlockNode extends ExpressionNode {
   public get valueType(): Type {
-    return (
-      this.statements[this.statements.length - 1]?.valueType ?? unknownType
-    );
+    return this.statements[this.statements.length - 1]?.valueType ?? unknownType;
   }
 
   public setupScopes(scope: Scope, context: CompileContext) {

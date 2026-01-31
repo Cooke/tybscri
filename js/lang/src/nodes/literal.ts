@@ -5,7 +5,10 @@ import { Node } from "./base";
 import { ExpressionNode } from "./expression";
 
 export class LiteralNode extends ExpressionNode {
-  constructor(public readonly tokens: Node[], public readonly value: any) {
+  constructor(
+    public readonly tokens: Node[],
+    public readonly value: any
+  ) {
     super(tokens);
   }
 
@@ -16,10 +19,7 @@ export class LiteralNode extends ExpressionNode {
   private calculateType(context: CompileContext) {
     switch (typeof this.value) {
       case "boolean":
-        return new LiteralType(
-          this.value,
-          context.environment.booleanDefinition.createType([])
-        );
+        return new LiteralType(this.value, context.environment.booleanDefinition.createType([]));
       case "string":
         return new LiteralType(this.value, stringType);
       case "number":

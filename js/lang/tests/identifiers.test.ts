@@ -10,10 +10,7 @@ describe("Identifiers", function () {
     const parseResult = parseExpression("data");
     assert.equal(parseResult.tree.valueType, unknownType);
     assert.equal(parseResult.diagnosticMessages.length, 1);
-    assert.equal(
-      parseResult.diagnosticMessages[0].severity,
-      DiagnosticSeverity.Error
-    );
+    assert.equal(parseResult.diagnosticMessages[0].severity, DiagnosticSeverity.Error);
   });
 
   it("identifier type", function () {

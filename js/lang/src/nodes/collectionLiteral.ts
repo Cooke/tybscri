@@ -11,9 +11,7 @@ export class CollectionLiteralNode extends ExpressionNode {
 
     const itemType = UnionType.create(this.expressions.map((x) => x.valueType));
 
-    this.valueType = context.compileContext.environment.collectionDefinition.createType([
-      itemType,
-    ]);
+    this.valueType = context.compileContext.environment.collectionDefinition.createType([itemType]);
   }
 
   constructor(

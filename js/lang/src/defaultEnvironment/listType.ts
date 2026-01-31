@@ -5,8 +5,11 @@ import { booleanType, numberType, objectType } from "../typeSystem/types";
 
 const itemType = new TypeParameter("TItem");
 const mapResultType = new TypeParameter("TResult");
-export const listDefinitionType: ObjectDefinitionType =
-  new ObjectDefinitionType("List", objectType, [itemType], () => [
+export const listDefinitionType: ObjectDefinitionType = new ObjectDefinitionType(
+  "List",
+  objectType,
+  [itemType],
+  () => [
     new Member([MemberFlag.Const], "length", numberType),
     new Member(
       [MemberFlag.Const],
@@ -35,4 +38,5 @@ export const listDefinitionType: ObjectDefinitionType =
       ),
       [mapResultType]
     ),
-  ]);
+  ]
+);

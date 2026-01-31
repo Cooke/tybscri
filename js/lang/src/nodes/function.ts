@@ -13,8 +13,7 @@ import { TokenNode } from "./token";
 import { TypeNode } from "./type";
 
 export class FunctionNode extends StatementNode {
-  private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" =
-    "not-analyzed";
+  private _analyzeState: "not-analyzed" | "analyzing" | "analyzed" = "not-analyzed";
 
   public symbol: SourceSymbol;
 
@@ -76,9 +75,7 @@ export class FunctionNode extends StatementNode {
 
     const allReturns = this.findReturns(this.body);
     const actualReturnType = UnionType.create(
-      allReturns
-        .map((x) => x.expression?.valueType ?? nullType)
-        .concat([this.body.valueType])
+      allReturns.map((x) => x.expression?.valueType ?? nullType).concat([this.body.valueType])
     );
 
     let returnType;

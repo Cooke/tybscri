@@ -75,25 +75,15 @@ export class SemanticHighlighter {
     }
 
     // Convert tokens to Monaco decorations
-    const decorations: monaco.editor.IModelDeltaDecoration[] = tokens.map(
-      (token) => ({
-        range: new monaco.Range(
-          token.line,
-          token.startColumn,
-          token.line,
-          token.endColumn
-        ),
-        options: {
-          inlineClassName: token.className,
-        },
-      })
-    );
+    const decorations: monaco.editor.IModelDeltaDecoration[] = tokens.map((token) => ({
+      range: new monaco.Range(token.line, token.startColumn, token.line, token.endColumn),
+      options: {
+        inlineClassName: token.className,
+      },
+    }));
 
     // Apply decorations (this replaces previous decorations)
-    this.decorationIds = this.editor.deltaDecorations(
-      this.decorationIds,
-      decorations
-    );
+    this.decorationIds = this.editor.deltaDecorations(this.decorationIds, decorations);
   }
 
   public dispose() {

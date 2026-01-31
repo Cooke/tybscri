@@ -16,8 +16,7 @@ export class BinaryExpressionNode extends ExpressionNode {
     this.leftExpression.resolve(context.withExpectedType(null));
     this.rightExpression.resolve(context.withExpectedType(null));
 
-    const booleanType =
-      context.compileContext.environment.booleanDefinition.createType();
+    const booleanType = context.compileContext.environment.booleanDefinition.createType();
 
     switch (this.operator.text) {
       // Comparison operators → Boolean

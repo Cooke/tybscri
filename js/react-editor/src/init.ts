@@ -23,9 +23,6 @@ export function init() {
     });
 
     m.languages.setTokensProvider("tybscri", new TybscriTokensProvider());
-    m.languages.registerCompletionItemProvider(
-      "tybscri",
-      new TybscriCompletionItemProvider()
-    );
+    m.languages.registerCompletionItemProvider("tybscri", new TybscriCompletionItemProvider());
   });
 }

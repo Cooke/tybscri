@@ -5,10 +5,7 @@ export function assertEqual<T>(val: any, expected: T): asserts val is T {
   assert.equal(val, expected);
 }
 
-export function assertType<T>(
-  val: any,
-  t: { new (...args: any[]): T }
-): asserts val is T {
+export function assertType<T>(val: any, t: { new (...args: any[]): T }): asserts val is T {
   assert.ok(
     val instanceof t,
     `Expected type '${t.name}' but was '${val?.constructor?.name ?? "unknown"}'`
@@ -29,8 +26,7 @@ export function assertTybscriType<T extends Type>(
 export function assertNoErrors(result: ExpressionParseResult | ScriptParseResult) {
   if (result.diagnosticMessages.length !== 0) {
     assert.fail(
-      "Unexpected errors:\n" +
-        result.diagnosticMessages.map((it) => it.message).join("\n")
+      "Unexpected errors:\n" + result.diagnosticMessages.map((it) => it.message).join("\n")
     );
   }
 }

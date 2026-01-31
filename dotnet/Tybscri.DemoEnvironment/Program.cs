@@ -30,7 +30,7 @@ interface Player
 
 class EnvironmentGlobals
 {
-    public List<Npc> Npcs { get; }
-    
-    public Player Player { get; }
+    public required List<Npc> Npcs { get; init; }
+
+    public required Player Player { get; init; }
 }

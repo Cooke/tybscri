@@ -2,7 +2,10 @@ import { Type, Member, TypeParameterBinding } from "./common";
 import { areTypesEqual } from "./utils";
 
 export class LiteralType implements Type {
-  constructor(readonly value: any, readonly valueType: Type) {}
+  constructor(
+    readonly value: any,
+    readonly valueType: Type
+  ) {}
 
   public get members(): Array<Member> {
     return this.valueType.members;
@@ -10,9 +13,7 @@ export class LiteralType implements Type {
 
   public get displayName(): string {
     const literalName =
-      typeof this.value === "string"
-        ? '"' + this.value.toString() + '"'
-        : this.value.toString();
+      typeof this.value === "string" ? '"' + this.value.toString() + '"' : this.value.toString();
     return literalName + ` (${this.valueType.displayName})`;
   }
 

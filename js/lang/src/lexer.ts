@@ -87,7 +87,10 @@ export class Lexer {
   private _tokenLength: number = 0;
   private _token: Token | null = null;
 
-  constructor(public readonly input: string, initialState?: LexerState) {
+  constructor(
+    public readonly input: string,
+    initialState?: LexerState
+  ) {
     if (initialState) {
       this._index = initialState.index;
       this._column = initialState.column;
@@ -134,10 +137,7 @@ export class Lexer {
     }
 
     // Skip whitespace
-    while (
-      this._index < this.input.length &&
-      isWhitespace(this.input[this._index])
-    ) {
+    while (this._index < this.input.length && isWhitespace(this.input[this._index])) {
       this._index++;
       this._column++;
     }
@@ -168,10 +168,7 @@ export class Lexer {
         this._column += 2;
         while (
           this._index + 1 < this.input.length &&
-          !(
-            this.input[this._index] === "*" &&
-            this.input[this._index + 1] === "/"
-          )
+          !(this.input[this._index] === "*" && this.input[this._index + 1] === "/")
         ) {
           if (this.input[this._index] === "\n") {
             this._line++;
@@ -190,10 +187,7 @@ export class Lexer {
       }
 
       // Skip whitespace after comment
-      while (
-        this._index < this.input.length &&
-        isWhitespace(this.input[this._index])
-      ) {
+      while (this._index < this.input.length && isWhitespace(this.input[this._index])) {
         this._index++;
         this._column++;
       }
@@ -472,7 +466,7 @@ export class Lexer {
     let end = this._index + 1;
     while (end < this.input.length && this.input[end] !== '"') {
       // Handle escape sequences
-      if (this.input[end] === '\\' && end + 1 < this.input.length) {
+      if (this.input[end] === "\\" && end + 1 < this.input.length) {
         end += 2;
       } else {
         end++;
@@ -493,8 +487,12 @@ export class Lexer {
     }
 
     // Check for float
-    if (end < this.input.length && this.input[end] === '.' &&
-        end + 1 < this.input.length && isDigit(this.input[end + 1])) {
+    if (
+      end < this.input.length &&
+      this.input[end] === "." &&
+      end + 1 < this.input.length &&
+      isDigit(this.input[end + 1])
+    ) {
       end++;
       while (end < this.input.length && isDigit(this.input[end])) {
         end++;
@@ -523,9 +521,7 @@ export class Lexer {
 }
 
 function isWord(input: string, index: number, word: string) {
-  return (
-    input.startsWith(word, index) && isSeparator(input[index + word.length])
-  );
+  return input.startsWith(word, index) && isSeparator(input[index + word.length]);
 }
 
 function isSeparator(ch: string | undefined) {

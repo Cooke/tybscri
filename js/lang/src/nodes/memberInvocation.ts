@@ -52,10 +52,7 @@ export class MemberInvocationNode extends ExpressionNode {
       return;
     }
 
-    const args = [
-      ...this.argumentList,
-      ...(this.trailingLambda ? [this.trailingLambda] : []),
-    ];
+    const args = [...this.argumentList, ...(this.trailingLambda ? [this.trailingLambda] : [])];
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       const expectedType = member.type.parameters[i]?.type;

@@ -1,6 +1,7 @@
 {
   "name": "tybscri-root",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "workspaces": {
     "packages": [
@@ -9,13 +10,25 @@
   },
   "scripts": {
     "build": "npm run build -w lang && npm run build -w react-editor",
-    "dev": "concurrently \"npm run dev -w lang\" \"npm run dev -w react-editor\" \"npm run dev -w demo\""
+    "dev": "concurrently \"npm run dev -w lang\" \"npm run dev -w react-editor\" \"npm run dev -w demo\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "@eslint/js": "^9.0.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.2.0",
+    "typescript-eslint": "^8.0.0"
   }
 }

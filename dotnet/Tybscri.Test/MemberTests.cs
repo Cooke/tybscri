@@ -45,7 +45,7 @@ public class MemberTests
 
     public class TestEnv
     {
-        public Entity entity { get; set; }
+        public required Entity entity { get; set; }
     }
 
     public class Entity

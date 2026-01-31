@@ -31,9 +31,8 @@ export function inferTypes(to: Type, from: Type): TypeParameterBinding[] {
       results.push(
         ...inferTypes(
           to.typeArguments[i],
-          (fromObject instanceof ObjectType
-            ? fromObject.typeArguments?.[i]
-            : unknownType) ?? unknownType
+          (fromObject instanceof ObjectType ? fromObject.typeArguments?.[i] : unknownType) ??
+            unknownType
         )
       );
     }
@@ -48,10 +47,7 @@ export function inferTypes(to: Type, from: Type): TypeParameterBinding[] {
 
     for (let i = 0; i < to.parameters.length; i++) {
       results.push(
-        ...inferTypes(
-          to.parameters[i].type,
-          fromFunc?.parameters[i]?.type ?? unknownType
-        )
+        ...inferTypes(to.parameters[i].type, fromFunc?.parameters[i]?.type ?? unknownType)
       );
     }
 

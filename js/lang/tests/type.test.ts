@@ -68,12 +68,7 @@ describe("Types", function () {
     });
 
     it("reduce same", function () {
-      const union = createUnionType(
-        numberType,
-        stringType,
-        numberType,
-        stringType
-      );
+      const union = createUnionType(numberType, stringType, numberType, stringType);
       assertTybscriType(union, createUnionType(numberType, stringType));
     });
 
@@ -92,22 +87,14 @@ describe("Types", function () {
         createLiteralType("123"),
         createUnionType(createLiteralType(123), stringType)
       );
-      assertTybscriType(
-        union,
-        createUnionType(stringType, createLiteralType(123))
-      );
+      assertTybscriType(union, createUnionType(stringType, createLiteralType(123)));
     });
   });
 
   const baseDefType = new ObjectDefinitionType("Base", null, [], () => []);
   const baseType = baseDefType.createType();
 
-  const derivedDefType = new ObjectDefinitionType(
-    "Derived",
-    baseType,
-    [],
-    () => []
-  );
+  const derivedDefType = new ObjectDefinitionType("Derived", baseType, [], () => []);
   const derivedType = derivedDefType.createType();
 
   describe("hierarchy", function () {
@@ -119,12 +106,7 @@ describe("Types", function () {
   describe("generics", function () {
     it("covariance", function () {
       const typeParameter: TypeParameter = new TypeParameter("T", "out");
-      const myType = new ObjectDefinitionType(
-        "MyType",
-        null,
-        [typeParameter],
-        () => []
-      );
+      const myType = new ObjectDefinitionType("MyType", null, [typeParameter], () => []);
       const ofDerived = myType.createType([derivedType]);
       const ofBase = myType.createType([baseType]);
       assert.ok(ofBase.isAssignableFrom(ofDerived));
@@ -133,12 +115,7 @@ describe("Types", function () {
 
     it("invariance", function () {
       const typeParameter: TypeParameter = new TypeParameter("T");
-      const myType = new ObjectDefinitionType(
-        "MyType",
-        null,
-        [typeParameter],
-        () => []
-      );
+      const myType = new ObjectDefinitionType("MyType", null, [typeParameter], () => []);
       const ofDerived = myType.createType([derivedType]);
       const ofBase = myType.createType([baseType]);
       assert.ok(!isTypeAssignableToType(ofDerived, ofBase));
@@ -147,12 +124,7 @@ describe("Types", function () {
 
     it("contravariance", function () {
       const typeParameter: TypeParameter = new TypeParameter("T", "in");
-      const myType = new ObjectDefinitionType(
-        "MyType",
-        null,
-        [typeParameter],
-        () => []
-      );
+      const myType = new ObjectDefinitionType("MyType", null, [typeParameter], () => []);
       const ofDerived = myType.createType([derivedType]);
       const ofBase = myType.createType([baseType]);
       assert.ok(!isTypeAssignableToType(ofDerived, ofBase));
@@ -185,14 +157,8 @@ describe("Types", function () {
 
     it("infer type parameter from func parameter", function () {
       const typeParameter: TypeParameter = new TypeParameter("T");
-      const toType: FuncType = new FuncType(
-        [new FuncParameter("arg1", typeParameter)],
-        nullType
-      );
-      const fromType: FuncType = new FuncType(
-        [new FuncParameter("param", stringType)],
-        nullType
-      );
+      const toType: FuncType = new FuncType([new FuncParameter("arg1", typeParameter)], nullType);
+      const fromType: FuncType = new FuncType([new FuncParameter("param", stringType)], nullType);
       const inferredTypes = inferTypes(toType, fromType);
       assert.deepEqual(inferredTypes, [
         {
@@ -223,12 +189,7 @@ describe("Types", function () {
 
     it("infer type parameter from object type parameter", function () {
       const typeParameter: TypeParameter = new TypeParameter("T");
-      const definition = new ObjectDefinitionType(
-        "MyObject",
-        null,
-        [typeParameter],
-        () => []
-      );
+      const definition = new ObjectDefinitionType("MyObject", null, [typeParameter], () => []);
       const typeParameter2: TypeParameter = new TypeParameter("T");
       const toType = definition.createType([typeParameter2]);
       const fromType = definition.createType([stringType]);
@@ -248,9 +209,7 @@ describe("Types", function () {
         typeParameter
       );
 
-      const bindings = inferTypeArguments(memberFuncType.parameters, [
-        stringType,
-      ]);
+      const bindings = inferTypeArguments(memberFuncType.parameters, [stringType]);
       assert.deepEqual(bindings, [
         {
           parameter: typeParameter,

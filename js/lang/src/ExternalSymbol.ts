@@ -8,7 +8,10 @@ export class ExternalSymbol extends Symbol {
     return true;
   }
 
-  constructor(name: string, public readonly valueType: Type) {
+  constructor(
+    name: string,
+    public readonly valueType: Type
+  ) {
     super(name);
   }
 

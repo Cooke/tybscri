@@ -119,8 +119,8 @@ interface TypeResolver {
 }
 
 export function createEnvironment(envData: EnvironmentData): Environment {
-  var definitionTable: { [name: string]: DefinitionType } = {};
-  var typeResolver: TypeResolver = (name) => {
+  const definitionTable: { [name: string]: DefinitionType } = {};
+  const typeResolver: TypeResolver = (name) => {
     if (!definitionTable[name]) {
       throw new Error("Unknown type: " + name);
     }
@@ -142,25 +142,19 @@ export function createEnvironment(envData: EnvironmentData): Environment {
 
   return {
     symbols,
-    collectionDefinition: resolveDefinition(
-      envData.collectionDefinition,
-      typeResolver
-    ),
-    booleanDefinition: resolveDefinition(
-      envData.booleanDefinition,
-      typeResolver
-    ),
+    collectionDefinition: resolveDefinition(envData.collectionDefinition, typeResolver),
+    booleanDefinition: resolveDefinition(envData.booleanDefinition, typeResolver),
   };
 }
 
 export function parseEnvironment(json: string): Environment {
-  var envData: EnvironmentData = JSON.parse(json);
+  const envData: EnvironmentData = JSON.parse(json);
   return createEnvironment(envData);
 }
 
 function convertType(type: TypeData, typeResolver: TypeResolver): Type {
   switch (type.kind) {
-    case "ObjectDefinition":
+    case "ObjectDefinition": {
       const typeParameters = type.typeParameters.map(
         (x) => new TypeParameter(x.name, convertVariance(x.variance))
       );
@@ -168,18 +162,15 @@ function convertType(type: TypeData, typeResolver: TypeResolver): Type {
         typeParameters.find((p) => p.name === x) ?? typeResolver(x);
       return new ObjectDefinitionType(
         type.name,
-        type.base
-          ? resolveDefinition(type.base, typeResolver).createType([])
-          : null,
+        type.base ? resolveDefinition(type.base, typeResolver).createType([]) : null,
         typeParameters,
         () => type.members.map((m) => convertMember(m, innerResolver))
       );
+    }
 
     case "Func":
       return new FuncType(
-        type.parameters.map(
-          (p) => new FuncParameter(p.name, convertType(p.type, typeResolver))
-        ),
+        type.parameters.map((p) => new FuncParameter(p.name, convertType(p.type, typeResolver))),
         convertType(type.returnType, typeResolver)
       );
 
@@ -190,23 +181,19 @@ function convertType(type: TypeData, typeResolver: TypeResolver): Type {
       );
 
     case "Literal":
-      return new LiteralType(
-        type.value,
-        convertType(type.valueType, typeResolver)
-      );
+      return new LiteralType(type.value, convertType(type.valueType, typeResolver));
 
-    case "TypeReference":
+    case "TypeReference": {
       const referencedType = typeResolver(type.name);
       if (!referencedType) {
         throw new Error("Could not find referenced type: " + type.name);
       }
 
       return referencedType.createType([]);
+    }
 
     case "Union":
-      return createUnionType(
-        ...type.types.map((x) => convertType(x, typeResolver))
-      );
+      return createUnionType(...type.types.map((x) => convertType(x, typeResolver)));
 
     case "NeverDefinition":
       return new NeverDefinitionType(type.name);
@@ -238,15 +225,11 @@ function convertMember(member: MemberData, typeResolver: TypeResolver) {
     member.flags?.map((f) => convertMemberFlag(f)) ?? [],
     member.name,
     convertType(member.type, typeResolver),
-    member.typeParameters.map(
-      (x) => new TypeParameter(x.name, convertVariance(x.variance))
-    )
+    member.typeParameters.map((x) => new TypeParameter(x.name, convertVariance(x.variance)))
   );
 }
 
-function convertVariance(
-  data: TypeParameterVarianceData
-): TypeParameterVariance {
+function convertVariance(data: TypeParameterVarianceData): TypeParameterVariance {
   switch (data) {
     case "In":
       return "in";

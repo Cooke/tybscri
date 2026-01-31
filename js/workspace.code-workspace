@@ -1,23 +1,23 @@
 {
   "folders": [
     {
-      "path": "../spec"
+      "path": "../spec",
     },
     {
-      "path": "lang"
+      "path": "lang",
     },
     {
-      "path": "demo"
+      "path": "demo",
     },
     {
-      "path": "react-editor"
-    }
+      "path": "react-editor",
+    },
   ],
   "settings": {
     "cSpell.words": ["Tybscri"],
     "files.watcherExclude": {
       "**/lib/**": true,
-      "**/out/**": true
-    }
-  }
+      "**/out/**": true,
+    },
+  },
 }

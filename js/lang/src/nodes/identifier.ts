@@ -14,9 +14,7 @@ export class IdentifierNode extends ExpressionNode {
     return this.symbol
       ? [
           new NarrowedSymbol(this.symbol, () =>
-            this.symbol?.valueType
-              ? narrowTypeTruthy(this.symbol.valueType)
-              : unknownType
+            this.symbol?.valueType ? narrowTypeTruthy(this.symbol.valueType) : unknownType
           ),
         ]
       : [];

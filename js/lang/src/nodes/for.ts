@@ -24,10 +24,7 @@ export class ForNode extends ExpressionNode {
 
     // Infer item type from collection type (List<T> -> T)
     const collectionType = this.collection.valueType;
-    if (
-      collectionType instanceof ObjectType &&
-      collectionType.definition === listDefinitionType
-    ) {
+    if (collectionType instanceof ObjectType && collectionType.definition === listDefinitionType) {
       this.itemType = collectionType.typeArguments[0] ?? unknownType;
     } else {
       this.itemType = unknownType;

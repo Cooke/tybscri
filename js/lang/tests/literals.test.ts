@@ -31,11 +31,7 @@ describe("Literals", function () {
   it("collection", function () {
     const parseResult = parseExpression('[true, 123, "321"]');
     const expected = listDefinitionType.createType([
-      UnionType.create([
-        trueType,
-        createLiteralType(123),
-        createLiteralType("321"),
-      ]),
+      UnionType.create([trueType, createLiteralType(123), createLiteralType("321")]),
     ]);
     assertTybscriType(parseResult.tree.valueType, expected);
   });

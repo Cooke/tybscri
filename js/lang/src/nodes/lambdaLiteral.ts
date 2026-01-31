@@ -22,10 +22,7 @@ export class LambdaLiteralNode extends ExpressionNode {
     const hoistedScopeSymbols = this.statements
       .filter((x): x is FunctionNode => x instanceof FunctionNode)
       .reduce<Symbol[]>((p, c) => [...p, c.symbol], []);
-    let blockScope = new Scope(
-      scope,
-      hoistedScopeSymbols.concat([this.itParameterSymbol])
-    );
+    let blockScope = new Scope(scope, hoistedScopeSymbols.concat([this.itParameterSymbol]));
 
     for (const statement of this.statements) {
       statement.setupScopes(blockScope, context);
@@ -42,8 +39,7 @@ export class LambdaLiteralNode extends ExpressionNode {
     const expectedType = context.expectedType;
     if (!expectedType || !(expectedType instanceof FuncType)) {
       context.compileContext.onDiagnosticMessage?.({
-        message:
-          "Lambda literals are currently only supported when a function type is expected",
+        message: "Lambda literals are currently only supported when a function type is expected",
         severity: DiagnosticSeverity.Error,
         span: this.span,
       });
@@ -69,8 +65,7 @@ export class LambdaLiteralNode extends ExpressionNode {
         .concat([
           expectedType.returnType instanceof VoidType
             ? VoidType.instance
-            : this.statements[this.statements.length - 1]?.valueType ??
-              neverType,
+            : (this.statements[this.statements.length - 1]?.valueType ?? neverType),
         ])
     );
 

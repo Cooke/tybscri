@@ -17,10 +17,7 @@ describe("Narrowing", function () {
     `
     );
     const valNode = parseResult.tree.statements[2];
-    assertTybscriType(
-      valNode.valueType,
-      createUnionType(createLiteralType(true), nullType)
-    );
+    assertTybscriType(valNode.valueType, createUnionType(createLiteralType(true), nullType));
   });
 
   it("narrowed type in scope in branch", function () {
@@ -32,8 +29,7 @@ describe("Narrowing", function () {
       }
     `
     );
-    const ifExpressionStatement = parseResult.tree
-      .statements[2] as ExpressionStatementNode;
+    const ifExpressionStatement = parseResult.tree.statements[2] as ExpressionStatementNode;
     const ifExpression = ifExpressionStatement.expression as IfNode;
     const foo = ifExpression.thenBlock.scope.resolveLast("foo");
     assert.ok(foo);
@@ -48,11 +44,7 @@ describe("Narrowing", function () {
         bar
       } 
     `);
-    const valNode =
-      parseResult.tree.statements[parseResult.tree.statements.length - 1];
-    assertTybscriType(
-      valNode.valueType,
-      createUnionType(createLiteralType("1"), nullType)
-    );
+    const valNode = parseResult.tree.statements[parseResult.tree.statements.length - 1];
+    assertTybscriType(valNode.valueType, createUnionType(createLiteralType("1"), nullType));
   });
 });

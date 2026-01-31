@@ -21,93 +21,88 @@ export interface TybscriEditorRef {
   setValue(value: string): void;
 }
 
-export const TybscriEditor = forwardRef(
-  (props: TybscriEditorProps, ref: Ref<TybscriEditorRef>) => {
-    useEffect(() => {
-      init();
-    }, []);
+export const TybscriEditor = forwardRef(function TybscriEditor(
+  props: TybscriEditorProps,
+  ref: Ref<TybscriEditorRef>
+) {
+  useEffect(() => {
+    init();
+  }, []);
 
-    const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
-    const environmentRef = useRef(props.environment);
-    const highlighterRef = useRef<SemanticHighlighter>();
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
+  const environmentRef = useRef(props.environment);
+  const highlighterRef = useRef<SemanticHighlighter>();
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        getValue: () => editorRef.current?.getValue() ?? "",
-        setValue: (value) => editorRef.current?.setValue(value),
-      }),
-      []
-    );
+  useImperativeHandle(
+    ref,
+    () => ({
+      getValue: () => editorRef.current?.getValue() ?? "",
+      setValue: (value) => editorRef.current?.setValue(value),
+    }),
+    []
+  );
 
-    useEffect(() => {
-      environmentRef.current = props.environment;
+  useEffect(() => {
+    environmentRef.current = props.environment;
 
-      if (!editorRef.current) {
-        return;
-      }
+    if (!editorRef.current) {
+      return;
+    }
 
-      // Not verified that this works
-      editorRef.current.setValue(editorRef.current?.getValue() ?? "");
-      setEditorModelEnvironment(
-        editorRef.current.getModel(),
-        props.environment
-      );
+    // Not verified that this works
+    editorRef.current.setValue(editorRef.current?.getValue() ?? "");
+    setEditorModelEnvironment(editorRef.current.getModel(), props.environment);
 
-      // Update semantic highlighting with new environment
-      highlighterRef.current?.update(props.environment);
-    }, [props.environment]);
+    // Update semantic highlighting with new environment
+    highlighterRef.current?.update(props.environment);
+  }, [props.environment]);
 
-    return (
-      <Editor
-        height={props.height}
-        defaultValue={props.defaultValue}
-        language="tybscri"
-        className={props.className}
-        onChange={props.onChange}
-        onMount={(editor, monaco) => {
-          editorRef.current = editor;
+  return (
+    <Editor
+      height={props.height}
+      defaultValue={props.defaultValue}
+      language="tybscri"
+      className={props.className}
+      onChange={props.onChange}
+      onMount={(editor, monaco) => {
+        editorRef.current = editor;
 
-          // Create semantic highlighter
-          highlighterRef.current = new SemanticHighlighter(editor);
+        // Create semantic highlighter
+        highlighterRef.current = new SemanticHighlighter(editor);
 
+        setEditorModelEnvironment(editor.getModel(), environmentRef.current);
+        editor.onDidChangeModel((ev) => {
           setEditorModelEnvironment(editor.getModel(), environmentRef.current);
-          editor.onDidChangeModel((ev) => {
-            setEditorModelEnvironment(
-              editor.getModel(),
-              environmentRef.current
-            );
+        });
+
+        // Initial highlighting
+        highlighterRef.current.update(environmentRef.current);
+
+        editor.onDidChangeModelContent((ev) => {
+          const output = parseScript(editor.getValue(), {
+            reportTimings: true,
+            environment: environmentRef.current,
           });
-
-          // Initial highlighting
-          highlighterRef.current.update(environmentRef.current);
-
-          editor.onDidChangeModelContent((ev) => {
-            const output = parseScript(editor.getValue(), {
-              reportTimings: true,
-              environment: environmentRef.current,
-            });
-            console.log(printTree(output.tree));
-            console.log("Diagnostics", output.diagnosticMessages);
-            const errors = output.diagnosticMessages.map((msg) => {
-              const monacoMarker: monaco.editor.IMarkerData = {
-                severity: MarkerSeverity.Error,
-                message: msg.message,
-                startLineNumber: msg.span.start.line,
-                startColumn: msg.span.start.column,
-                endLineNumber: msg.span.stop.line,
-                endColumn: msg.span.stop.column,
-              };
-              return monacoMarker;
-            });
-            const textModel = editor.getModel()!;
-            monaco.editor.setModelMarkers(textModel, "owner", errors);
-
-            // Update semantic highlighting
-            highlighterRef.current?.update(environmentRef.current);
+          console.log(printTree(output.tree));
+          console.log("Diagnostics", output.diagnosticMessages);
+          const errors = output.diagnosticMessages.map((msg) => {
+            const monacoMarker: monaco.editor.IMarkerData = {
+              severity: MarkerSeverity.Error,
+              message: msg.message,
+              startLineNumber: msg.span.start.line,
+              startColumn: msg.span.start.column,
+              endLineNumber: msg.span.stop.line,
+              endColumn: msg.span.stop.column,
+            };
+            return monacoMarker;
           });
-        }}
-      />
-    );
-  }
-);
+          const textModel = editor.getModel()!;
+          monaco.editor.setModelMarkers(textModel, "owner", errors);
+
+          // Update semantic highlighting
+          highlighterRef.current?.update(environmentRef.current);
+        });
+      }}
+    />
+  );
+});

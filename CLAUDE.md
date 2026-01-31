@@ -75,6 +75,50 @@ The JavaScript and .NET implementations must stay in sync. When adding or modify
 - If changing built-in types, type names, error messages, or any shared behavior, verify consistency across platforms
 - Do NOT consider a task complete until both platforms are updated and all tests pass
 
+## Code Quality
+
+### JavaScript/TypeScript Linting & Formatting
+
+```bash
+cd js
+
+# Check for lint errors
+npm run lint
+
+# Auto-fix lint errors
+npm run lint:fix
+
+# Check formatting
+npm run format:check
+
+# Auto-format all files
+npm run format
+```
+
+Uses ESLint 9 (flat config) with TypeScript support and Prettier for formatting.
+
+**When to run:**
+- Run `npm run lint` and `npm run format:check` before committing JS/TS changes
+- Run `npm run lint:fix` and `npm run format` to auto-fix issues
+
+### .NET Analyzers
+
+.NET analyzers are enabled via `Directory.Build.props` and run automatically during build.
+
+```bash
+cd dotnet
+dotnet build Tybscri.sln
+```
+
+**Key analyzer settings:**
+- Null-safety warnings (CS8602, CS8604, CS8618, CS8625) are treated as errors
+- Analysis level is set to `latest-recommended`
+- Test project has relaxed rules for naming conventions (CA1707) and static members (CA1822)
+
+**When to run:**
+- Analyzers run automatically on every `dotnet build`
+- Fix any errors before committing; warnings are acceptable but should be minimized
+
 ## Architecture
 
 Both implementations follow the same compilation pipeline:

@@ -26,10 +26,7 @@ export class IfNode extends ExpressionNode {
     this.elseBlock?.resolve(context.withExpectedType(null));
     const unionType = UnionType.create(
       this.elseBlock
-        ? [
-            this.thenBlock.valueType ?? unknownType,
-            this.elseBlock.valueType ?? unknownType,
-          ]
+        ? [this.thenBlock.valueType ?? unknownType, this.elseBlock.valueType ?? unknownType]
         : [this.thenBlock.valueType ?? unknownType, nullType]
     );
     this.valueType = unionType;

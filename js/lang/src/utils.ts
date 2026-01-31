@@ -31,9 +31,7 @@ export function objectTypeToString(type: ObjectType) {
         ?.map(
           (tp, tpi) =>
             `${tp.variance ? tp.variance + " " : ""}${tp.name} ${
-              type.typeArguments?.[tpi]
-                ? `= ${type.typeArguments?.[tpi].displayName}`
-                : ""
+              type.typeArguments?.[tpi] ? `= ${type.typeArguments?.[tpi].displayName}` : ""
             }`
         )
         .join(", ") ?? ""

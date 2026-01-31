@@ -1,12 +1,6 @@
 import { LiteralType } from "./LiteralType";
 import { UnionType } from "./UnionType";
-import {
-  Type,
-  Member,
-  TypeParameter,
-  TypeParameterBinding,
-  TypeParameterVariance,
-} from "./common";
+import { Type, Member, TypeParameter, TypeParameterBinding, TypeParameterVariance } from "./common";
 import { DefinitionType } from ".";
 
 export class ObjectDefinitionType implements DefinitionType {
@@ -58,9 +52,10 @@ export class ObjectType implements Type {
       throw new Error("Invalid number of type arguments");
     }
 
-    var bindings = definition.typeParameters.map<TypeParameterBinding>(
-      (p, i) => ({ parameter: p, to: typeArguments[i] })
-    );
+    const bindings = definition.typeParameters.map<TypeParameterBinding>((p, i) => ({
+      parameter: p,
+      to: typeArguments[i],
+    }));
 
     this._directMembersThunk = () =>
       definition.instanceDirectMembers.map((m) => m.bindTypes(bindings));
@@ -152,11 +147,7 @@ export class ObjectType implements Type {
 // Exampele:
 // out: Generic<Parent> var1 = Generic<Child>()
 // in:  Generic<Child> var1 = Generic<Parent>()
-function isTypeArgumentAssignableToType(
-  variance: TypeParameterVariance,
-  from: Type,
-  to: Type
-) {
+function isTypeArgumentAssignableToType(variance: TypeParameterVariance, from: Type, to: Type) {
   switch (variance) {
     // Invariant
     case undefined:

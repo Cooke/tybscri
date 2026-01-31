@@ -2,12 +2,7 @@ import assert from "assert";
 import { parseScript } from "../src";
 import { FunctionNode } from "../src/nodes/function";
 import { VariableDeclarationNode } from "../src/nodes/variableDeclaration";
-import {
-  FuncParameter,
-  FuncType,
-  UnionType,
-  createLiteralType,
-} from "../src/typeSystem";
+import { FuncParameter, FuncType, UnionType, createLiteralType } from "../src/typeSystem";
 import { assertNoErrors, assertTybscriType, assertType } from "./utils";
 
 describe("Functions", function () {
@@ -28,10 +23,7 @@ describe("Functions", function () {
     `);
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(
-      funcNode.valueType,
-      new FuncType([], createLiteralType("bar"))
-    );
+    assertTybscriType(funcNode.valueType, new FuncType([], createLiteralType("bar")));
   });
 
   it("explicit return", function () {
@@ -42,10 +34,7 @@ describe("Functions", function () {
     `);
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(
-      funcNode.valueType,
-      new FuncType([], createLiteralType("bar"))
-    );
+    assertTybscriType(funcNode.valueType, new FuncType([], createLiteralType("bar")));
   });
 
   it("several returns", function () {
@@ -68,11 +57,7 @@ describe("Functions", function () {
       funcNode.valueType,
       new FuncType(
         [],
-        UnionType.create([
-          createLiteralType(1),
-          createLiteralType(2),
-          createLiteralType(3),
-        ])
+        UnionType.create([createLiteralType(1), createLiteralType(2), createLiteralType(3)])
       )
     );
   });
@@ -89,10 +74,7 @@ describe("Functions", function () {
     `);
     const funcNode = parseResult.tree.statements[0];
     assertType(funcNode, FunctionNode);
-    assertTybscriType(
-      funcNode.valueType,
-      new FuncType([], createLiteralType("123"))
-    );
+    assertTybscriType(funcNode.valueType, new FuncType([], createLiteralType("123")));
   });
 
   it("function parameters", function () {
@@ -128,8 +110,7 @@ describe("Functions", function () {
     `
     );
 
-    const resultNode =
-      parseResult.tree.statements[parseResult.tree.statements.length - 1];
+    const resultNode = parseResult.tree.statements[parseResult.tree.statements.length - 1];
     assertTybscriType(resultNode.valueType, createLiteralType("bar"));
   });
 

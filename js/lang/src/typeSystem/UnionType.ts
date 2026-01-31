@@ -9,10 +9,7 @@ export class UnionType implements Type {
 
     function getFlattenTypes(type: Type): Type[] {
       if (type instanceof UnionType) {
-        return type.types.reduce<Type[]>(
-          (p, c) => [...p, ...getFlattenTypes(c)],
-          []
-        );
+        return type.types.reduce<Type[]>((p, c) => [...p, ...getFlattenTypes(c)], []);
       }
 
       return [type];
@@ -61,9 +58,7 @@ export class UnionType implements Type {
         if (
           members[member.name] &&
           (!members[member.name].type.isAssignableFrom(member.type) ||
-            !members[member.name].flags.every((f) =>
-              member.flags.includes(f)
-            ) ||
+            !members[member.name].flags.every((f) => member.flags.includes(f)) ||
             !member.flags.every((f) => members[member.name].flags.includes(f)))
         ) {
           delete members[member.name];

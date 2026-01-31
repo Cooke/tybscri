@@ -17,10 +17,7 @@ export class InvocationNode extends ExpressionNode {
       return;
     }
 
-    const args = [
-      ...this.argumentList,
-      ...(this.trailingLambda ? [this.trailingLambda] : []),
-    ];
+    const args = [...this.argumentList, ...(this.trailingLambda ? [this.trailingLambda] : [])];
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       const parameter = this.target.valueType.parameters[i];

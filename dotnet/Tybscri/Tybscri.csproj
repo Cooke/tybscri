@@ -1,26 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <PackageVersion>0.1.0</PackageVersion>
-        <Authors>Henrik Cooke</Authors>
-        <Description>Statically type scripting language for embedding.</Description>
-        <Copyright>Henrik Cooke</Copyright>
-        <LangVersion>11</LangVersion>
-    </PropertyGroup>
+  <PropertyGroup>
+    <PackageVersion>0.1.0</PackageVersion>
+    <Authors>Henrik Cooke</Authors>
+    <Description>Statically type scripting language for embedding.</Description>
+    <Copyright>Henrik Cooke</Copyright>
+  </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <WarningsAsErrors>;NU1605;CS8602;CS8618;CS8625;CS8604</WarningsAsErrors>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WarningsAsErrors>;NU1605;CS8602</WarningsAsErrors>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="DotNext.Metaprogramming" Version="4.7.5" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="DotNext.Metaprogramming" Version="4.7.5" />
+  </ItemGroup>
 
 </Project>

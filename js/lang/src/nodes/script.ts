@@ -9,9 +9,7 @@ import { VariableDeclarationNode } from "./variableDeclaration";
 
 export class ScriptNode extends Node {
   public get valueType(): Type {
-    return (
-      this.statements[this.statements.length - 1]?.valueType ?? unknownType
-    );
+    return this.statements[this.statements.length - 1]?.valueType ?? unknownType;
   }
 
   public setupScopes(scope: Scope, context: CompileContext) {

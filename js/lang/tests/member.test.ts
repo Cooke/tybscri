@@ -18,20 +18,12 @@ describe("Member", function () {
   describe("inferred return type", function () {
     it("from map", function () {
       const result = parseExpression(`[1, 2].map { it.toString() }`);
-      assertTybscriType(
-        result.tree.valueType,
-        listDefinitionType.createType([stringType])
-      );
+      assertTybscriType(result.tree.valueType, listDefinitionType.createType([stringType]));
     });
 
     it("from map of map", function () {
-      const result = parseExpression(
-        `[1, 2].map { it.toString() }.map { it.length }`
-      );
-      assertTybscriType(
-        result.tree.valueType,
-        listDefinitionType.createType([numberType])
-      );
+      const result = parseExpression(`[1, 2].map { it.toString() }.map { it.length }`);
+      assertTybscriType(result.tree.valueType, listDefinitionType.createType([numberType]));
     });
   });
 });

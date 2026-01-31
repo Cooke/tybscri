@@ -51,12 +51,15 @@ export interface ResolveContext {
   withExpectedType(type: Type | null): ResolveContext;
 }
 
-export function createResolveContext(compileContext: CompileContext, expectedType: Type | null = null): ResolveContext {
+export function createResolveContext(
+  compileContext: CompileContext,
+  expectedType: Type | null = null
+): ResolveContext {
   return {
     expectedType,
     compileContext,
     withExpectedType(type: Type | null): ResolveContext {
       return createResolveContext(compileContext, type);
-    }
+    },
   };
 }

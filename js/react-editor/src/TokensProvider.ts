@@ -11,10 +11,7 @@ export class TybscriTokensProvider implements monaco.languages.TokensProvider {
     return new TybscriState();
   }
 
-  public tokenize(
-    line: string,
-    state: monaco.languages.IState
-  ): monaco.languages.ILineTokens {
+  public tokenize(line: string, state: monaco.languages.IState): monaco.languages.ILineTokens {
     // Collect all tokens first for context-aware highlighting
     const rawTokens: RawToken[] = [];
     const lexer = createLexer(line);
@@ -72,9 +69,26 @@ const scopeMap: { [key in TokenType]?: string } = {
   // Operators
   ...mapToScope(
     [
-      L.ASSIGNMENT, L.EQEQ, L.EXCLAM_EQ, L.LT, L.GT, L.LT_EQ, L.GT_EQ,
-      L.ADD, L.SUB, L.MULT, L.DIV, L.MOD, L.AND_AND, L.OR_OR, L.OR, L.EXCLAM,
-      L.FAT_ARROW, L.INCR, L.DECR, L.QUESTION,
+      L.ASSIGNMENT,
+      L.EQEQ,
+      L.EXCLAM_EQ,
+      L.LT,
+      L.GT,
+      L.LT_EQ,
+      L.GT_EQ,
+      L.ADD,
+      L.SUB,
+      L.MULT,
+      L.DIV,
+      L.MOD,
+      L.AND_AND,
+      L.OR_OR,
+      L.OR,
+      L.EXCLAM,
+      L.FAT_ARROW,
+      L.INCR,
+      L.DECR,
+      L.QUESTION,
     ],
     "operator"
   ),

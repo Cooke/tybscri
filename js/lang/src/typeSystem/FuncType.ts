@@ -1,7 +1,10 @@
 import { Member, Type, TypeParameterBinding } from "./common";
 
 export class FuncParameter {
-  constructor(readonly name: string, readonly type: Type) {}
+  constructor(
+    readonly name: string,
+    readonly type: Type
+  ) {}
 }
 
 export class FuncType implements Type {
@@ -23,17 +26,13 @@ export class FuncType implements Type {
       from instanceof FuncType &&
       this.returnType.isAssignableFrom(from.returnType) &&
       this.parameters.length >= from.parameters.length &&
-      from.parameters.every((fp, i) =>
-        fp.type.isAssignableFrom(this.parameters[i].type)
-      )
+      from.parameters.every((fp, i) => fp.type.isAssignableFrom(this.parameters[i].type))
     );
   }
 
   public bind(bindings: TypeParameterBinding[]): Type {
     return new FuncType(
-      this.parameters.map(
-        (param) => new FuncParameter(param.name, param.type.bind(bindings))
-      ),
+      this.parameters.map((param) => new FuncParameter(param.name, param.type.bind(bindings))),
       this.returnType.bind(bindings)
     );
   }

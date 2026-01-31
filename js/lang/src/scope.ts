@@ -15,17 +15,11 @@ export class Scope {
   }
 
   resolveLast(name: string): Symbol | null {
-    return (
-      this.symbols.find((x) => x.name === name) ??
-      this.parent?.resolveLast(name) ??
-      null
-    );
+    return this.symbols.find((x) => x.name === name) ?? this.parent?.resolveLast(name) ?? null;
   }
 
   resolveAll(name: string): Symbol[] {
-    return this.symbols
-      .filter((x) => x.name === name)
-      .concat(this.parent?.resolveAll(name) ?? []);
+    return this.symbols.filter((x) => x.name === name).concat(this.parent?.resolveAll(name) ?? []);
   }
 
   getAll(filter: "skip-duplicates" = "skip-duplicates"): Symbol[] {

@@ -1,15 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net7.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <LangVersion>11</LangVersion>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Tybscri\Tybscri.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tybscri\Tybscri.csproj" />
+  </ItemGroup>
 
 </Project>

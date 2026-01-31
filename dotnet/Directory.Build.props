@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Enable .NET analyzers (uses SDK-bundled analyzers) -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Null-safety warnings as errors -->
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605;CS8602;CS8604;CS8618;CS8625</WarningsAsErrors>
+  </PropertyGroup>
+</Project>

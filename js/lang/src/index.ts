@@ -19,15 +19,7 @@ export { DiagnosticMessage } from "./common";
 export * from "./nodes";
 export * from "./typeSystem";
 export { treeToString as printTree } from "./utils";
-export {
-  Environment,
-  EnvironmentSymbol,
-  Lexer,
-  Parser,
-  Scope,
-  TokenType,
-  defaultEnvironment,
-};
+export { Environment, EnvironmentSymbol, Lexer, Parser, Scope, TokenType, defaultEnvironment };
 
 export function createLexer(source: string) {
   return new Lexer(source);
@@ -53,7 +45,7 @@ export function parseExpression(
     onDiagnosticMessage: (msg) => messages.push(msg),
     environment,
   };
-  var parser = new Parser(expression, context ?? {});
+  const parser = new Parser(expression, context ?? {});
   const exp = parser.parseExpression();
   const scope = createScopeFromEnvironment(environment);
   exp.setupScopes(scope, context);
@@ -91,10 +83,7 @@ function createScopeFromEnvironment(environment: Environment) {
   );
 }
 
-export function parseScript(
-  expression: string,
-  options?: ScriptParseOptions
-): ScriptParseResult {
+export function parseScript(expression: string, options?: ScriptParseOptions): ScriptParseResult {
   function time(label: string) {
     if (options?.reportTimings) {
       console.time(label);
@@ -115,7 +104,7 @@ export function parseScript(
   };
 
   time("parse");
-  var parser = new Parser(expression, context);
+  const parser = new Parser(expression, context);
   const exp = parser.parseScript();
   timeEnd("parse");
 
