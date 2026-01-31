@@ -227,6 +227,30 @@ public class FunctionTests
         Assert.True(env.DidEval);
     }
 
+    [Fact]
+    public void ReturnTypeMismatchError()
+    {
+        var ex = Assert.Throws<TybscriException>(() => _compiler.EvaluateScript<double>(@"
+            fun add(x: Number, b: Number): String {
+                return x + b
+            }
+            add(1, 2)
+            "));
+        Assert.Contains("not compatible", ex.Message);
+    }
+
+    [Fact]
+    public void ValidExplicitReturnType()
+    {
+        var output = _compiler.EvaluateScript<double>(@"
+            fun add(x: Number, y: Number): Number {
+                return x + y
+            }
+            add(1, 2)
+            ");
+        Assert.Equal(3, output);
+    }
+
     private class TestEnvironment
     {
         public bool DidEval;

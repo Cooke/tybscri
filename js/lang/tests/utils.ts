@@ -1,5 +1,5 @@
 import assert from "assert";
-import { areTypesEqual, ExpressionParseResult, Type } from "../src";
+import { areTypesEqual, ExpressionParseResult, ScriptParseResult, Type } from "../src";
 
 export function assertEqual<T>(val: any, expected: T): asserts val is T {
   assert.equal(val, expected);
@@ -26,7 +26,7 @@ export function assertTybscriType<T extends Type>(
   );
 }
 
-export function assertNoErrors(result: ExpressionParseResult) {
+export function assertNoErrors(result: ExpressionParseResult | ScriptParseResult) {
   if (result.diagnosticMessages.length !== 0) {
     assert.fail(
       "Unexpected errors:\n" +

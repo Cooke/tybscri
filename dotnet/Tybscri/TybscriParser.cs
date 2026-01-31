@@ -110,18 +110,20 @@ public class TybscriParser
         var parameters = ParseFunctionParameters();
         AdvanceWhileNL();
 
-        // let type: TypeSyntax | null = null;
-        // if (this.peek() === L.COLON) {
-        //   this.advance();
-        //   type = this.parseType();
-        // }
+        ITypeNode? returnTypeNode = null;
+        if (Peek() == L.Colon)
+        {
+            Advance();
+            AdvanceWhileNL();
+            returnTypeNode = ParseType();
+        }
 
         AdvanceWhileNL();
         ParseToken(L.Lcurl);
         AdvanceWhileNL();
         var statements = ParseStatements();
         ParseToken(L.Rcurl);
-        var functionNode = new FunctionNode(identifier, parameters, statements);
+        var functionNode = new FunctionNode(identifier, parameters, returnTypeNode, statements);
         return functionNode;
     }
 

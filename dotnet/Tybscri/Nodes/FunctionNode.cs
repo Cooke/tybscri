@@ -21,13 +21,17 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode, IAsyncEvaluat
 
     public FunctionNode(Token name,
         IReadOnlyCollection<FunctionParameterNode> parameters,
+        ITypeNode? returnTypeNode,
         IReadOnlyCollection<IStatementNode> statements)
     {
         Name = name;
         Parameters = parameters;
+        ReturnTypeNode = returnTypeNode;
         Statements = statements;
-        Children = parameters.Concat<INode>(statements).ToArray();
+        Children = parameters.Concat<INode>(returnTypeNode != null ? new[] { returnTypeNode } : Array.Empty<INode>()).Concat(statements).ToArray();
     }
+
+    public ITypeNode? ReturnTypeNode { get; }
 
     public ParameterExpression SymbolLinqExpression => _parameterExpression ?? throw new InvalidOperationException();
 
@@ -53,6 +57,8 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode, IAsyncEvaluat
             par.SetupScopes(scope);
         }
 
+        ReturnTypeNode?.SetupScopes(scope);
+
         var startScope = scope.CreateChildScope(Parameters.Select(x => new SourceSymbol(x.Name.Text, x)));
         BodyUtils.SetupScopes(Statements, startScope);
     }
@@ -76,6 +82,8 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode, IAsyncEvaluat
             par.Resolve(new ResolveContext(null));
         }
 
+        ReturnTypeNode?.Resolve(new ResolveContext(null));
+
         foreach (var statement in Statements.OrderBy(x => x is FunctionNode ? 0 : 1)) {
             statement.Resolve(new ResolveContext(null));
         }
@@ -87,7 +95,16 @@ public class FunctionNode : IStatementNode, ISymbolDefinitionNode, IAsyncEvaluat
 
         _analyzeState = AnalyzeState.Analyzed;
 
-        var returnType = BodyUtils.CalculateReturnType(Statements);
+        var actualReturnType = BodyUtils.CalculateReturnType(Statements);
+        TybscriType returnType;
+        if (ReturnTypeNode != null) {
+            returnType = ReturnTypeNode.Type;
+            if (!returnType.IsAssignableFrom(actualReturnType)) {
+                throw new TybscriException($"Return type '{actualReturnType}' is not compatible with the declared return type '{returnType}'");
+            }
+        } else {
+            returnType = actualReturnType;
+        }
         SymbolType = new FuncType(returnType,
             Parameters.Select(p => new FuncParameter(p.Name.Text, p.SymbolType)).ToList, BodyUtils.IsAsync(Statements));
         _parameterExpression = Expression.Parameter(SymbolType.ClrType, Name.Text);

@@ -8,7 +8,7 @@ import {
   UnionType,
   createLiteralType,
 } from "../src/typeSystem";
-import { assertTybscriType, assertType } from "./utils";
+import { assertNoErrors, assertTybscriType, assertType } from "./utils";
 
 describe("Functions", function () {
   it("node", function () {
@@ -170,5 +170,24 @@ describe("Functions", function () {
     const varNode = parseResult.tree.statements[0];
     assertType(varNode, VariableDeclarationNode);
     assertTybscriType(varNode.valueType, createLiteralType(123));
+  });
+
+  it("return type mismatch error", function () {
+    const result = parseScript(`
+    fun add(x: 1, b: 2): "string" {
+      return x + b
+    }
+    `);
+    assert.equal(result.diagnosticMessages.length, 1);
+    assert.ok(result.diagnosticMessages[0].message.includes("not compatible"));
+  });
+
+  it("valid explicit return type", function () {
+    const result = parseScript(`
+    fun identity(x: 42): 42 {
+      return x
+    }
+    `);
+    assertNoErrors(result);
   });
 });

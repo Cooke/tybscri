@@ -74,16 +74,25 @@ export class FunctionNode extends StatementNode {
       return;
     }
 
+    const allReturns = this.findReturns(this.body);
+    const actualReturnType = UnionType.create(
+      allReturns
+        .map((x) => x.expression?.valueType ?? nullType)
+        .concat([this.body.valueType])
+    );
+
     let returnType;
     if (this.returnType) {
       returnType = this.returnType.type;
+      if (returnType && !returnType.isAssignableFrom(actualReturnType)) {
+        context.compileContext.onDiagnosticMessage?.({
+          message: `Return type '${actualReturnType.displayName}' is not compatible with the declared return type '${returnType.displayName}'`,
+          severity: DiagnosticSeverity.Error,
+          span: this.span,
+        });
+      }
     } else {
-      const allReturns = this.findReturns(this.body);
-      returnType = UnionType.create(
-        allReturns
-          .map((x) => x.expression?.valueType ?? nullType)
-          .concat([this.body.valueType])
-      );
+      returnType = actualReturnType;
     }
 
     this._analyzeState = "analyzed";
