@@ -28,6 +28,24 @@ function createUnionType(...types: Type[]) {
 }
 
 describe("Types", function () {
+  describe("built-in type names", function () {
+    it("Number has PascalCase display name", function () {
+      assert.equal(numberType.displayName, "Number");
+    });
+
+    it("String has PascalCase display name", function () {
+      assert.equal(stringType.displayName, "String");
+    });
+
+    it("Boolean has PascalCase display name", function () {
+      assert.equal(booleanType.displayName, "Boolean");
+    });
+
+    it("Null has PascalCase display name", function () {
+      assert.equal(nullType.displayName, "Null");
+    });
+  });
+
   describe("reduce union", function () {
     it("reduce never", function () {
       const union = createUnionType(stringType, neverType);

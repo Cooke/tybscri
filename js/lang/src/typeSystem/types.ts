@@ -6,13 +6,13 @@ import { ObjectDefinitionType } from "./ObjectType";
 import { UnknownType } from "./UnknownType";
 
 export const objectDefinitionType: ObjectDefinitionType =
-  new ObjectDefinitionType("object", null, [], () => [
+  new ObjectDefinitionType("Object", null, [], () => [
     new Member([MemberFlag.Const], "toString", new FuncType([], stringType)),
   ]);
 export const objectType = objectDefinitionType.createType([]);
 
 export const numberDefinitionType = new ObjectDefinitionType(
-  "number",
+  "Number",
   objectType,
   [],
   () => [
@@ -26,7 +26,7 @@ export const numberDefinitionType = new ObjectDefinitionType(
 export const numberType = numberDefinitionType.createType([]);
 
 export const stringDefinitionType = new ObjectDefinitionType(
-  "string",
+  "String",
   objectType,
   [],
   () => [new Member([MemberFlag.Const], "length", numberType)]
@@ -40,7 +40,7 @@ export const neverType = NeverType.instance;
 export const anyType = AnyType.instance;
 
 export const nullDefinitionType = new ObjectDefinitionType(
-  "null",
+  "Null",
   null,
   [],
   () => []
@@ -48,7 +48,7 @@ export const nullDefinitionType = new ObjectDefinitionType(
 export const nullType = nullDefinitionType.createType([]);
 
 export const booleanDefinitionType = new ObjectDefinitionType(
-  "boolean",
+  "Boolean",
   objectType,
   [],
   () => []

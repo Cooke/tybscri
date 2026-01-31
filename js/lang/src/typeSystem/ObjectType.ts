@@ -104,10 +104,10 @@ export class ObjectType implements Type {
 
   private isAssignableFromObject(from: ObjectType): boolean {
     if (from.definition !== this.definition) {
-      // Allow assignment if definitions have the same name (case-insensitive) and no type arguments
+      // Allow assignment if definitions have the same name and no type arguments
       // This handles cases where the same type (e.g., Number) is defined in different environments
       if (
-        from.definition.name.toLowerCase() === this.definition.name.toLowerCase() &&
+        from.definition.name === this.definition.name &&
         from.typeArguments.length === 0 &&
         this.typeArguments.length === 0
       ) {

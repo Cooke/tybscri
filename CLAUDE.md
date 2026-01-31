@@ -65,6 +65,16 @@ The JavaScript and .NET implementations must stay in sync. When adding or modify
 2. Add corresponding tests in both `js/lang/tests/` and `dotnet/Tybscri.Test/`
 3. Ensure behavior is consistent across platforms
 
+**IMPORTANT:** When making ANY changes to the language implementation:
+- ALWAYS update both JS and .NET implementations in the same session
+- ALWAYS run tests on BOTH platforms after making changes:
+  ```bash
+  cd js/lang && npm run test
+  cd dotnet && dotnet test Tybscri.Test
+  ```
+- If changing built-in types, type names, error messages, or any shared behavior, verify consistency across platforms
+- Do NOT consider a task complete until both platforms are updated and all tests pass
+
 ## Architecture
 
 Both implementations follow the same compilation pipeline:
