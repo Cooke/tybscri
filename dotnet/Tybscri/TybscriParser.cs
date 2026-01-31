@@ -226,7 +226,7 @@ public class TybscriParser
         var left = ParseAdditiveExpression();
 
         var peek = Peek();
-        if (peek == L.Lt || peek == L.Gt)
+        if (peek == L.Lt || peek == L.Gt || peek == L.LtEq || peek == L.GtEq || peek == L.Eqeq || peek == L.ExclamEq)
         {
             var comparisonToken = ParseAnyToken();
             AdvanceWhileNL();

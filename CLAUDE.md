@@ -33,9 +33,6 @@ npm run dev           # Dev server at :3000
 ```bash
 dotnet build Tybscri.sln
 dotnet test Tybscri.Test
-
-# Regenerate ANTLR lexer (Windows)
-gen-lexer.bat
 ```
 
 ## Testing
@@ -54,6 +51,20 @@ cd dotnet
 dotnet test
 ```
 Uses XUnit. Test project is `Tybscri.Test/`.
+
+### Testing Requirements
+
+All new features and bug fixes must include automated tests. Before submitting changes:
+1. Add tests covering the new functionality or fix
+2. Run the full test suite to ensure no regressions
+3. Tests should verify both success cases and error handling where applicable
+
+### Platform Parity
+
+The JavaScript and .NET implementations must stay in sync. When adding or modifying language features:
+1. Implement the feature in both `js/lang/` and `dotnet/Tybscri/`
+2. Add corresponding tests in both `js/lang/tests/` and `dotnet/Tybscri.Test/`
+3. Ensure behavior is consistent across platforms
 
 ## Architecture
 
@@ -80,7 +91,7 @@ Both implementations follow the same compilation pipeline:
   - `Types/` - Type system
   - `LinqExpressions/` - LINQ expression generation
 
-- `spec/` - ANTLR grammar files (TybscriLexer.g4, TybscriParser.g4)
+- `spec/` - Legacy ANTLR grammar files (reference only, not used in builds)
 
 ### Type System
 

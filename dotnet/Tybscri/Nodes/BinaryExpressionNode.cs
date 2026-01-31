@@ -38,13 +38,23 @@ public class BinaryExpressionNode : IExpressionNode, IAsyncEvaluatable
 
         ValueType = _comparisonToken.Text switch
         {
+            // Comparison operators → Boolean
             "<" => StandardTypes.Boolean,
             ">" => StandardTypes.Boolean,
             ">=" => StandardTypes.Boolean,
             "<=" => StandardTypes.Boolean,
             "==" => StandardTypes.Boolean,
             "!=" => StandardTypes.Boolean,
-            _ => UnionType.Create(_left.ValueType, _right.ValueType)
+            // Logical operators → Boolean
+            "&&" => StandardTypes.Boolean,
+            "||" => StandardTypes.Boolean,
+            // Arithmetic operators → Number
+            "+" => StandardTypes.Number,
+            "-" => StandardTypes.Number,
+            "*" => StandardTypes.Number,
+            "/" => StandardTypes.Number,
+            "%" => StandardTypes.Number,
+            _ => StandardTypes.Unknown
         };
     }
 
@@ -53,6 +63,7 @@ public class BinaryExpressionNode : IExpressionNode, IAsyncEvaluatable
         {
             "<" => ExpressionType.LessThan, ">" => ExpressionType.GreaterThan,
             ">=" => ExpressionType.GreaterThanOrEqual, "<=" => ExpressionType.LessThanOrEqual,
+            "==" => ExpressionType.Equal, "!=" => ExpressionType.NotEqual,
             "-" => ExpressionType.Subtract, "+" => ExpressionType.Add,
             "*" => ExpressionType.Multiply, "/" => ExpressionType.Divide,
             "%" => ExpressionType.Modulo, "&&" => ExpressionType.AndAlso,

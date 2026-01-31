@@ -25,7 +25,37 @@ public class OperatorTests
         Assert.True(_compiler.EvaluateExpression<bool>("1 > 0"));
         Assert.False(_compiler.EvaluateExpression<bool>("0 > 1"));
     }
-    
+
+    [Fact]
+    public void LessThanOrEqual()
+    {
+        Assert.True(_compiler.EvaluateExpression<bool>("0 <= 1"));
+        Assert.True(_compiler.EvaluateExpression<bool>("1 <= 1"));
+        Assert.False(_compiler.EvaluateExpression<bool>("2 <= 1"));
+    }
+
+    [Fact]
+    public void GreaterThanOrEqual()
+    {
+        Assert.True(_compiler.EvaluateExpression<bool>("1 >= 0"));
+        Assert.True(_compiler.EvaluateExpression<bool>("1 >= 1"));
+        Assert.False(_compiler.EvaluateExpression<bool>("0 >= 1"));
+    }
+
+    [Fact]
+    public void EqualsOperator()
+    {
+        Assert.True(_compiler.EvaluateExpression<bool>("1 == 1"));
+        Assert.False(_compiler.EvaluateExpression<bool>("1 == 2"));
+    }
+
+    [Fact]
+    public void NotEquals()
+    {
+        Assert.True(_compiler.EvaluateExpression<bool>("1 != 2"));
+        Assert.False(_compiler.EvaluateExpression<bool>("1 != 1"));
+    }
+
     [Fact]
     public void Subtract()
     {
@@ -99,6 +129,28 @@ public class OperatorTests
         Assert.False(env.Called);
         compiler.EvaluateExpression<bool>("false || getTrue()", env);
         Assert.True(env.Called);
+    }
+
+    [Fact]
+    public void OperatorPrecedence_MultiplicationBeforeAddition()
+    {
+        Assert.Equal(7, _compiler.EvaluateExpression<double>("1 + 2 * 3"));
+        Assert.Equal(9, _compiler.EvaluateExpression<double>("1 * 2 + 3 + 4"));
+    }
+
+    [Fact]
+    public void OperatorPrecedence_ComparisonWithArithmetic()
+    {
+        Assert.True(_compiler.EvaluateExpression<bool>("1 + 2 < 3 * 4"));
+        Assert.False(_compiler.EvaluateExpression<bool>("1 + 2 > 3 * 4"));
+    }
+
+    [Fact]
+    public void OperatorPrecedence_LogicalWithComparison()
+    {
+        Assert.True(_compiler.EvaluateExpression<bool>("1 < 2 && 3 > 2"));
+        Assert.False(_compiler.EvaluateExpression<bool>("1 > 2 && 3 > 2"));
+        Assert.True(_compiler.EvaluateExpression<bool>("1 > 2 || 3 > 2"));
     }
 
     private class TestEnv
