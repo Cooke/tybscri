@@ -3,7 +3,7 @@ import { languages, Range } from "monaco-editor";
 import {
   FuncType,
   isDefinitionType,
-  MemberNode,
+  MemberAccessNode as MemberNode,
   Node,
   parseScript,
   widenType,
@@ -20,7 +20,7 @@ export class TybscriCompletionItemProvider
     textModel: monaco.editor.ITextModel,
     position: monaco.Position,
     context: monaco.languages.CompletionContext,
-    token: monaco.CancellationToken
+    token: monaco.CancellationToken,
   ): Promise<monaco.languages.CompletionList | undefined> {
     var environment = getModelEnvironment(textModel);
 
@@ -45,7 +45,7 @@ export class TybscriCompletionItemProvider
 function calcSuggestions(
   currentNode: Node,
   textModel: monaco.editor.ITextModel,
-  position: monaco.Position
+  position: monaco.Position,
 ) {
   if (currentNode instanceof MemberNode) {
     return calcMemberSuggestions(currentNode, textModel, position);
@@ -57,7 +57,7 @@ function calcSuggestions(
 function calcSymbolSuggestions(
   currentNode: Node,
   textModel: monaco.editor.ITextModel,
-  position: monaco.Position
+  position: monaco.Position,
 ) {
   return currentNode.scope
     .getAll()
@@ -67,8 +67,8 @@ function calcSymbolSuggestions(
         sug.valueType instanceof FuncType
           ? monaco.languages.CompletionItemKind.Function
           : isDefinitionType(sug.valueType)
-          ? monaco.languages.CompletionItemKind.Class
-          : monaco.languages.CompletionItemKind.Field,
+            ? monaco.languages.CompletionItemKind.Class
+            : monaco.languages.CompletionItemKind.Field,
       range: calcRangeFromCurrentWord(textModel, position),
       label: sug.name,
       detail: sug.valueType.displayName,
@@ -78,7 +78,7 @@ function calcSymbolSuggestions(
 function calcMemberSuggestions(
   currentNode: MemberNode,
   textModel: monaco.editor.ITextModel,
-  position: monaco.Position
+  position: monaco.Position,
 ) {
   const type = currentNode.expression.valueType;
   const members = type.members;
@@ -101,13 +101,13 @@ function calcMemberSuggestions(
 
 function calcRangeFromCurrentWord(
   textModel: monaco.editor.ITextModel,
-  position: monaco.Position
+  position: monaco.Position,
 ) {
   const wordInfo = textModel.getWordUntilPosition(position);
   return new Range(
     position.lineNumber,
     wordInfo.startColumn,
     position.lineNumber,
-    wordInfo.endColumn
+    wordInfo.endColumn,
   );
 }

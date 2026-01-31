@@ -7,8 +7,15 @@
       "./*"
     ]
   },
+  "scripts": {
+    "build": "npm run build -w lang && npm run build -w react-editor",
+    "dev": "concurrently \"npm run dev -w lang\" \"npm run dev -w react-editor\" \"npm run dev -w demo\""
+  },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
