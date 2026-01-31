@@ -340,6 +340,9 @@ export class Parser {
       case L.TRUE:
         return this.parseBooleanLiteral(L.TRUE);
 
+      case L.NULL:
+        return this.parseNullLiteral();
+
       case L.LINE_STRING:
         return this.parseStringLiteral();
 
@@ -534,6 +537,10 @@ export class Parser {
     }
 
     return new LiteralNode([this.parseToken(type)], type === L.TRUE);
+  }
+
+  private parseNullLiteral() {
+    return new LiteralNode([this.parseToken(L.NULL)], null);
   }
 
   private parseStringLiteral() {

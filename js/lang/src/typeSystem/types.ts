@@ -1,9 +1,10 @@
 import { FuncParameter, FuncType, Member, MemberFlag } from ".";
-import { AnyType } from "./AnyType";
+import { AnyDefinitionType, AnyType } from "./AnyType";
 import { LiteralType } from "./LiteralType";
-import { NeverType } from "./NeverType";
+import { NeverDefinitionType, NeverType } from "./NeverType";
 import { ObjectDefinitionType } from "./ObjectType";
 import { UnknownType } from "./UnknownType";
+import { VoidDefinitionType, VoidType } from "./VoidType";
 
 export const objectDefinitionType: ObjectDefinitionType = new ObjectDefinitionType(
   "Object",
@@ -41,3 +42,10 @@ export const booleanType = booleanDefinitionType.createType([]);
 
 export const trueType = new LiteralType(true, booleanType);
 export const falseType = new LiteralType(false, booleanType);
+
+export const voidDefinitionType = new VoidDefinitionType("Void");
+export const voidType = VoidType.instance;
+
+export const neverDefinitionType = new NeverDefinitionType("Never");
+
+export const anyDefinitionType = new AnyDefinitionType("Any");

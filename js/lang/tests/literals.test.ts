@@ -1,3 +1,4 @@
+import assert from "assert";
 import { createLiteralType, parseExpression } from "../src";
 import { Environment } from "../src/common";
 import { defaultEnvironment } from "../src/defaultEnvironment";
@@ -88,5 +89,18 @@ describe("Literals", function () {
       environment: env,
     });
     assertTybscriType(parseResult.tree.valueType, numberListType);
+  });
+
+  it("filter with boolean literal returns list", function () {
+    const stringListType = listDefinitionType.createType([stringType]);
+    const env: Environment = {
+      ...defaultEnvironment,
+      symbols: [...defaultEnvironment.symbols, { name: "list", type: stringListType }],
+    };
+    const parseResult = parseExpression("list.filter { true }", {
+      environment: env,
+    });
+    assert.deepEqual(parseResult.diagnosticMessages, []);
+    assertTybscriType(parseResult.tree.valueType, stringListType);
   });
 });

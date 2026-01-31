@@ -10,7 +10,7 @@ export class UnknownType implements Type {
   private constructor() {}
 
   public isAssignableFrom(type: Type): boolean {
-    return false;
+    return type === UnknownType.instance;
   }
 
   public bind(bindings: TypeParameterBinding[]): Type {

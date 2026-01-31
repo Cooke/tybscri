@@ -18,7 +18,7 @@ public class UnknownType : TybscriType
 
     public override bool IsAssignableFrom(TybscriType source)
     {
-        return false;
+        return source == Instance;
     }
 
     public override TResult Visit<TResult>(TybscriTypeVisitor<TResult> visitor)

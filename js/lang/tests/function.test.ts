@@ -171,4 +171,24 @@ describe("Functions", function () {
     `);
     assertNoErrors(result);
   });
+
+  it("Null return type is recognized", function () {
+    const result = parseScript(`
+    fun returnsNull(): Null {
+      return null
+    }
+    `);
+    assertNoErrors(result);
+  });
+
+  it("Void type can be used in type annotations", function () {
+    const result = parseScript(`
+    val callback: (Number) => Void = { }
+    `);
+    // Void type is recognized (no "Cannot find name 'Void'" error)
+    const voidError = result.diagnosticMessages.find((m) =>
+      m.message.includes("Cannot find name 'Void'")
+    );
+    assert.equal(voidError, undefined);
+  });
 });

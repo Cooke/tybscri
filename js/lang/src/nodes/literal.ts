@@ -1,5 +1,5 @@
 import { CompileContext, ResolveContext } from "../common";
-import { numberType, stringType } from "../typeSystem";
+import { nullType, numberType, stringType } from "../typeSystem";
 import { LiteralType } from "../typeSystem/LiteralType";
 import { Node } from "./base";
 import { ExpressionNode } from "./expression";
@@ -17,6 +17,10 @@ export class LiteralNode extends ExpressionNode {
   }
 
   private calculateType(context: CompileContext) {
+    if (this.value === null) {
+      return nullType;
+    }
+
     switch (typeof this.value) {
       case "boolean":
         return new LiteralType(this.value, context.environment.booleanDefinition.createType([]));
