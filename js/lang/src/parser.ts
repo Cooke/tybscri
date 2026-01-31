@@ -149,15 +149,16 @@ export class Parser {
     const params = this.parseFunctionParameters();
     this.advanceWhileNL();
 
-    // let type: TypeSyntax | null = null;
-    // if (this.peek() === L.COLON) {
-    //   this.advance();
-    //   type = this.parseType();
-    // }
+    let returnType: TypeNode | null = null;
+    if (this.tokenType() === L.COLON) {
+      this.advance();
+      this.advanceWhileNL();
+      returnType = this.parseType();
+    }
 
     this.advanceWhileNL();
     const body = this.parseBlock();
-    const functionNode = new FunctionNode(identifier, params, body);
+    const functionNode = new FunctionNode(identifier, params, returnType, body);
     return functionNode;
   }
 

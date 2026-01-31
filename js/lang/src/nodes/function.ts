@@ -25,6 +25,8 @@ export class FunctionNode extends StatementNode {
       par.setupScopes(scope, context);
     }
 
+    this.returnType?.setupScopes(scope, context);
+
     this.body.setupScopes(
       new Scope(
         scope,
@@ -64,6 +66,7 @@ export class FunctionNode extends StatementNode {
     for (const par of this.parameters) {
       par.resolve(context.withExpectedType(null));
     }
+    this.returnType?.resolve(context.withExpectedType(null));
     this.body.resolve(context.withExpectedType(null));
 
     if (this._analyzeState !== "analyzing") {
@@ -71,12 +74,17 @@ export class FunctionNode extends StatementNode {
       return;
     }
 
-    const allReturns = this.findReturns(this.body);
-    const returnType = UnionType.create(
-      allReturns
-        .map((x) => x.expression?.valueType ?? nullType)
-        .concat([this.body.valueType])
-    );
+    let returnType;
+    if (this.returnType) {
+      returnType = this.returnType.type;
+    } else {
+      const allReturns = this.findReturns(this.body);
+      returnType = UnionType.create(
+        allReturns
+          .map((x) => x.expression?.valueType ?? nullType)
+          .concat([this.body.valueType])
+      );
+    }
 
     this._analyzeState = "analyzed";
     this.valueType = new FuncType(
@@ -108,10 +116,10 @@ export class FunctionNode extends StatementNode {
   constructor(
     public readonly name: TokenNode,
     public readonly parameters: FunctionParameterNode[],
-    // public readonly returnType: TypeSyntax | null,
+    public readonly returnType: TypeNode | null,
     public readonly body: BlockNode
   ) {
-    super([name, ...parameters, body]);
+    super([name, ...parameters, ...(returnType ? [returnType] : []), body]);
     this.symbol = new SourceSymbol(name.text, this);
   }
 }

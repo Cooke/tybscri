@@ -17,6 +17,7 @@ export class TypeNode extends Node {
   private typeSymbol: Symbol | null = null;
 
   public setupScopes(scope: Scope, context: CompileContext) {
+    this.node.setupScopes(scope, context);
     this.scope = scope;
   }
 
