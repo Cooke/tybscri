@@ -5,6 +5,7 @@ import { forwardRef, Ref, useEffect, useImperativeHandle, useRef } from "react";
 import { Environment, parseScript, printTree } from "tybscri";
 import { setEditorModelEnvironment } from "./common";
 import { init } from "./init";
+import { SemanticHighlighter } from "./SemanticHighlighter";
 
 export interface TybscriEditorProps {
   width?: string | number;
@@ -28,6 +29,7 @@ export const TybscriEditor = forwardRef(
 
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
     const environmentRef = useRef(props.environment);
+    const highlighterRef = useRef<SemanticHighlighter>();
 
     useImperativeHandle(
       ref,
@@ -51,6 +53,9 @@ export const TybscriEditor = forwardRef(
         editorRef.current.getModel(),
         props.environment
       );
+
+      // Update semantic highlighting with new environment
+      highlighterRef.current?.update(props.environment);
     }, [props.environment]);
 
     return (
@@ -63,6 +68,9 @@ export const TybscriEditor = forwardRef(
         onMount={(editor, monaco) => {
           editorRef.current = editor;
 
+          // Create semantic highlighter
+          highlighterRef.current = new SemanticHighlighter(editor);
+
           setEditorModelEnvironment(editor.getModel(), environmentRef.current);
           editor.onDidChangeModel((ev) => {
             setEditorModelEnvironment(
@@ -70,6 +78,9 @@ export const TybscriEditor = forwardRef(
               environmentRef.current
             );
           });
+
+          // Initial highlighting
+          highlighterRef.current.update(environmentRef.current);
 
           editor.onDidChangeModelContent((ev) => {
             const output = parseScript(editor.getValue(), {
@@ -91,6 +102,9 @@ export const TybscriEditor = forwardRef(
             });
             const textModel = editor.getModel()!;
             monaco.editor.setModelMarkers(textModel, "owner", errors);
+
+            // Update semantic highlighting
+            highlighterRef.current?.update(environmentRef.current);
           });
         }}
       />

@@ -21,6 +21,7 @@ export function init() {
         { open: "[", close: "]", notIn: ['".*"'] },
       ],
     });
+
     m.languages.setTokensProvider("tybscri", new TybscriTokensProvider());
     m.languages.registerCompletionItemProvider(
       "tybscri",

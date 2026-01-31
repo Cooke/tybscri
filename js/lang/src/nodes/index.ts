@@ -1,6 +1,15 @@
 export { Node } from "./base";
 export { MemberAccessNode } from "./memberAccess";
+export { MemberInvocationNode } from "./memberInvocation";
 export { ForNode } from "./for";
 export { WhileNode } from "./while";
 export { BreakNode } from "./break";
 export { ContinueNode } from "./continue";
+export { FunctionNode, FunctionParameterNode } from "./function";
+export { VariableDeclarationNode } from "./variableDeclaration";
+export { TypeNode } from "./type";
+export { IdentifierNode } from "./identifier";
+export { IdentifierInvocationNode } from "./identifierInvocation";
+export { TokenNode } from "./token";
+export { ScriptNode } from "./script";
+export { LambdaLiteralNode } from "./lambdaLiteral";
