@@ -12,20 +12,13 @@ Tybscri is a statically typed embeddable scripting language inspired by Kotlin a
 
 ```bash
 # Install dependencies (from js/)
-yarn install
+npm install
 
 # Build all packages
-yarn workspaces foreach run build
-
-# Language package (js/lang/)
-npm run build         # Compile TypeScript
-npm run dev           # Watch mode
-
-# React Editor (js/react-editor/)
 npm run build
 
-# Demo app (js/demo/)
-npm run dev           # Dev server at :3000
+# Run all package
+npm run dev           # Watch mode
 ```
 
 ### .NET (dotnet/)
@@ -38,23 +31,28 @@ dotnet test Tybscri.Test
 ## Testing
 
 ### JavaScript
+
 ```bash
 cd js/lang
 npm run test          # Run all tests
 npm run test:watch    # Watch mode
 ```
+
 Uses Mocha with ts-node. Test files are in `js/lang/tests/*.test.ts`.
 
 ### .NET
+
 ```bash
 cd dotnet
 dotnet test
 ```
+
 Uses XUnit. Test project is `Tybscri.Test/`.
 
 ### Testing Requirements
 
 All new features and bug fixes must include automated tests. Before submitting changes:
+
 1. Add tests covering the new functionality or fix
 2. Run the full test suite to ensure no regressions
 3. Tests should verify both success cases and error handling where applicable
@@ -62,6 +60,7 @@ All new features and bug fixes must include automated tests. Before submitting c
 ### Platform Parity
 
 The JavaScript and .NET implementations must stay in sync. When adding or modifying language features:
+
 1. Implement the feature in both `js/lang/` and `dotnet/Tybscri/`
 2. Add corresponding tests in both `js/lang/tests/` and `dotnet/Tybscri.Test/`
 3. Ensure behavior is consistent across platforms
@@ -105,6 +104,7 @@ Both implementations follow the same compilation pipeline:
 ### Language Syntax
 
 Kotlin/TypeScript-inspired:
+
 - `var`/`val` for variable declarations
 - `fun` for functions
 - Type annotations with `:`
