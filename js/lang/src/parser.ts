@@ -724,10 +724,21 @@ export class Parser {
 
   private advance() {
     this.tokenStream.advance();
+    // Skip comments
+    while (
+      this.tokenStream.tokenType === L.LINE_COMMENT ||
+      this.tokenStream.tokenType === L.BLOCK_COMMENT
+    ) {
+      this.tokenStream.advance();
+    }
   }
 
   private advanceWhileNL() {
-    while (this.tokenStream.tokenType === L.NL) {
+    while (
+      this.tokenStream.tokenType === L.NL ||
+      this.tokenStream.tokenType === L.LINE_COMMENT ||
+      this.tokenStream.tokenType === L.BLOCK_COMMENT
+    ) {
       this.tokenStream.advance();
     }
   }

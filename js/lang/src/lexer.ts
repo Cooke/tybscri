@@ -60,6 +60,10 @@ export const enum TokenType {
 
   // Whitespace
   NL = "NL",
+
+  // Comments
+  LINE_COMMENT = "LINE_COMMENT",
+  BLOCK_COMMENT = "BLOCK_COMMENT",
 }
 
 export class Token {
@@ -142,55 +146,50 @@ export class Lexer {
       this._column++;
     }
 
-    // Skip comments
-    while (this._index < this.input.length) {
-      if (
-        this._index + 1 < this.input.length &&
-        this.input[this._index] === "/" &&
-        this.input[this._index + 1] === "/"
+    // Check for comments - return them as tokens for highlighting
+    if (
+      this._index + 1 < this.input.length &&
+      this.input[this._index] === "/" &&
+      this.input[this._index + 1] === "/"
+    ) {
+      // Line comment
+      const startIndex = this._index;
+      while (
+        this._index < this.input.length &&
+        this.input[this._index] !== "\n" &&
+        this.input[this._index] !== "\r"
       ) {
-        // Line comment - skip to end of line
-        while (
-          this._index < this.input.length &&
-          this.input[this._index] !== "\n" &&
-          this.input[this._index] !== "\r"
-        ) {
-          this._index++;
-          this._column++;
-        }
-      } else if (
-        this._index + 1 < this.input.length &&
-        this.input[this._index] === "/" &&
-        this.input[this._index + 1] === "*"
-      ) {
-        // Block comment - skip to */
-        this._index += 2;
-        this._column += 2;
-        while (
-          this._index + 1 < this.input.length &&
-          !(this.input[this._index] === "*" && this.input[this._index + 1] === "/")
-        ) {
-          if (this.input[this._index] === "\n") {
-            this._line++;
-            this._column = 1;
-          } else if (this.input[this._index] !== "\r") {
-            this._column++;
-          }
-          this._index++;
-        }
-        if (this._index + 1 < this.input.length) {
-          this._index += 2;
-          this._column += 2;
-        }
-      } else {
-        break;
-      }
-
-      // Skip whitespace after comment
-      while (this._index < this.input.length && isWhitespace(this.input[this._index])) {
         this._index++;
-        this._column++;
       }
+      this._tokenType = TokenType.LINE_COMMENT;
+      this._tokenLength = this._index - startIndex;
+      this._index = startIndex; // Reset for proper token handling
+      this._token = null;
+      return;
+    }
+
+    if (
+      this._index + 1 < this.input.length &&
+      this.input[this._index] === "/" &&
+      this.input[this._index + 1] === "*"
+    ) {
+      // Block comment
+      const startIndex = this._index;
+      this._index += 2;
+      while (
+        this._index + 1 < this.input.length &&
+        !(this.input[this._index] === "*" && this.input[this._index + 1] === "/")
+      ) {
+        this._index++;
+      }
+      if (this._index + 1 < this.input.length) {
+        this._index += 2;
+      }
+      this._tokenType = TokenType.BLOCK_COMMENT;
+      this._tokenLength = this._index - startIndex;
+      this._index = startIndex; // Reset for proper token handling
+      this._token = null;
+      return;
     }
 
     this.parse();

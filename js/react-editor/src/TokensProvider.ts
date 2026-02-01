@@ -66,6 +66,8 @@ const scopeMap: { [key in TokenType]?: string } = {
   ...mapToScope([L.LINE_STRING], "string"),
   // Numbers
   ...mapToScope([L.INT, L.FLOAT], "number"),
+  // Comments
+  ...mapToScope([L.LINE_COMMENT, L.BLOCK_COMMENT], "comment"),
   // Operators
   ...mapToScope(
     [
