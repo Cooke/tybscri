@@ -62,4 +62,29 @@ public class LiteralTests
         var getOne = _compiler.EvaluateExpression<Func<double>>("{ 1 }");
         Assert.Equal(1f, getOne());
     }
+
+    [Fact]
+    public void StringWithUnicode()
+    {
+        Assert.Equal("Hello 世界 🌍", _compiler.EvaluateExpression<string>("\"Hello 世界 🌍\""));
+    }
+
+    [Fact]
+    public void StringWithVariousUnicodeScripts()
+    {
+        Assert.Equal("日本語 한국어 العربية", _compiler.EvaluateExpression<string>("\"日本語 한국어 العربية\""));
+    }
+
+    [Fact]
+    public void ScriptWithUnicodeComments()
+    {
+        // Line comments with unicode should be ignored
+        var result = _compiler.EvaluateScript<double>("""
+            // 日本語コメント
+            var x = 42
+            /* 中文注释 🎉 */
+            x
+            """);
+        Assert.Equal(42, result);
+    }
 }
